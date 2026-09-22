@@ -1,0 +1,6 @@
+{
+  "name": "نظام تسيير الرواتب والتقاعد",
+  "description": "نظام شامل لتسيير رواتب موظفي الوظيفة العمومية والتربية الوطنية، وإصدار كشوف الرواتب، وبرمجة وثائق التقاعد الرسمية (CNR)، وتوليد الوثائق الإدارية",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
