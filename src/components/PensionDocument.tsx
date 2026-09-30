@@ -24,9 +24,16 @@ interface PensionDocumentProps {
 
 interface MonthItem {
   key: string;       // YYYY-MM
-  label: string;     // e.g. "01/2021"
+  label: string;     // e.g. "جانفي 2021"
   salary: number;
+  yieldVal: number;  // علاوة المردودية الفصلية (تدفع كل 3 أشهر ابتداء من جانفي)
 }
+
+// أشهر دفع المردودية: كل ثلاثة أشهر ابتداء من جانفي (جانفي، أفريل، جويلية، أكتوبر)
+const isYieldMonth = (key: string) => {
+  const m = Number(key.slice(5, 7));
+  return m === 1 || m === 4 || m === 7 || m === 10;
+};
 
 // Split a full name into { lastName, firstName } — last token is the family name.
 const splitName = (full: string) => {
@@ -77,6 +84,19 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
     { from: '', to: '', rank: '', cat: '', grade: '', wage: '' },
   ]);
 
+  // 5 Yield (مردودية) programming rules — تدفع كل 3 أشهر ابتداء من جانفي
+  const [yieldRules, setYieldRules] = useState<Array<{
+    from: string;
+    to: string;
+    amount: string;
+  }>>([
+    { from: '', to: '', amount: '' },
+    { from: '', to: '', amount: '' },
+    { from: '', to: '', amount: '' },
+    { from: '', to: '', amount: '' },
+    { from: '', to: '', amount: '' },
+  ]);
+
   const [toast, setToast] = useState<string | null>(null);
   const triggerToast = (msg: string) => {
     setToast(msg);
@@ -94,12 +114,16 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
     const list: MonthItem[] = [];
     const basePayslip = computePayslip(emp, rMonth, rYear, settings);
     const standardWage = basePayslip.cnasBase || basePayslip.gross || 50000;
+    // المردودية الفصلية الافتراضية = مردودية 3 أشهر من كشف الراتب الحالي
+    const quarterlyYield = Math.round((basePayslip.perfBonusTotal || 0) * 3 * 100) / 100;
 
     // Check if employee has saved history records
     const histMap = new Map<string, number>();
+    const histPerf = new Map<string, number>();
     (emp.pensionHistory || []).forEach(h => {
-      if (h.key && h.wage) {
-        histMap.set(h.key, Number(h.wage));
+      if (h.key) {
+        if (h.wage) histMap.set(h.key, Number(h.wage));
+        if (h.perf !== undefined && h.perf !== null && h.perf !== '') histPerf.set(h.key, Number(h.perf));
       }
     });
 
@@ -108,16 +132,21 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
       const y = d.getFullYear();
       const m = d.getMonth() + 1;
       const key = `${y}-${String(m).padStart(2, '0')}`;
-      const mStr = String(m).padStart(2, '0');
-      const label = `${mStr}/${y}`;
+      const label = `${MONTHS_AR[m]} ${y}`;
 
       const savedWage = histMap.get(key);
       const finalSalary = savedWage !== undefined ? savedWage : standardWage;
 
+      const savedPerf = histPerf.get(key);
+      const yieldVal = savedPerf !== undefined
+        ? savedPerf
+        : (isYieldMonth(key) ? quarterlyYield : 0);
+
       list.push({
         key,
         label,
-        salary: finalSalary
+        salary: finalSalary,
+        yieldVal
       });
     }
 
@@ -148,10 +177,24 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
         { from: '', to: '', rank: '', cat: '', grade: '', wage: '' },
         { from: '', to: '', rank: '', cat: '', grade: '', wage: '' }
       ]);
+
+      // Populate initial yield rule 1: مردودية 3 أشهر من كشف الراتب الحالي
+      const quarterlyYield = Math.round((basePayslip.perfBonusTotal || 0) * 3 * 100) / 100;
+      setYieldRules([
+        {
+          from: firstMonth,
+          to: lastMonth,
+          amount: quarterlyYield > 0 ? String(quarterlyYield) : ''
+        },
+        { from: '', to: '', amount: '' },
+        { from: '', to: '', amount: '' },
+        { from: '', to: '', amount: '' },
+        { from: '', to: '', amount: '' }
+      ]);
     }
   }, [empId, refMonth, refYear]);
 
-  // Apply salary rules to the 60 months
+  // Apply salary + yield rules to the 60 months
   const applySalaryRules = () => {
     if (!monthsData.length) return;
     const updated = monthsData.map(m => {
@@ -163,7 +206,18 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
           }
         }
       }
-      return { ...m, salary };
+
+      // المردودية: تُطبق على أشهر جانفي/أفريل/جويلية/أكتوبر داخل الفترة
+      let yieldVal = m.yieldVal;
+      for (const rule of yieldRules) {
+        if (rule.from && rule.to && rule.amount) {
+          if (isYieldMonth(m.key) && m.key >= rule.from && m.key <= rule.to) {
+            yieldVal = Number(rule.amount) || 0;
+          }
+        }
+      }
+
+      return { ...m, salary, yieldVal };
     });
 
     setMonthsData(updated);
@@ -173,6 +227,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
       const newHistory = updated.map(m => ({
         key: m.key,
         wage: m.salary,
+        perf: m.yieldVal || 0,
         note: 'مبرمج من كشف التقاعد'
       }));
       onUpdateEmployee({
@@ -181,17 +236,17 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
       });
     }
 
-    triggerToast('تم تطبيق وحفظ أجور التقاعد على الـ 60 شهراً بنجاح ✓');
+    triggerToast('تم تطبيق وحفظ الأجور والمردودية على الـ 60 شهراً بنجاح ✓');
     setShowConfigPanel(false);
   };
 
-  // Block Totals (5 Blocks of 12 months each)
+  // Block Totals (5 Blocks of 12 months each) — تشمل المردودية
   const blockTotals = useMemo(() => {
     const totals: number[] = [0, 0, 0, 0, 0];
     monthsData.forEach((m, idx) => {
       const b = Math.floor(idx / 12);
       if (b >= 0 && b < 5) {
-        totals[b] += Number(m.salary) || 0;
+        totals[b] += (Number(m.salary) || 0) + (Number(m.yieldVal) || 0);
       }
     });
     return totals;
@@ -278,7 +333,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
               className="bg-[#2c4e80] hover:bg-[#203a60] text-white px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
             >
               <Settings2 className="w-4 h-4" />
-              <span>{showConfigPanel ? 'إخفاء لوحة البرمجة' : '⚙ ضبط وبرمجة الأجور'}</span>
+              <span>{showConfigPanel ? 'إخفاء لوحة البرمجة' : '⚙ ضبط وبرمجة الأجور والمردودية'}</span>
             </button>
 
             <button
@@ -499,6 +554,74 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
               </table>
             </div>
 
+            {/* ===== جدول برمجة علاوة المردودية ===== */}
+            <div className="flex items-center justify-between mb-3 mt-6">
+              <div className="text-sm font-black text-[#8a5a00] flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-amber-600" />
+                <span>برمجة علاوة المردودية — تدفع كل ثلاثة (3) أشهر ابتداء من جانفي</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-[#706958] mb-4">
+              تُضاف المردودية تلقائياً لأشهر <b>جانفي، أفريل، جويلية وأكتوبر</b> من كل سنة داخل الفترة المحددة، ويُعرض المبلغ في خانة الشهر مضافاً إلى الأجر الخاضع للاشتراك، مع احتسابه في المجاميع والمعدل العام.
+            </p>
+
+            <div className="overflow-x-auto rounded-xl border border-[#e5d9b8] bg-white">
+              <table className="w-full text-right text-xs border-collapse">
+                <thead>
+                  <tr className="bg-[#f5eedb] text-[#5c4300] border-b border-[#e5d9b8]">
+                    <th className="p-2.5">الفترة من (شهر/سنة)</th>
+                    <th className="p-2.5">إلى (شهر/سنة)</th>
+                    <th className="p-2.5">مبلغ المردودية الفصلي (دج) — كل 3 أشهر</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#f0e6cb]">
+                  {yieldRules.map((rule, idx) => (
+                    <tr key={idx}>
+                      <td className="p-2">
+                        <input
+                          type="month"
+                          value={rule.from}
+                          onChange={e => {
+                            const copy = [...yieldRules];
+                            copy[idx].from = e.target.value;
+                            setYieldRules(copy);
+                          }}
+                          className="w-full bg-[#faf8f2] border border-[#cfc4ac] rounded-lg px-2 py-1 font-mono text-center"
+                        />
+                      </td>
+                      <td className="p-2">
+                        <input
+                          type="month"
+                          value={rule.to}
+                          onChange={e => {
+                            const copy = [...yieldRules];
+                            copy[idx].to = e.target.value;
+                            setYieldRules(copy);
+                          }}
+                          className="w-full bg-[#faf8f2] border border-[#cfc4ac] rounded-lg px-2 py-1 font-mono text-center"
+                        />
+                      </td>
+                      <td className="p-2">
+                        <input
+                          type="number"
+                          step="0.01"
+                          placeholder="مبلغ المردودية الفصلي"
+                          value={rule.amount}
+                          onChange={e => {
+                            const copy = [...yieldRules];
+                            copy[idx].amount = e.target.value;
+                            setYieldRules(copy);
+                          }}
+                          className="w-full bg-[#faf8f2] border border-[#cfc4ac] rounded-lg px-2 py-1 font-mono font-bold text-center text-[#8a5a00]"
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
             <div className="flex justify-end gap-2 mt-4">
               <button
                 type="button"
@@ -506,7 +629,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                 className="bg-[#176b4a] hover:bg-[#12553b] text-white px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm"
               >
                 <Save className="w-4 h-4" />
-                <span>حفظ وتطبيق البرمجة على الـ 60 شهراً</span>
+                <span>حفظ وتطبيق البرمجة (الأجور + المردودية) على الـ 60 شهراً</span>
               </button>
             </div>
           </div>
@@ -865,6 +988,9 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
         .cnrb-page .cnrb-th-ar { font-size: 9pt; font-weight: bold; line-height: 1.1; display: block; }
         .cnrb-page .cnrb-th-fr { font-size: 7.5pt; font-weight: bold; line-height: 1.1; display: block; margin-top: 1px; }
         .cnrb-page .cnrb-block-table td.cnrb-data-cell { height: 8.4mm; font-size: 9.5pt; unicode-bidi: plaintext; }
+        .cnrb-page .cnrb-month-cell { font-weight: 700; font-size: 9pt; }
+        .cnrb-page .cnrb-sal-val { display: block; line-height: 1.15; }
+        .cnrb-page .cnrb-yield-note { display: block; font-size: 6.8pt; font-weight: 700; color: #1e3fae; line-height: 1.05; }
         .cnrb-page .cnrb-block-table td.cnrb-total-cell { height: 11mm; font-weight: bold; background: #fff; }
         .cnrb-page .cnrb-total-ar { font-size: 9.5pt; font-weight: bold; display: block; }
         .cnrb-page .cnrb-total-fr { font-size: 8.5pt; font-weight: bold; display: block; }
@@ -920,8 +1046,13 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
               <tbody>
                 {blockMonths(j).map((m, r) => (
                   <tr key={r}>
-                    <td className="cnrb-data-cell" contentEditable suppressContentEditableWarning>{m.label}</td>
-                    <td className="cnrb-data-cell" contentEditable suppressContentEditableWarning>{fmt(m.salary)}</td>
+                    <td className="cnrb-data-cell cnrb-month-cell" contentEditable suppressContentEditableWarning>{m.label}</td>
+                    <td className="cnrb-data-cell" contentEditable suppressContentEditableWarning>
+                      <span className="cnrb-sal-val">{fmt(m.salary + (m.yieldVal || 0))}</span>
+                      {!!m.yieldVal && (
+                        <span className="cnrb-yield-note ar">منها مردودية: {fmt(m.yieldVal)}</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
                 <tr>

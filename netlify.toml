@@ -1,0 +1,13 @@
+# إعدادات النشر على Netlify — نظام تسيير الرواتب والتقاعد
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# توجيه صفحة واحدة (SPA) — كل المسارات تُخدم index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
