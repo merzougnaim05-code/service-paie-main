@@ -12,12 +12,16 @@ interface AutoFitScaleProps {
  * no inline styles → clean HTML export). On narrow screens (mode phone or real
  * phones) the document is scaled down with CSS transform and the wrapper height
  * is adjusted accordingly. Print output is never scaled.
+ *
+ * إصلاح التداخل: تُقاس الأبعاد بعد اكتمال الخطوط والصور مع إعادة قياس مؤجلة،
+ * ولا تُعرض الوثيقة إلا بعد أول قياس حتى لا تومض بحجمها الكامل وتتداخل مع ما حولها.
  */
 export const AutoFitScale: React.FC<AutoFitScaleProps> = ({ docWidth, children }) => {
   const outerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
   const [contentHeight, setContentHeight] = useState(0);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const outer = outerRef.current;
@@ -29,13 +33,27 @@ export const AutoFitScale: React.FC<AutoFitScaleProps> = ({ docWidth, children }
       const s = w > 0 && w < docWidth ? w / docWidth : 1;
       setScale(s);
       setContentHeight(inner.scrollHeight);
+      setReady(true);
     };
 
     update();
     const ro = new ResizeObserver(update);
     ro.observe(outer);
     ro.observe(inner);
-    return () => ro.disconnect();
+
+    // إعادة القياس بعد تحميل الخطوط والصور (شعار CNR) لتفادي ارتفاع قديم أقل من الحقيقي
+    let cancelled = false;
+    const remeasure = () => { if (!cancelled) update(); };
+    if (document.fonts?.ready) document.fonts.ready.then(remeasure).catch(() => {});
+    window.addEventListener('load', remeasure);
+    const timers = [120, 350, 800, 1500].map(ms => window.setTimeout(remeasure, ms));
+
+    return () => {
+      cancelled = true;
+      ro.disconnect();
+      window.removeEventListener('load', remeasure);
+      timers.forEach(t => window.clearTimeout(t));
+    };
   }, [docWidth]);
 
   return (
@@ -57,7 +75,8 @@ export const AutoFitScale: React.FC<AutoFitScaleProps> = ({ docWidth, children }
           width: docWidth,
           margin: '0 auto',
           transform: scale < 1 ? `scale(${scale})` : undefined,
-          transformOrigin: 'top center'
+          transformOrigin: 'top center',
+          opacity: ready ? 1 : 0
         }}
       >
         {children}

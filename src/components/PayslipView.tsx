@@ -57,6 +57,225 @@ function buildAnnual(emp: Employee, year: number, settings: Settings) {
   };
 }
 
+/* ================= وثيقة كشف الراتب (صفحة A4 واحدة) ================= */
+
+interface SheetRow {
+  name: string;
+  detail: string;
+  amount: number;
+}
+
+interface SheetSection {
+  title: string;
+  rows: SheetRow[];
+  subtotalLabel: string;
+  subtotalAmount: number;
+  extraRows?: { label: string; amount: number }[];
+  amountHeader?: string;
+}
+
+interface PayslipSheetProps {
+  bigTitle: string;
+  specimen: boolean;
+  serial: string;
+  issueDate: string;
+  directorate: string;
+  institution: string;
+  periodLine: React.ReactNode;
+  infoItems: { label: string; value: React.ReactNode }[];
+  gridLine: React.ReactNode;
+  allowances: SheetSection;
+  deductions: SheetSection;
+  netLabel: string;
+  net: number;
+  qrDataUrl: string;
+  pageBreak: boolean;
+}
+
+const PayslipSheet: React.FC<PayslipSheetProps> = ({
+  bigTitle,
+  specimen,
+  serial,
+  issueDate,
+  directorate,
+  institution,
+  periodLine,
+  infoItems,
+  gridLine,
+  allowances,
+  deductions,
+  netLabel,
+  net,
+  qrDataUrl,
+  pageBreak
+}) => (
+  <div
+    className={`payslip-page ${pageBreak ? 'print:break-after-page' : ''}`}
+    style={pageBreak ? { breakAfter: 'page' } : undefined}
+  >
+    <div
+      className="payslip-document bg-white border-2 border-black rounded-2xl p-4 sm:p-5 max-w-[760px] w-full text-black font-bold shadow-lg font-['Noto_Naskh_Arabic',serif] print:shadow-none print:rounded-none"
+      style={{ direction: 'rtl' }}
+    >
+      {/* Header */}
+      <div className="text-center pb-2 mb-2 border-b-[3px] border-double border-black">
+        <h1 className="text-[11px] sm:text-xs font-bold text-gray-800 mb-0.5">
+          الجمهورية الجزائرية الديمقراطية الشعبية
+        </h1>
+        <h2 className="text-[13px] sm:text-sm font-bold text-gray-900 underline decoration-black mb-1">
+          وزارة التربية الوطنية
+        </h2>
+        <h3 className="text-xl sm:text-2xl font-extrabold text-gray-950 my-1.5 tracking-widest">
+          {bigTitle}
+        </h3>
+
+        {specimen && (
+          <div className="inline-block px-3 py-0.5 border-2 border-dashed border-black text-black text-[10px] font-bold rounded mb-1">
+            نموذج — غير معتمد للمعاملات الإدارية
+          </div>
+        )}
+
+        {/* معلومات المؤسسة والتوثيق — موسّطة في الوسط */}
+        <div className="text-center text-[10.5px] sm:text-[11px] text-gray-800 mt-1.5 space-y-0.5">
+          <div><strong>المديرية:</strong> مديرية التربية لولاية {directorate}</div>
+          <div><strong>المؤسسة:</strong> {institution}</div>
+          <div>
+            <strong>الرقم التسلسلي:</strong> <span className="font-mono">{serial}</span>
+            {' '}•{' '}
+            <strong>تاريخ الإصدار:</strong> <span className="font-mono">{issueDate}</span>
+          </div>
+        </div>
+
+        <div className="text-center font-bold text-[13px] text-gray-900 mt-1.5">
+          {periodLine}
+        </div>
+      </div>
+
+      {/* Employee Info — موسّطة في الوسط */}
+      <div className="border border-black rounded-lg p-2.5 mb-2.5 text-[11px] leading-relaxed">
+        <div className="text-center font-bold text-[13px] text-gray-900 border-b border-black pb-1 mb-1.5">
+          مـعـلـومـات الـمـوظـف
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-center">
+          {infoItems.map((it, i) => (
+            <div key={i} className="border-b border-dotted border-black pb-0.5">
+              <span className="font-bold text-gray-700">{it.label}:</span>{' '}
+              <span className="font-black text-gray-950">{it.value}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="text-center text-[9.5px] sm:text-[10.5px] text-gray-700 mt-1.5 border-t border-dotted border-black pt-1">
+          {gridLine}
+        </div>
+      </div>
+
+      {/* Allowances Table — الأرقام موسّطة */}
+      <div className="mb-2.5">
+        <div className="bg-black text-white text-center py-1 font-bold text-[11px] sm:text-xs">
+          {allowances.title}
+        </div>
+        <table className="w-full border-collapse text-[11px] border-2 border-black">
+          <thead>
+            <tr className="bg-white border-b-2 border-black text-black">
+              <th className="p-1 text-right w-[45%]">البيان</th>
+              <th className="p-1 text-center w-[32%]">التفاصيل / النسبة</th>
+              <th className="p-1 text-center w-[23%] font-mono">{allowances.amountHeader || 'المبلغ (دج)'}</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-dotted divide-black">
+            {allowances.rows.map((r, i) => (
+              <tr key={i}>
+                <td className="p-1 font-bold text-right flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-black shrink-0" />
+                  <span>{r.name}</span>
+                </td>
+                <td className="p-1 text-center text-gray-800">{r.detail}</td>
+                <td className="p-1 text-center font-mono font-bold">{fmt(r.amount)}</td>
+              </tr>
+            ))}
+            <tr className="border-t-2 border-black font-bold">
+              <td colSpan={2} className="p-1.5 text-center text-gray-900">{allowances.subtotalLabel}</td>
+              <td className="p-1.5 text-center font-mono font-black text-[12px]">{fmt(allowances.subtotalAmount)}</td>
+            </tr>
+            {allowances.extraRows?.map((r, i) => (
+              <tr key={`x${i}`} className="font-bold">
+                <td colSpan={2} className="p-1 text-center">{r.label}</td>
+                <td className="p-1 text-center font-mono">{fmt(r.amount)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Deductions Table — الأرقام موسّطة */}
+      <div className="mb-2.5">
+        <div className="text-center font-bold text-[11px] sm:text-xs text-gray-900 py-0.5">
+          {deductions.title}
+        </div>
+        <table className="w-full border-collapse text-[11px] border-2 border-black">
+          <tbody className="divide-y divide-dotted divide-black">
+            {deductions.rows.map((r, i) => (
+              <tr key={i}>
+                <td className="p-1 font-semibold text-right w-[45%] flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-black shrink-0" />
+                  <span>{r.name}</span>
+                </td>
+                <td className="p-1 text-center text-gray-800 w-[32%]">{r.detail}</td>
+                <td className="p-1 text-center font-mono font-bold w-[23%]">{fmt(r.amount)}</td>
+              </tr>
+            ))}
+            <tr className="border-t-2 border-black font-bold">
+              <td colSpan={2} className="p-1.5 text-center text-gray-900">{deductions.subtotalLabel}</td>
+              <td className="p-1.5 text-center font-mono font-black text-[12px] text-black">
+                {fmt(deductions.subtotalAmount)}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* Net Pay Callout */}
+      <div className="net-callout border-2 border-black bg-white p-2 sm:p-2.5 text-center mb-2 rounded-lg">
+        <div className="text-[12px] sm:text-sm font-bold text-gray-800 mb-0.5">{netLabel}</div>
+        <div className="flex items-baseline justify-center gap-1 text-[#111]">
+          <span className="text-xl sm:text-2xl font-black font-mono tracking-tight">{fmt(net)}</span>
+          <span className="text-sm sm:text-base font-bold">دج</span>
+        </div>
+        <div className="text-[9.5px] sm:text-[10.5px] text-gray-800 mt-0.5 italic">
+          المبلغ بالأحرف: {amountWordsDZD(net)}
+        </div>
+      </div>
+
+      {/* Footer with QR Code and Signature */}
+      <div className="flex justify-between items-center pt-2 border-t border-dotted border-black text-[10px] text-center">
+        <div className="flex-1 text-center">
+          <div className="font-bold text-gray-800">إمضاء وختم المقتصد</div>
+          <div className="h-8 mt-0.5" />
+        </div>
+
+        <div className="flex-1 text-center">
+          <div className="font-bold text-gray-800">التحقق من صحة الكشف</div>
+          <div className="text-[9px] text-gray-500 mt-0.5">امسح رمز الاستجابة السريعة QR</div>
+        </div>
+
+        <div className="flex-1 flex justify-center">
+          {qrDataUrl ? (
+            <img src={qrDataUrl} alt="QR Code" className="w-14 h-14 border border-black p-0.5 rounded bg-white" />
+          ) : (
+            <div className="w-14 h-14 border border-black flex items-center justify-center text-[10px] text-gray-500 bg-white">
+              QR
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+/* ================= الواجهة الرئيسية ================= */
+
 export const PayslipView: React.FC<PayslipViewProps> = ({
   employees,
   settings,
@@ -65,11 +284,12 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
   const [empId, setEmpId] = useState<string>(selectedEmpId || employees[0]?.id || '');
   const [month, setMonth] = useState<number>(new Date().getMonth() + 1);
   const [year, setYear] = useState<number>(new Date().getFullYear());
-  const [mode, setMode] = useState<'monthly' | 'annual'>('monthly');
   const [specimen, setSpecimen] = useState<boolean>(false);
   const [exporting, setExporting] = useState<boolean>(false);
-  const [qrDataUrl, setQrDataUrl] = useState<string>('');
-  const payslipRef = useRef<HTMLDivElement>(null);
+  const [qrMonthly, setQrMonthly] = useState<string>('');
+  const [qrAnnual, setQrAnnual] = useState<string>('');
+  const monthlyRef = useRef<HTMLDivElement>(null);
+  const annualRef = useRef<HTMLDivElement>(null);
 
   const currentEmployee = employees.find(e => e.id === empId) || employees[0];
   const currentJob = currentEmployee ? JOBS[currentEmployee.jobIdx] : undefined;
@@ -78,38 +298,32 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
     ? computePayslip(currentEmployee, month, year, settings)
     : null;
 
-  const annual = currentEmployee && mode === 'annual'
-    ? buildAnnual(currentEmployee, year, settings)
-    : null;
+  const annual = currentEmployee ? buildAnnual(currentEmployee, year, settings) : null;
 
-  // Generate QR code for payslip verification
+  // Generate QR codes for both payslips
   useEffect(() => {
-    if (currentEmployee && result) {
-      const serial = String(currentEmployee.id).replace(/\D/g, '').slice(-7).padStart(7, '0') || '1029384';
-      const isAnnual = mode === 'annual' && annual;
-      const period = isAnnual ? `سنة ${year}` : `${MONTHS_AR[month]} ${year}`;
-      const netText = isAnnual
-        ? `الصافي السنوي: ${fmt(annual!.net)} دج`
-        : `الصافي للدفع: ${fmt(result.net)} دج`;
-      const text = `${isAnnual ? 'كشف راتب سنوي' : 'كشف الراتب'} | ${currentEmployee.name} | ${currentJob?.name || ''} | ${period} | ${netText} | مؤسسة: ${settings.institution} | رقم: ${serial}`;
-      QRCode.toDataURL(text, { width: 100, margin: 1 })
-        .then(url => setQrDataUrl(url))
-        .catch(err => console.error(err));
-    }
-  }, [currentEmployee, result, annual, mode, month, year, settings.institution]);
+    if (!currentEmployee || !result || !annual) return;
+    const serial = String(currentEmployee.id).replace(/\D/g, '').slice(-7).padStart(7, '0') || '1029384';
+    const base = `${currentEmployee.name} | ${currentJob?.name || ''} | مؤسسة: ${settings.institution} | رقم: ${serial}`;
+    QRCode.toDataURL(`كشف الراتب | ${base} | ${MONTHS_AR[month]} ${year} | الصافي: ${fmt(result.net)} دج`, { width: 100, margin: 1 })
+      .then(setQrMonthly)
+      .catch(() => {});
+    QRCode.toDataURL(`كشف راتب سنوي | ${base} | سنة ${year} | الصافي السنوي: ${fmt(annual.net)} دج`, { width: 100, margin: 1 })
+      .then(setQrAnnual)
+      .catch(() => {});
+  }, [currentEmployee, result, annual, month, year, settings.institution]);
 
   const handlePrint = () => {
     window.print();
   };
 
   const handleDownload = async () => {
-    if (!payslipRef.current || exporting) return;
+    if (exporting) return;
+    const els = [monthlyRef.current, annualRef.current].filter((el): el is HTMLDivElement => !!el);
+    if (els.length === 0) return;
     setExporting(true);
     try {
-      const filename = mode === 'annual'
-        ? `كشف_الراتب_السنوي_${currentEmployee?.name || 'موظف'}_${year}.pdf`
-        : `كشف_الراتب_${currentEmployee?.name || 'موظف'}_${month}_${year}.pdf`;
-      await exportElementsToPdf([payslipRef.current], filename);
+      await exportElementsToPdf(els, `كشف_الرواتب_الشهري_والسنوي_${currentEmployee?.name || 'موظف'}_${year}.pdf`);
     } catch (err) {
       console.error(err);
       alert('تعذر توليد ملف PDF، يرجى المحاولة مرة أخرى.');
@@ -118,7 +332,7 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
     }
   };
 
-  if (!currentEmployee || !result) {
+  if (!currentEmployee || !result || !annual) {
     return (
       <div className="py-12 text-center text-[#64748b]">
         لا يوجد موظف محدد لعرض كشف الراتب. يرجى تسجيل موظف أولاً.
@@ -132,14 +346,133 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
   const grossExcludingPerf = Math.max(0, result.gross - result.perfBonusTotal);
   const totalDeductions = result.cnasDeduction + result.irgTax + result.mutDeduction + result.perfBonusTax;
 
-  const bigTitle = mode === 'annual'
-    ? (specimen ? 'كــــشــــف الـــــراتـــــب السنوي النموذجي' : 'كــــشــــف الـــــراتـــــب السنوي')
-    : (specimen ? 'كــــشــــف الـــــراتـــــب النموذجي' : 'كــــشــــف الـــــراتـــــب');
+  const annualGrossExcludingPerf = Math.max(0, annual.gross - annual.perfBonusTotal);
+  const annualTotalDeductions = Math.round((annual.cnasDeduction + annual.mutDeduction + annual.irgTax + annual.perfBonusTax) * 100) / 100;
 
-  const annualGrossExcludingPerf = annual ? Math.max(0, annual.gross - annual.perfBonusTotal) : 0;
-  const annualTotalDeductions = annual
-    ? Math.round((annual.cnasDeduction + annual.mutDeduction + annual.irgTax + annual.perfBonusTax) * 100) / 100
-    : 0;
+  const monthlyTitle = specimen ? 'كــــشــــف الـــــراتـــــب النموذجي' : 'كــــشــــف الـــــراتـــــب';
+  const annualTitle = specimen ? 'كــــشــــف الـــــراتـــــب السنوي النموذجي' : 'كــــشــــف الـــــراتـــــب السنوي';
+
+  const infoItems = [
+    { label: 'الاسم واللقب', value: currentEmployee.name },
+    { label: 'الوضعية العائلية', value: currentEmployee.marital },
+    { label: 'الرتبة / المنصب', value: currentJob?.name || '—' },
+    { label: 'عدد الأطفال', value: String(currentEmployee.children).padStart(2, '0') },
+    { label: 'الرقم الاستدلالي', value: index },
+    { label: 'الصنف / الدرجة', value: isProfessionalWorkerJob(currentJob) ? `${result.g.cat} / ${result.years} سنة` : `${result.g.cat} / ${currentEmployee.echelon}` },
+    { label: 'رقم الضمان (SSN)', value: currentEmployee.ssn || '—' },
+    { label: 'تاريخ التوظيف', value: currentEmployee.hireDate || '—' }
+  ];
+
+  const gridLine = (
+    <>
+      <strong>الشبكة الاستدلالية المعتمدة:</strong> {result.gridName} ({result.gridDecree}) — قيمة النقطة الاستدلالية:{' '}
+      <span className="font-mono font-bold">{fmt(result.pointVal)}</span> دج
+    </>
+  );
+
+  /* ===== صفوف الكشف الشهري ===== */
+  const monthlyAllowances: SheetSection = {
+    title: 'الـمـنـح والـعـلاوات',
+    amountHeader: 'المبلغ (دج)',
+    rows: [
+      { name: 'الأجر القاعدي', detail: `${result.g.base} × ${fmt(result.pointVal)}`, amount: result.basic },
+      ...(result.seniority > 0
+        ? [{
+            name: 'الخبرة المهنية',
+            detail: isProfessionalWorkerJob(currentJob) ? `1.4% × ${result.years} سنة` : `الدرجة ${currentEmployee.echelon}`,
+            amount: result.seniority
+          }]
+        : []),
+      ...result.allAllowances.filter(a => a.amount > 0).map(a => ({
+        name: a.name.replace(/\s*\([^)]*\)\s*$/, ''),
+        detail: a.name.includes('(') ? a.name.match(/\(([^)]+)\)/)?.[1] || '' : '....................',
+        amount: a.amount
+      })),
+      ...(result.familyTotal > 0
+        ? [{
+            name: 'المنح العائلية',
+            detail: `${currentEmployee.children} طفل ${currentEmployee.singleWage ? '+ أجر وحيد' : ''}`.trim(),
+            amount: result.familyTotal
+          }]
+        : [])
+    ],
+    subtotalLabel: 'خام الراتب الإجمالي (دون المردودية)',
+    subtotalAmount: grossExcludingPerf,
+    extraRows: result.perfBonusTotal > 0
+      ? [
+          { label: 'خام علاوة الأداء / المردودية', amount: result.perfBonusTotal },
+          { label: 'صافي المردودية (بعد اقتطاع الضريبة 10%)', amount: result.perfBonusTotal - result.perfBonusTax }
+        ]
+      : undefined
+  };
+
+  const monthlyDeductions: SheetSection = {
+    title: 'الاقتطاعات القانونية',
+    rows: [
+      { name: 'اقتطاع الضمان الاجتماعي (CNAS)', detail: `${fmt(result.cnasRate)}% من الأجر الخاضع`, amount: result.cnasDeduction },
+      { name: 'اقتطاع الضريبة على الدخل (IRG)', detail: 'سلم الضريبة الساري في سنة الكشف', amount: result.irgTax },
+      ...(result.mutDeduction > 0
+        ? [{ name: 'اقتطاع التعاضدية', detail: '1% من الأجر الخام', amount: result.mutDeduction }]
+        : []),
+      ...(result.perfBonusTax > 0
+        ? [{ name: 'ضريبة علاوة الأداء (10%)', detail: '10% ثابتة', amount: result.perfBonusTax }]
+        : [])
+    ],
+    subtotalLabel: 'إجمالي الاقتطاعات',
+    subtotalAmount: totalDeductions
+  };
+
+  /* ===== صفوف الكشف السنوي ===== */
+  const annualAllowances: SheetSection = {
+    title: 'الـمـنـح والـعـلاوات — مجموع 12 شهراً',
+    amountHeader: 'المبلغ السنوي (دج)',
+    rows: [
+      { name: 'الأجر القاعدي', detail: `${result.g.base} × ${fmt(result.pointVal)} × 12`, amount: annual.basic },
+      ...(annual.seniority > 0
+        ? [{
+            name: 'الخبرة المهنية',
+            detail: isProfessionalWorkerJob(currentJob) ? `1.4% سنوياً — ${annual.years} سنة` : `الدرجة ${currentEmployee.echelon} — مجموع 12 شهراً`,
+            amount: annual.seniority
+          }]
+        : []),
+      ...annual.allowanceRows.map(al => ({
+        name: al.name,
+        detail: 'مجموع 12 شهراً',
+        amount: al.amount
+      })),
+      ...(annual.familyTotal > 0
+        ? [{
+            name: 'المنح العائلية',
+            detail: `${currentEmployee.children} طفل ${currentEmployee.singleWage ? '+ أجر وحيد' : ''} — 12 شهراً`.trim(),
+            amount: annual.familyTotal
+          }]
+        : [])
+    ],
+    subtotalLabel: 'خام الراتب السنوي الإجمالي (دون المردودية)',
+    subtotalAmount: annualGrossExcludingPerf,
+    extraRows: annual.perfBonusTotal > 0
+      ? [
+          { label: 'خام علاوة الأداء / المردودية السنوية', amount: annual.perfBonusTotal },
+          { label: 'صافي المردودية السنوية (بعد اقتطاع الضريبة 10%)', amount: annual.perfBonusTotal - annual.perfBonusTax }
+        ]
+      : undefined
+  };
+
+  const annualDeductions: SheetSection = {
+    title: 'الاقتطاعات القانونية السنوية',
+    rows: [
+      { name: 'اقتطاع الضمان الاجتماعي (CNAS)', detail: `${fmt(result.cnasRate)}% من الأجر الخاضع — 12 شهراً`, amount: annual.cnasDeduction },
+      { name: 'اقتطاع الضريبة على الدخل (IRG)', detail: 'مجموع ضرائب الأشهر الـ12 وفق سلم سنة الكشف', amount: annual.irgTax },
+      ...(annual.mutDeduction > 0
+        ? [{ name: 'اقتطاع التعاضدية', detail: '1% من الأجر الخام — 12 شهراً', amount: annual.mutDeduction }]
+        : []),
+      ...(annual.perfBonusTax > 0
+        ? [{ name: 'ضريبة علاوة الأداء (10%)', detail: '10% ثابتة — 12 شهراً', amount: annual.perfBonusTax }]
+        : [])
+    ],
+    subtotalLabel: 'إجمالي الاقتطاعات السنوية',
+    subtotalAmount: annualTotalDeductions
+  };
 
   return (
     <div className="py-6 max-w-4xl mx-auto px-4 print:py-0 print:px-0">
@@ -148,10 +481,10 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 mb-4 border-b border-[#e2e8f0]">
           <div>
             <h2 className="text-xl sm:text-2xl font-black text-[#0f172a]">
-              كشف الراتب الشهري (Fiche de Paie)
+              كشف الرواتب الشهري والسنوي (Fiche de Paie)
             </h2>
             <p className="text-xs text-[#64748b] mt-0.5">
-              نموذج معتمد وفق الشبكات الاستدلالية الرسمية المتعاقبة (07-304، 22-138، 23-54) وسلم الضريبة IRG الساري في سنة الكشف.
+              وثيقة واحدة تضم كشفي الشهر والسنة معاً — كل كشف يُطبع في ورقة A4 مستقلة — وفق الشبكات الاستدلالية الرسمية وسلم الضريبة IRG الساري في سنة الكشف.
             </p>
           </div>
 
@@ -161,7 +494,7 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
               className="bg-[#047857] hover:bg-[#065f46] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
             >
               <Printer className="w-4 h-4" />
-              <span>طباعة الكشف</span>
+              <span>طباعة الوثيقة (صفحتان)</span>
             </button>
             <button
               onClick={handleDownload}
@@ -169,28 +502,13 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
               className="bg-white hover:bg-[#f1f5f9] text-[#047857] border border-[#047857] px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-60 disabled:cursor-wait"
             >
               <Download className="w-4 h-4" />
-              <span>{exporting ? 'جاري التوليد...' : 'تحميل (PDF)'}</span>
+              <span>{exporting ? 'جاري التوليد...' : 'تحميل (PDF) — كشفان'}</span>
             </button>
           </div>
         </div>
 
-        {/* نوع الكشف + النسخة النموذجية */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
-          <div className="flex bg-white border border-[#cbd5e1] rounded-xl p-1 gap-1 w-fit">
-            <button
-              onClick={() => setMode('monthly')}
-              className={`px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${mode === 'monthly' ? 'bg-[#047857] text-white shadow-sm' : 'text-[#0f172a] hover:bg-[#f1f5f9]'}`}
-            >
-              كشف شهري
-            </button>
-            <button
-              onClick={() => setMode('annual')}
-              className={`px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${mode === 'annual' ? 'bg-[#047857] text-white shadow-sm' : 'text-[#0f172a] hover:bg-[#f1f5f9]'}`}
-            >
-              كشف سنوي
-            </button>
-          </div>
-
+        {/* النسخة النموذجية */}
+        <div className="mb-4">
           <label className="flex items-center gap-2 text-xs sm:text-sm font-bold text-[#1e293b] cursor-pointer select-none w-fit">
             <input
               type="checkbox"
@@ -198,7 +516,7 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
               onChange={e => setSpecimen(e.target.checked)}
               className="w-4 h-4 accent-[#047857] cursor-pointer"
             />
-            كشف الراتب النموذجي (Specimen)
+            كشف الراتب النموذجي (Specimen) — يُطبق على الكشفين معاً
           </label>
         </div>
 
@@ -218,32 +536,23 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
             </select>
           </div>
 
-          {mode === 'monthly' ? (
-            <div>
-              <label className="block text-xs font-bold text-[#1e293b] mb-1">الشهر</label>
-              <select
-                value={month}
-                onChange={e => setMonth(Number(e.target.value))}
-                className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3 py-2 text-xs sm:text-sm focus:outline-none"
-              >
-                {Object.entries(MONTHS_AR).map(([m, name]) => (
-                  <option key={m} value={m}>
-                    {name} ({m})
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : (
-            <div>
-              <label className="block text-xs font-bold text-[#1e293b] mb-1">الفترة</label>
-              <div className="w-full bg-[#f1f5f9] border border-[#cbd5e1] rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-[#0f172a] text-center">
-                السنة الكاملة (جانفي — ديسمبر)
-              </div>
-            </div>
-          )}
+          <div>
+            <label className="block text-xs font-bold text-[#1e293b] mb-1">شهر الكشف الشهري</label>
+            <select
+              value={month}
+              onChange={e => setMonth(Number(e.target.value))}
+              className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3 py-2 text-xs sm:text-sm focus:outline-none"
+            >
+              {Object.entries(MONTHS_AR).map(([m, name]) => (
+                <option key={m} value={m}>
+                  {name} ({m})
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#1e293b] mb-1">السنة</label>
+            <label className="block text-xs font-bold text-[#1e293b] mb-1">السنة (لكلا الكشفين)</label>
             <input
               type="number"
               value={year}
@@ -256,7 +565,7 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
         {/* سنوات التغيير — الضغط على السنة يعرض الكشف وفق أنظمتها */}
         <div className="mt-4 pt-4 border-t border-[#e2e8f0]">
           <div className="text-xs font-bold text-[#1e293b] mb-2">
-            سنوات التغيير — اضغط على السنة لعرض الكشف وفق الأنظمة القانونية السارية فيها:
+            سنوات التغيير — اضغط على السنة لعرض الكشفين وفق الأنظمة القانونية السارية فيها:
           </div>
           <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2">
             {CHANGE_YEARS.map(cy => {
@@ -277,450 +586,52 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
         </div>
       </div>
 
-      {/* Payslip Container */}
-      <div className="flex justify-center">
-        <div
-          ref={payslipRef}
-          className="payslip-document bg-white border-2 border-black rounded-2xl p-5 sm:p-7 max-w-[720px] w-full text-black font-bold shadow-lg font-['Noto_Naskh_Arabic',serif] print:shadow-none"
-          style={{ direction: 'rtl' }}
-        >
-          {/* Header */}
-          <div className="text-center pb-3 mb-3 border-b-[3px] border-double border-black">
-            <h1 className="text-xs sm:text-sm font-bold text-gray-800 mb-0.5">
-              الجمهورية الجزائرية الديمقراطية الشعبية
-            </h1>
-            <h2 className="text-sm sm:text-base font-bold text-gray-900 underline decoration-black mb-2">
-              وزارة التربية الوطنية
-            </h2>
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-950 my-2 tracking-widest">
-              {bigTitle}
-            </h3>
+      {/* Payslips Container — وثيقة واحدة: شهري ثم سنوي */}
+      <div className="flex flex-col items-center gap-8">
+        {/* ===== الكشف الشهري ===== */}
+        <div ref={monthlyRef} className="w-full flex justify-center">
+          <PayslipSheet
+            bigTitle={monthlyTitle}
+            specimen={specimen}
+            serial={serial}
+            issueDate={issueDate}
+            directorate={settings.wilaya || 'باتنة'}
+            institution={settings.institution || 'المؤسسة التعليمية'}
+            periodLine={
+              <>شهر : <span className="text-black text-base font-extrabold">{MONTHS_AR[month]} {year}</span></>
+            }
+            infoItems={infoItems}
+            gridLine={gridLine}
+            allowances={monthlyAllowances}
+            deductions={monthlyDeductions}
+            netLabel="الـصـافـي لـلـدفـع (Net à payer)"
+            net={result.net}
+            qrDataUrl={qrMonthly}
+            pageBreak
+          />
+        </div>
 
-            {specimen && (
-              <div className="inline-block px-3 py-0.5 border-2 border-dashed border-black text-black text-[10px] sm:text-xs font-bold rounded mb-1">
-                نموذج — غير معتمد للمعاملات الإدارية
-              </div>
-            )}
-
-            <div className="flex justify-between items-start text-[11px] sm:text-xs text-gray-800 mt-2 px-1">
-              <div className="text-right space-y-0.5">
-                <div><strong>المديرية:</strong> مديرية التربية لولاية {settings.wilaya || 'باتنة'}</div>
-                <div><strong>المؤسسة:</strong> {settings.institution || 'ثانوية الشهيد محمد العربي التبسي'}</div>
-              </div>
-              <div className="text-left space-y-0.5">
-                <div><strong>الرقم التسلسلي:</strong> <span className="font-mono">{serial}</span></div>
-                <div><strong>تاريخ الإصدار:</strong> <span className="font-mono">{issueDate}</span></div>
-              </div>
-            </div>
-
-            <div className="text-center font-bold text-sm text-gray-900 mt-2">
-              {mode === 'annual' ? (
-                <>السنة المالية : <span className="text-black text-base font-extrabold">{year}</span> <span className="text-xs text-gray-800">(جانفي — ديسمبر، 12 شهراً)</span></>
-              ) : (
-                <>شهر : <span className="text-black text-base font-extrabold">{MONTHS_AR[month]} {year}</span></>
-              )}
-            </div>
-          </div>
-
-          {/* Employee Info Section */}
-          <div className="border border-black rounded-lg p-3 mb-3 text-xs leading-relaxed">
-            <div className="text-center font-bold text-sm text-gray-900 border-b border-black pb-1.5 mb-2">
-              مـعـلـومـات الـمـوظـف
-            </div>
-
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-              <div className="flex justify-between border-b border-dotted border-black pb-0.5">
-                <span className="font-bold text-gray-700">الاسم واللقب:</span>
-                <span className="font-black text-gray-950">{currentEmployee.name}</span>
-              </div>
-              <div className="flex justify-between border-b border-dotted border-black pb-0.5">
-                <span className="font-bold text-gray-700">الوضعية العائلية:</span>
-                <span className="font-bold">{currentEmployee.marital}</span>
-              </div>
-
-              <div className="flex justify-between border-b border-dotted border-black pb-0.5">
-                <span className="font-bold text-gray-700">الرتبة / المنصب:</span>
-                <span className="font-bold">{currentJob?.name || '—'}</span>
-              </div>
-              <div className="flex justify-between border-b border-dotted border-black pb-0.5">
-                <span className="font-bold text-gray-700">عدد الأطفال:</span>
-                <span className="font-bold font-mono">{String(currentEmployee.children).padStart(2, '0')}</span>
-              </div>
-
-              <div className="flex justify-between border-b border-dotted border-black pb-0.5">
-                <span className="font-bold text-gray-700">الرقم الاستدلالي:</span>
-                <span className="font-bold font-mono">{index}</span>
-              </div>
-              <div className="flex justify-between border-b border-dotted border-black pb-0.5">
-                <span className="font-bold text-gray-700">الصنف / الدرجة:</span>
-                <span className="font-bold font-mono">
-                  {result.g.cat} / {isProfessionalWorkerJob(currentJob) ? `${result.years} سنة` : currentEmployee.echelon}
-                </span>
-              </div>
-
-              <div className="flex justify-between border-b border-dotted border-black pb-0.5">
-                <span className="font-bold text-gray-700">رقم الضمان (SSN):</span>
-                <span className="font-mono">{currentEmployee.ssn || '—'}</span>
-              </div>
-              <div className="flex justify-between border-b border-dotted border-black pb-0.5">
-                <span className="font-bold text-gray-700">تاريخ التوظيف:</span>
-                <span className="font-mono">{currentEmployee.hireDate || '—'}</span>
-              </div>
-            </div>
-
-            <div className="text-center text-[10px] sm:text-[11px] text-gray-700 mt-2 border-t border-dotted border-black pt-1.5">
-              <strong>الشبكة الاستدلالية المعتمدة:</strong> {result.gridName} ({result.gridDecree}) — قيمة النقطة الاستدلالية: <span className="font-mono font-bold">{fmt(result.pointVal)}</span> دج
-            </div>
-          </div>
-
-          {mode === 'annual' && annual ? (
-            <>
-              {/* Annual Allowances Table */}
-              <div className="mb-3">
-                <div className="bg-black text-white text-center py-1.5 font-bold text-xs sm:text-sm">
-                  الـمـنـح والـعـلاوات — مجموع 12 شهراً
-                </div>
-                <table className="w-full border-collapse text-xs border-2 border-black">
-                  <thead>
-                    <tr className="bg-white border-b-2 border-black text-black">
-                      <th className="p-1.5 text-right w-[45%]">البيان</th>
-                      <th className="p-1.5 text-center w-[30%]">التفاصيل / النسبة</th>
-                      <th className="p-1.5 text-left w-[25%] font-mono">المبلغ السنوي (دج)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-dotted divide-black">
-                    <tr>
-                      <td className="p-1.5 font-bold text-right flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                        <span>الأجر القاعدي</span>
-                      </td>
-                      <td className="p-1.5 text-center text-gray-800">{result.g.base} × {fmt(result.pointVal)} × 12</td>
-                      <td className="p-1.5 text-left font-mono font-bold">{fmt(annual.basic)}</td>
-                    </tr>
-
-                    {annual.seniority > 0 && (
-                      <tr>
-                        <td className="p-1.5 font-bold text-right flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                          <span>الخبرة المهنية</span>
-                        </td>
-                        <td className="p-1.5 text-center text-gray-800">
-                          {isProfessionalWorkerJob(currentJob) ? `1.4% سنوياً — ${annual.years} سنة` : `الدرجة ${currentEmployee.echelon} — مجموع 12 شهراً`}
-                        </td>
-                        <td className="p-1.5 text-left font-mono font-bold">{fmt(annual.seniority)}</td>
-                      </tr>
-                    )}
-
-                    {annual.allowanceRows.map((al, idx) => (
-                      <tr key={idx}>
-                        <td className="p-1.5 font-bold text-right flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                          <span>{al.name}</span>
-                        </td>
-                        <td className="p-1.5 text-center text-gray-800 text-[11px]">مجموع 12 شهراً</td>
-                        <td className="p-1.5 text-left font-mono font-bold">{fmt(al.amount)}</td>
-                      </tr>
-                    ))}
-
-                    {annual.familyTotal > 0 && (
-                      <tr>
-                        <td className="p-1.5 font-bold text-right flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                          <span>المنح العائلية</span>
-                        </td>
-                        <td className="p-1.5 text-center text-gray-800">
-                          {currentEmployee.children} طفل {currentEmployee.singleWage ? '+ أجر وحيد' : ''} — 12 شهراً
-                        </td>
-                        <td className="p-1.5 text-left font-mono font-bold">{fmt(annual.familyTotal)}</td>
-                      </tr>
-                    )}
-
-                    <tr className="border-t-2 border-black font-bold">
-                      <td colSpan={2} className="p-2 text-center text-gray-900">
-                        خام الراتب السنوي الإجمالي (دون المردودية)
-                      </td>
-                      <td className="p-2 text-left font-mono font-black text-sm">{fmt(annualGrossExcludingPerf)}</td>
-                    </tr>
-
-                    {annual.perfBonusTotal > 0 && (
-                      <>
-                        <tr className="font-bold border-t border-dashed border-black">
-                          <td colSpan={2} className="p-1.5 text-center">خام علاوة الأداء / المردودية السنوية</td>
-                          <td className="p-1.5 text-left font-mono">{fmt(annual.perfBonusTotal)}</td>
-                        </tr>
-                        <tr className="font-bold">
-                          <td colSpan={2} className="p-1.5 text-center">صافي المردودية السنوية (بعد اقتطاع الضريبة 10%)</td>
-                          <td className="p-1.5 text-left font-mono">{fmt(annual.perfBonusTotal - annual.perfBonusTax)}</td>
-                        </tr>
-                      </>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Annual Deductions Table */}
-              <div className="mb-4">
-                <div className="text-center font-bold text-xs sm:text-sm text-gray-900 py-1.5">
-                  الاقتطاعات القانونية السنوية
-                </div>
-                <table className="w-full border-collapse text-xs border-2 border-black">
-                  <tbody className="divide-y divide-dotted divide-black">
-                    <tr>
-                      <td className="p-1.5 font-semibold text-right w-[45%] flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                        <span>اقتطاع الضمان الاجتماعي (CNAS)</span>
-                      </td>
-                      <td className="p-1.5 text-center text-gray-800 w-[30%]">{fmt(result.cnasRate)}% من الأجر الخاضع — 12 شهراً</td>
-                      <td className="p-1.5 text-left font-mono font-bold w-[25%]">{fmt(annual.cnasDeduction)}</td>
-                    </tr>
-
-                    <tr>
-                      <td className="p-1.5 font-bold text-right flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                        <span>اقتطاع الضريبة على الدخل (IRG)</span>
-                      </td>
-                      <td className="p-1.5 text-center text-gray-800">مجموع ضرائب الأشهر الـ12 وفق سلم سنة الكشف</td>
-                      <td className="p-1.5 text-left font-mono font-bold">{fmt(annual.irgTax)}</td>
-                    </tr>
-
-                    {annual.mutDeduction > 0 && (
-                      <tr>
-                        <td className="p-1.5 font-bold text-right flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                          <span>اقتطاع التعاضدية</span>
-                        </td>
-                        <td className="p-1.5 text-center text-gray-800">1% من الأجر الخام — 12 شهراً</td>
-                        <td className="p-1.5 text-left font-mono font-bold">{fmt(annual.mutDeduction)}</td>
-                      </tr>
-                    )}
-
-                    {annual.perfBonusTax > 0 && (
-                      <tr>
-                        <td className="p-1.5 font-bold text-right flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                          <span>ضريبة علاوة الأداء (10%)</span>
-                        </td>
-                        <td className="p-1.5 text-center text-gray-800">10% ثابتة — 12 شهراً</td>
-                        <td className="p-1.5 text-left font-mono font-bold">{fmt(annual.perfBonusTax)}</td>
-                      </tr>
-                    )}
-
-                    <tr className="border-t-2 border-black font-bold">
-                      <td colSpan={2} className="p-2 text-center text-gray-900">
-                        إجمالي الاقتطاعات السنوية
-                      </td>
-                      <td className="p-2 text-left font-mono font-black text-sm text-black">
-                        {fmt(annualTotalDeductions)}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Annual Net Pay Callout */}
-              <div className="net-callout border-2 border-black bg-white p-3 sm:p-4 text-center mb-4 rounded-xl">
-                <div className="text-sm sm:text-base font-bold text-gray-800 mb-1">
-                  الـصـافـي السـنـوي لـلـدفـع (Net annuel à payer)
-                </div>
-                <div className="flex items-baseline justify-center gap-1 text-[#111]">
-                  <span className="text-2xl sm:text-4xl font-black font-mono tracking-tight">
-                    {fmt(annual.net)}
-                  </span>
-                  <span className="text-lg sm:text-xl font-bold">دج</span>
-                </div>
-                <div className="text-[10px] sm:text-xs text-gray-800 mt-1 italic">
-                  المبلغ بالأحرف: {amountWordsDZD(annual.net)}
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              {/* Allowances Table */}
-              <div className="mb-3">
-                <div className="bg-black text-white text-center py-1.5 font-bold text-xs sm:text-sm">
-                  الـمـنـح والـعـلاوات
-                </div>
-                <table className="w-full border-collapse text-xs border-2 border-black">
-                  <thead>
-                    <tr className="bg-white border-b-2 border-black text-black">
-                      <th className="p-1.5 text-right w-[45%]">البيان</th>
-                      <th className="p-1.5 text-center w-[30%]">التفاصيل / النسبة</th>
-                      <th className="p-1.5 text-left w-[25%] font-mono">المبلغ (دج)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-dotted divide-black">
-                    <tr>
-                      <td className="p-1.5 font-bold text-right flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                        <span>الأجر القاعدي</span>
-                      </td>
-                      <td className="p-1.5 text-center text-gray-800">{result.g.base} × {fmt(result.pointVal)}</td>
-                      <td className="p-1.5 text-left font-mono font-bold">{fmt(result.basic)}</td>
-                    </tr>
-
-                    {result.seniority > 0 && (
-                      <tr>
-                        <td className="p-1.5 font-bold text-right flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                          <span>الخبرة المهنية</span>
-                        </td>
-                        <td className="p-1.5 text-center text-gray-800">
-                          {isProfessionalWorkerJob(currentJob) ? `1.4% × ${result.years} سنة` : `الدرجة ${currentEmployee.echelon}`}
-                        </td>
-                        <td className="p-1.5 text-left font-mono font-bold">{fmt(result.seniority)}</td>
-                      </tr>
-                    )}
-
-                    {result.allAllowances
-                      .filter(a => a.amount > 0)
-                      .map((al, idx) => (
-                        <tr key={idx}>
-                          <td className="p-1.5 font-bold text-right flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                            <span>{al.name.replace(/\s*\([^)]*\)\s*$/, '')}</span>
-                          </td>
-                          <td className="p-1.5 text-center text-gray-800 text-[11px]">
-                            {al.name.includes('(') ? al.name.match(/\(([^)]+)\)/)?.[1] : '....................'}
-                          </td>
-                          <td className="p-1.5 text-left font-mono font-bold">{fmt(al.amount)}</td>
-                        </tr>
-                      ))}
-
-                    {result.familyTotal > 0 && (
-                      <tr>
-                        <td className="p-1.5 font-bold text-right flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                          <span>المنح العائلية</span>
-                        </td>
-                        <td className="p-1.5 text-center text-gray-800">
-                          {currentEmployee.children} طفل {currentEmployee.singleWage ? '+ أجر وحيد' : ''}
-                        </td>
-                        <td className="p-1.5 text-left font-mono font-bold">{fmt(result.familyTotal)}</td>
-                      </tr>
-                    )}
-
-                    <tr className="border-t-2 border-black font-bold">
-                      <td colSpan={2} className="p-2 text-center text-gray-900">
-                        خام الراتب الإجمالي (دون المردودية)
-                      </td>
-                      <td className="p-2 text-left font-mono font-black text-sm">{fmt(grossExcludingPerf)}</td>
-                    </tr>
-
-                    {result.perfBonusTotal > 0 && (
-                      <>
-                        <tr className="font-bold border-t border-dashed border-black">
-                          <td colSpan={2} className="p-1.5 text-center">خام علاوة الأداء / المردودية</td>
-                          <td className="p-1.5 text-left font-mono">{fmt(result.perfBonusTotal)}</td>
-                        </tr>
-                        <tr className="font-bold">
-                          <td colSpan={2} className="p-1.5 text-center">صافي المردودية (بعد اقتطاع الضريبة 10%)</td>
-                          <td className="p-1.5 text-left font-mono">{fmt(result.perfBonusTotal - result.perfBonusTax)}</td>
-                        </tr>
-                      </>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Deductions Table */}
-              <div className="mb-4">
-                <div className="text-center font-bold text-xs sm:text-sm text-gray-900 py-1.5">
-                  الاقتطاعات القانونية
-                </div>
-                <table className="w-full border-collapse text-xs border-2 border-black">
-                  <tbody className="divide-y divide-dotted divide-black">
-                    <tr>
-                      <td className="p-1.5 font-semibold text-right w-[45%] flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                        <span>اقتطاع الضمان الاجتماعي (CNAS)</span>
-                      </td>
-                      <td className="p-1.5 text-center text-gray-800 w-[30%]">9% من الأجر الخاضع</td>
-                      <td className="p-1.5 text-left font-mono font-bold w-[25%]">{fmt(result.cnasDeduction)}</td>
-                    </tr>
-
-                    <tr>
-                      <td className="p-1.5 font-bold text-right flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                        <span>اقتطاع الضريبة على الدخل (IRG)</span>
-                      </td>
-                      <td className="p-1.5 text-center text-gray-800">سلم الضريبة الساري في سنة الكشف</td>
-                      <td className="p-1.5 text-left font-mono font-bold">{fmt(result.irgTax)}</td>
-                    </tr>
-
-                    {result.mutDeduction > 0 && (
-                      <tr>
-                        <td className="p-1.5 font-bold text-right flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                          <span>اقتطاع التعاضدية</span>
-                        </td>
-                        <td className="p-1.5 text-center text-gray-800">1% من الأجر الخام</td>
-                        <td className="p-1.5 text-left font-mono font-bold">{fmt(result.mutDeduction)}</td>
-                      </tr>
-                    )}
-
-                    {result.perfBonusTax > 0 && (
-                      <tr>
-                        <td className="p-1.5 font-bold text-right flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                          <span>ضريبة علاوة الأداء (10%)</span>
-                        </td>
-                        <td className="p-1.5 text-center text-gray-800">10% ثابتة</td>
-                        <td className="p-1.5 text-left font-mono font-bold">{fmt(result.perfBonusTax)}</td>
-                      </tr>
-                    )}
-
-                    <tr className="border-t-2 border-black font-bold">
-                      <td colSpan={2} className="p-2 text-center text-gray-900">
-                        إجمالي الاقتطاعات
-                      </td>
-                      <td className="p-2 text-left font-mono font-black text-sm text-black">
-                        {fmt(totalDeductions)}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Net Pay Callout */}
-              <div className="net-callout border-2 border-black bg-white p-3 sm:p-4 text-center mb-4 rounded-xl">
-                <div className="text-sm sm:text-base font-bold text-gray-800 mb-1">
-                  الـصـافـي لـلـدفـع (Net à payer)
-                </div>
-                <div className="flex items-baseline justify-center gap-1 text-[#111]">
-                  <span className="text-2xl sm:text-4xl font-black font-mono tracking-tight">
-                    {fmt(result.net)}
-                  </span>
-                  <span className="text-lg sm:text-xl font-bold">دج</span>
-                </div>
-                <div className="text-[10px] sm:text-xs text-gray-800 mt-1 italic">
-                  المبلغ بالأحرف: {amountWordsDZD(result.net)}
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* Footer with QR Code and Signature */}
-          <div className="flex justify-between items-center pt-3 border-t border-dotted border-black text-xs text-center">
-            <div className="flex-1 text-center">
-              <div className="font-bold text-gray-800">إمضاء وختم المقتصد</div>
-              <div className="h-10 mt-1" />
-            </div>
-
-            <div className="flex-1 text-center">
-              <div className="font-bold text-gray-800">التحقق من صحة الكشف</div>
-              <div className="text-[10px] text-gray-500 mt-0.5">امسح رمز الاستجابة السريعة QR</div>
-            </div>
-
-            <div className="flex-1 flex justify-center">
-              {qrDataUrl ? (
-                <img src={qrDataUrl} alt="QR Code" className="w-16 h-16 border border-black p-0.5 rounded bg-white" />
-              ) : (
-                <div className="w-16 h-16 border border-black flex items-center justify-center text-[10px] text-gray-500 bg-white">
-                  QR
-                </div>
-              )}
-            </div>
-          </div>
+        {/* ===== الكشف السنوي ===== */}
+        <div ref={annualRef} className="w-full flex justify-center">
+          <PayslipSheet
+            bigTitle={annualTitle}
+            specimen={specimen}
+            serial={serial}
+            issueDate={issueDate}
+            directorate={settings.wilaya || 'باتنة'}
+            institution={settings.institution || 'المؤسسة التعليمية'}
+            periodLine={
+              <>السنة المالية : <span className="text-black text-base font-extrabold">{year}</span> <span className="text-xs text-gray-800">(جانفي — ديسمبر، 12 شهراً)</span></>
+            }
+            infoItems={infoItems}
+            gridLine={gridLine}
+            allowances={annualAllowances}
+            deductions={annualDeductions}
+            netLabel="الـصـافـي السـنـوي لـلـدفـع (Net annuel à payer)"
+            net={annual.net}
+            qrDataUrl={qrAnnual}
+            pageBreak={false}
+          />
         </div>
       </div>
     </div>

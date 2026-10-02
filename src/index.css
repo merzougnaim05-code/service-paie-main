@@ -6,11 +6,11 @@
   }
 }
 
-/* ===== طباعة كشف الراتب على ورقة A4 ===== */
+/* ===== طباعة كشوف الرواتب — كل كشف في ورقة A4 واحدة ===== */
 @media print {
   @page {
     size: A4 portrait;
-    margin: 10mm 12mm;
+    margin: 8mm 10mm;
   }
 
   html,
@@ -29,29 +29,57 @@
     print-color-adjust: exact !important;
   }
 
-  /* ملاءمة وثيقة كشف الراتب لصفحة A4 */
+  /* كل كشف راتب = صفحة مستقلة */
+  .payslip-page {
+    break-after: page;
+    page-break-after: always;
+  }
+  .payslip-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  /* ملاءمة وثيقة كشف الراتب لورقة A4 واحدة */
   .payslip-document {
     max-width: 100% !important;
     width: 100% !important;
     margin: 0 auto !important;
-    font-size: 11px !important;
+    padding: 3mm 4mm !important;
+    border-radius: 0 !important;
+    border-width: 1.5px !important;
+    font-size: 10px !important;
     font-weight: 700 !important;
-    line-height: 1.55 !important;
+    line-height: 1.4 !important;
   }
 
   .payslip-document h3 {
-    font-size: 21px !important;
-    margin-top: 4px !important;
-    margin-bottom: 4px !important;
+    font-size: 17px !important;
+    margin-top: 2px !important;
+    margin-bottom: 2px !important;
   }
 
   .payslip-document table {
-    font-size: 10px !important;
+    font-size: 9px !important;
   }
 
   .payslip-document th,
   .payslip-document td {
-    padding: 3px 5px !important;
+    padding: 2px 4px !important;
+  }
+
+  .payslip-document .net-callout {
+    padding: 5px !important;
+    margin-bottom: 2mm !important;
+  }
+
+  .payslip-document .net-callout .text-xl,
+  .payslip-document .net-callout .text-2xl {
+    font-size: 17px !important;
+  }
+
+  .payslip-document img {
+    width: 48px !important;
+    height: 48px !important;
   }
 
   /* منع تقطيع الصفوف وصندوق الصافي بين صفحتين */
