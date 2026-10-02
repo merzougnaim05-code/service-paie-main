@@ -89,7 +89,6 @@ interface PayslipSheetProps {
   netLabel: string;
   net: number;
   qrDataUrl: string;
-  pageBreak: boolean;
 }
 
 const PayslipSheet: React.FC<PayslipSheetProps> = ({
@@ -106,13 +105,9 @@ const PayslipSheet: React.FC<PayslipSheetProps> = ({
   deductions,
   netLabel,
   net,
-  qrDataUrl,
-  pageBreak
+  qrDataUrl
 }) => (
-  <div
-    className={`payslip-page ${pageBreak ? 'print:break-after-page' : ''}`}
-    style={pageBreak ? { breakAfter: 'page' } : undefined}
-  >
+  <div className="payslip-page">
     <div
       className="payslip-document bg-white border-2 border-black rounded-2xl p-4 sm:p-5 max-w-[760px] w-full text-black font-bold shadow-lg font-['Noto_Naskh_Arabic',serif] print:shadow-none print:rounded-none"
       style={{ direction: 'rtl' }}
@@ -284,6 +279,8 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
   const [empId, setEmpId] = useState<string>(selectedEmpId || employees[0]?.id || '');
   const [month, setMonth] = useState<number>(new Date().getMonth() + 1);
   const [year, setYear] = useState<number>(new Date().getFullYear());
+  const [mode, setMode] = useState<'monthly' | 'annual' | 'both'>('monthly');
+  const [printTarget, setPrintTarget] = useState<'monthly' | 'annual' | 'both'>('both');
   const [specimen, setSpecimen] = useState<boolean>(false);
   const [exporting, setExporting] = useState<boolean>(false);
   const [qrMonthly, setQrMonthly] = useState<string>('');
@@ -313,17 +310,34 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
       .catch(() => {});
   }, [currentEmployee, result, annual, month, year, settings.institution]);
 
-  const handlePrint = () => {
-    window.print();
+  const handlePrint = (target: 'monthly' | 'annual' | 'both') => {
+    setPrintTarget(target);
+    setTimeout(() => {
+      window.print();
+      setPrintTarget('both');
+    }, 80);
   };
 
-  const handleDownload = async () => {
+  const handleDownload = async (target: 'monthly' | 'annual' | 'both') => {
     if (exporting) return;
-    const els = [monthlyRef.current, annualRef.current].filter((el): el is HTMLDivElement => !!el);
-    if (els.length === 0) return;
+    const els =
+      target === 'monthly'
+        ? [monthlyRef.current]
+        : target === 'annual'
+          ? [annualRef.current]
+          : [monthlyRef.current, annualRef.current];
+    const list = els.filter((el): el is HTMLDivElement => !!el);
+    if (list.length === 0) return;
     setExporting(true);
     try {
-      await exportElementsToPdf(els, `كشف_الرواتب_الشهري_والسنوي_${currentEmployee?.name || 'موظف'}_${year}.pdf`);
+      const nameBase = currentEmployee?.name || 'موظف';
+      const filename =
+        target === 'monthly'
+          ? `كشف_الراتب_الشهري_${nameBase}_${month}_${year}.pdf`
+          : target === 'annual'
+            ? `كشف_الراتب_السنوي_${nameBase}_${year}.pdf`
+            : `كشف_الرواتب_الشهري_والسنوي_${nameBase}_${year}.pdf`;
+      await exportElementsToPdf(list, filename);
     } catch (err) {
       console.error(err);
       alert('تعذر توليد ملف PDF، يرجى المحاولة مرة أخرى.');
@@ -484,31 +498,111 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
               كشف الرواتب الشهري والسنوي (Fiche de Paie)
             </h2>
             <p className="text-xs text-[#64748b] mt-0.5">
-              وثيقة واحدة تضم كشفي الشهر والسنة معاً — كل كشف يُطبع في ورقة A4 مستقلة — وفق الشبكات الاستدلالية الرسمية وسلم الضريبة IRG الساري في سنة الكشف.
+              اختر كشف الشهر أو كشف السنة أو الوثيقة الكاملة (كشفان في وثيقة واحدة) — كل كشف يُطبع في ورقة A4 مستقلة.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handlePrint}
-              className="bg-[#047857] hover:bg-[#065f46] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
-            >
-              <Printer className="w-4 h-4" />
-              <span>طباعة الوثيقة (صفحتان)</span>
-            </button>
-            <button
-              onClick={handleDownload}
-              disabled={exporting}
-              className="bg-white hover:bg-[#f1f5f9] text-[#047857] border border-[#047857] px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-60 disabled:cursor-wait"
-            >
-              <Download className="w-4 h-4" />
-              <span>{exporting ? 'جاري التوليد...' : 'تحميل (PDF) — كشفان'}</span>
-            </button>
+          <div className="flex items-center gap-2 flex-wrap justify-end">
+            {/* أزرار الطباعة والتحميل — حسب النمط المختار */}
+            {mode === 'monthly' && (
+              <>
+                <button
+                  onClick={() => handlePrint('monthly')}
+                  className="bg-[#047857] hover:bg-[#065f46] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>طباعة الكشف الشهري</span>
+                </button>
+                <button
+                  onClick={() => handleDownload('monthly')}
+                  disabled={exporting}
+                  className="bg-white hover:bg-[#f1f5f9] text-[#047857] border border-[#047857] px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-60 disabled:cursor-wait"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>{exporting ? 'جاري التوليد...' : 'تحميل الشهري (PDF)'}</span>
+                </button>
+              </>
+            )}
+
+            {mode === 'annual' && (
+              <>
+                <button
+                  onClick={() => handlePrint('annual')}
+                  className="bg-[#b45309] hover:bg-[#92400e] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>طباعة الكشف السنوي</span>
+                </button>
+                <button
+                  onClick={() => handleDownload('annual')}
+                  disabled={exporting}
+                  className="bg-white hover:bg-[#fffbeb] text-[#b45309] border border-[#b45309] px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-60 disabled:cursor-wait"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>{exporting ? 'جاري التوليد...' : 'تحميل السنوي (PDF)'}</span>
+                </button>
+              </>
+            )}
+
+            {mode === 'both' && (
+              <>
+                <button
+                  onClick={() => handlePrint('monthly')}
+                  className="bg-[#047857] hover:bg-[#065f46] text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>طباعة الشهري</span>
+                </button>
+                <button
+                  onClick={() => handlePrint('annual')}
+                  className="bg-[#b45309] hover:bg-[#92400e] text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>طباعة السنوي</span>
+                </button>
+                <button
+                  onClick={() => handlePrint('both')}
+                  className="bg-[#0f172a] hover:bg-[#1e293b] text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>الوثيقة الكاملة</span>
+                </button>
+                <button
+                  onClick={() => handleDownload('both')}
+                  disabled={exporting}
+                  className="bg-white hover:bg-[#f1f5f9] text-[#047857] border border-[#047857] px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-60 disabled:cursor-wait"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>{exporting ? 'جاري التوليد...' : 'تحميل الكشفين (PDF)'}</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
 
-        {/* النسخة النموذجية */}
-        <div className="mb-4">
+        {/* اختيار نوع الكشف + النسخة النموذجية */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
+          <div className="flex bg-white border border-[#cbd5e1] rounded-xl p-1 gap-1 w-fit">
+            <button
+              onClick={() => setMode('monthly')}
+              className={`px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${mode === 'monthly' ? 'bg-[#047857] text-white shadow-sm' : 'text-[#0f172a] hover:bg-[#f1f5f9]'}`}
+            >
+              كشف شهري
+            </button>
+            <button
+              onClick={() => setMode('annual')}
+              className={`px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${mode === 'annual' ? 'bg-[#b45309] text-white shadow-sm' : 'text-[#0f172a] hover:bg-[#f1f5f9]'}`}
+            >
+              كشف سنوي
+            </button>
+            <button
+              onClick={() => setMode('both')}
+              className={`px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${mode === 'both' ? 'bg-[#0f172a] text-white shadow-sm' : 'text-[#0f172a] hover:bg-[#f1f5f9]'}`}
+            >
+              وثيقة كاملة (شهري + سنوي)
+            </button>
+          </div>
+
           <label className="flex items-center gap-2 text-xs sm:text-sm font-bold text-[#1e293b] cursor-pointer select-none w-fit">
             <input
               type="checkbox"
@@ -516,7 +610,7 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
               onChange={e => setSpecimen(e.target.checked)}
               className="w-4 h-4 accent-[#047857] cursor-pointer"
             />
-            كشف الراتب النموذجي (Specimen) — يُطبق على الكشفين معاً
+            كشف الراتب النموذجي (Specimen)
           </label>
         </div>
 
@@ -586,53 +680,55 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
         </div>
       </div>
 
-      {/* Payslips Container — وثيقة واحدة: شهري ثم سنوي */}
-      <div className="flex flex-col items-center gap-8">
+      {/* Payslips Container — حسب النمط المختار */}
+      <div className={`flex flex-col items-center gap-8 print-t-${printTarget}`}>
         {/* ===== الكشف الشهري ===== */}
-        <div ref={monthlyRef} className="w-full flex justify-center">
-          <PayslipSheet
-            bigTitle={monthlyTitle}
-            specimen={specimen}
-            serial={serial}
-            issueDate={issueDate}
-            directorate={settings.wilaya || 'باتنة'}
-            institution={settings.institution || 'المؤسسة التعليمية'}
-            periodLine={
-              <>شهر : <span className="text-black text-base font-extrabold">{MONTHS_AR[month]} {year}</span></>
-            }
-            infoItems={infoItems}
-            gridLine={gridLine}
-            allowances={monthlyAllowances}
-            deductions={monthlyDeductions}
-            netLabel="الـصـافـي لـلـدفـع (Net à payer)"
-            net={result.net}
-            qrDataUrl={qrMonthly}
-            pageBreak
-          />
-        </div>
+        {(mode === 'monthly' || mode === 'both') && (
+          <div ref={monthlyRef} className="payslip-block payslip-block-monthly w-full flex justify-center">
+            <PayslipSheet
+              bigTitle={monthlyTitle}
+              specimen={specimen}
+              serial={serial}
+              issueDate={issueDate}
+              directorate={settings.wilaya || 'باتنة'}
+              institution={settings.institution || 'المؤسسة التعليمية'}
+              periodLine={
+                <>شهر : <span className="text-black text-base font-extrabold">{MONTHS_AR[month]} {year}</span></>
+              }
+              infoItems={infoItems}
+              gridLine={gridLine}
+              allowances={monthlyAllowances}
+              deductions={monthlyDeductions}
+              netLabel="الـصـافـي لـلـدفـع (Net à payer)"
+              net={result.net}
+              qrDataUrl={qrMonthly}
+            />
+          </div>
+        )}
 
         {/* ===== الكشف السنوي ===== */}
-        <div ref={annualRef} className="w-full flex justify-center">
-          <PayslipSheet
-            bigTitle={annualTitle}
-            specimen={specimen}
-            serial={serial}
-            issueDate={issueDate}
-            directorate={settings.wilaya || 'باتنة'}
-            institution={settings.institution || 'المؤسسة التعليمية'}
-            periodLine={
-              <>السنة المالية : <span className="text-black text-base font-extrabold">{year}</span> <span className="text-xs text-gray-800">(جانفي — ديسمبر، 12 شهراً)</span></>
-            }
-            infoItems={infoItems}
-            gridLine={gridLine}
-            allowances={annualAllowances}
-            deductions={annualDeductions}
-            netLabel="الـصـافـي السـنـوي لـلـدفـع (Net annuel à payer)"
-            net={annual.net}
-            qrDataUrl={qrAnnual}
-            pageBreak={false}
-          />
-        </div>
+        {(mode === 'annual' || mode === 'both') && (
+          <div ref={annualRef} className="payslip-block payslip-block-annual w-full flex justify-center">
+            <PayslipSheet
+              bigTitle={annualTitle}
+              specimen={specimen}
+              serial={serial}
+              issueDate={issueDate}
+              directorate={settings.wilaya || 'باتنة'}
+              institution={settings.institution || 'المؤسسة التعليمية'}
+              periodLine={
+                <>السنة المالية : <span className="text-black text-base font-extrabold">{year}</span> <span className="text-xs text-gray-800">(جانفي — ديسمبر، 12 شهراً)</span></>
+              }
+              infoItems={infoItems}
+              gridLine={gridLine}
+              allowances={annualAllowances}
+              deductions={annualDeductions}
+              netLabel="الـصـافـي السـنـوي لـلـدفـع (Net annuel à payer)"
+              net={annual.net}
+              qrDataUrl={qrAnnual}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

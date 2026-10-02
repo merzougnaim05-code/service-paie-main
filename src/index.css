@@ -29,14 +29,26 @@
     print-color-adjust: exact !important;
   }
 
-  /* كل كشف راتب = صفحة مستقلة */
-  .payslip-page {
+  /* كل كشف راتب = صفحة مستقلة (الفاصل على مستوى الغلاف) */
+  .payslip-block {
     break-after: page;
     page-break-after: always;
   }
-  .payslip-page:last-child {
+  .payslip-block:last-child {
     break-after: auto;
     page-break-after: auto;
+  }
+
+  /* الطباعة الانتقائية: زر الشهري يطبع الشهري فقط، وزر السنوي يطبع السنوي فقط */
+  .print-t-monthly .payslip-block-annual {
+    display: none !important;
+  }
+  .print-t-monthly .payslip-block-monthly {
+    break-after: auto !important;
+    page-break-after: auto !important;
+  }
+  .print-t-annual .payslip-block-monthly {
+    display: none !important;
   }
 
   /* ملاءمة وثيقة كشف الراتب لورقة A4 واحدة */
