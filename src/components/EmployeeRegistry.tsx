@@ -314,21 +314,21 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
     <div className="py-6 max-w-7xl mx-auto px-4 sm:px-6">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#176b4a] text-white px-6 py-3 rounded-2xl shadow-xl flex items-center gap-2 font-bold text-sm animate-in fade-in slide-in-from-bottom-3">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#047857] text-white px-6 py-3 rounded-2xl shadow-xl flex items-center gap-2 font-bold text-sm animate-in fade-in slide-in-from-bottom-3">
           <CheckCircle2 className="w-5 h-5" />
           <span>{toastMessage}</span>
         </div>
       )}
 
       {/* Main Registration Form Card */}
-      <div className="bg-[#fffdfa] border border-[#d8d0bc] rounded-3xl p-6 sm:p-8 shadow-sm mb-10">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 mb-6 border-b border-[#e5ddcb] gap-3">
+      <div className="bg-[#ffffff] border border-[#a7f3d0] rounded-3xl p-6 sm:p-8 shadow-sm mb-10">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 mb-6 border-b border-[#e2e8f0] gap-3">
           <div>
-            <h2 className="text-xl sm:text-2xl font-black text-[#1a3d2b] font-['Cairo'] flex items-center gap-2">
-              <User className="w-6 h-6 text-[#176b4a]" />
+            <h2 className="text-xl sm:text-2xl font-black text-[#0f172a] flex items-center gap-2">
+              <User className="w-6 h-6 text-[#047857]" />
               <span>{editingId ? `تعديل بيانات: ${name || 'الموظف'}` : 'تسجيل موظف جديد في النظام'}</span>
             </h2>
-            <p className="text-xs sm:text-sm text-[#706856] mt-1">
+            <p className="text-xs sm:text-sm text-[#64748b] mt-1">
               أدخل كافة البيانات الشخصية والمهنية. يحتسب النظام تلقائياً الأجر القاعدي، والخبرة، والمنح، وسلم IRG.
             </p>
           </div>
@@ -347,15 +347,15 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Section 1: Personal Information */}
-          <div className="bg-[#fcfbf7] border border-[#ded5be] rounded-2xl p-5">
-            <h3 className="text-base font-bold text-[#176b4a] mb-4 flex items-center gap-2 border-b border-[#eadeca] pb-2">
+          <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-5">
+            <h3 className="text-base font-bold text-[#047857] mb-4 flex items-center gap-2 border-b border-[#e2e8f0] pb-2">
               <User className="w-4 h-4" />
               <span>1. المعلومات الشخصية</span>
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-bold text-[#443e33] mb-1.5">
+                <label className="block text-xs font-bold text-[#1e293b] mb-1.5">
                   الاسم واللقب <span className="text-red-600">*</span>
                 </label>
                 <input
@@ -364,80 +364,80 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
                   placeholder="مثال: أحمد بلقاسمي"
                   value={name}
                   onChange={e => setName(e.target.value)}
-                  className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#176b4a] focus:ring-2 focus:ring-[#176b4a]/20"
+                  className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#047857] focus:ring-2 focus:ring-[#047857]/20"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#443e33] mb-1.5">تاريخ الميلاد</label>
+                <label className="block text-xs font-bold text-[#1e293b] mb-1.5">تاريخ الميلاد</label>
                 <input
                   type="date"
                   value={birthDate}
                   onChange={e => setBirthDate(e.target.value)}
-                  className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#176b4a]"
+                  className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#047857]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#443e33] mb-1.5">مكان الازدياد</label>
+                <label className="block text-xs font-bold text-[#1e293b] mb-1.5">مكان الازدياد</label>
                 <input
                   type="text"
                   placeholder="مثال: باتنة"
                   value={birthPlace}
                   onChange={e => setBirthPlace(e.target.value)}
-                  className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#176b4a]"
+                  className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#047857]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#443e33] mb-1.5">رقم الضمان الاجتماعي (N° SSN)</label>
+                <label className="block text-xs font-bold text-[#1e293b] mb-1.5">رقم الضمان الاجتماعي (N° SSN)</label>
                 <input
                   type="text"
                   placeholder="مثال: 1980051203445501"
                   value={ssn}
                   onChange={e => setSsn(e.target.value)}
-                  className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3.5 py-2 text-sm font-mono focus:outline-none focus:border-[#176b4a]"
+                  className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3.5 py-2 text-sm font-mono focus:outline-none focus:border-[#047857]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#443e33] mb-1.5">رقم الحساب البريدي (CCP)</label>
+                <label className="block text-xs font-bold text-[#1e293b] mb-1.5">رقم الحساب البريدي (CCP)</label>
                 <input
                   type="text"
                   placeholder="مثال: 0012345678 مفتاح 44"
                   value={postalAccount}
                   onChange={e => setPostalAccount(e.target.value)}
-                  className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3.5 py-2 text-sm font-mono focus:outline-none focus:border-[#176b4a]"
+                  className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3.5 py-2 text-sm font-mono focus:outline-none focus:border-[#047857]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#443e33] mb-1.5">العنوان الشخصي</label>
+                <label className="block text-xs font-bold text-[#1e293b] mb-1.5">العنوان الشخصي</label>
                 <input
                   type="text"
                   placeholder="مثال: حي النصر، باتنة"
                   value={address}
                   onChange={e => setAddress(e.target.value)}
-                  className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#176b4a]"
+                  className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#047857]"
                 />
               </div>
             </div>
           </div>
 
           {/* Section 2: Family Status */}
-          <div className="bg-[#fcfbf7] border border-[#ded5be] rounded-2xl p-5">
-            <h3 className="text-base font-bold text-[#176b4a] mb-4 flex items-center gap-2 border-b border-[#eadeca] pb-2">
+          <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-5">
+            <h3 className="text-base font-bold text-[#047857] mb-4 flex items-center gap-2 border-b border-[#e2e8f0] pb-2">
               <Heart className="w-4 h-4" />
               <span>2. الحالة العائلية</span>
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
-                <label className="block text-xs font-bold text-[#443e33] mb-1.5">الوضعية العائلية</label>
+                <label className="block text-xs font-bold text-[#1e293b] mb-1.5">الوضعية العائلية</label>
                 <select
                   value={marital}
                   onChange={e => setMarital(e.target.value as MaritalStatus)}
-                  className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#176b4a]"
+                  className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#047857]"
                 >
                   <option value="أعزب">أعزب</option>
                   <option value="متزوج">متزوج</option>
@@ -447,19 +447,19 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#443e33] mb-1.5">عدد الأطفال الإجمالي</label>
+                <label className="block text-xs font-bold text-[#1e293b] mb-1.5">عدد الأطفال الإجمالي</label>
                 <input
                   type="number"
                   min="0"
                   value={children}
                   onChange={e => setChildren(Math.max(0, parseInt(e.target.value) || 0))}
-                  className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#176b4a]"
+                  className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#047857]"
                 />
               </div>
 
               {children > 0 && (
                 <div>
-                  <label className="block text-xs font-bold text-[#443e33] mb-1.5">
+                  <label className="block text-xs font-bold text-[#1e293b] mb-1.5">
                     الأطفال أكبر من 10 سنوات (تكملة 11.25 دج حتى 3)
                   </label>
                   <input
@@ -468,7 +468,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
                     max={children}
                     value={children10}
                     onChange={e => setChildren10(Math.min(children, Math.max(0, parseInt(e.target.value) || 0)))}
-                    className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#176b4a]"
+                    className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#047857]"
                   />
                 </div>
               )}
@@ -479,9 +479,9 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
                     type="checkbox"
                     checked={singleWage}
                     onChange={e => setSingleWage(e.target.checked)}
-                    className="w-4 h-4 rounded text-[#176b4a] accent-[#176b4a]"
+                    className="w-4 h-4 rounded text-[#047857] accent-[#047857]"
                   />
-                  <span className="text-xs font-bold text-[#353026]">
+                  <span className="text-xs font-bold text-[#1e293b]">
                     يستفيد من منحة الأجر الوحيد (800 دج)
                   </span>
                 </label>
@@ -490,21 +490,21 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
           </div>
 
           {/* Section 3: Professional Information */}
-          <div className="bg-[#fcfbf7] border border-[#ded5be] rounded-2xl p-5">
-            <h3 className="text-base font-bold text-[#176b4a] mb-4 flex items-center gap-2 border-b border-[#eadeca] pb-2">
+          <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-5">
+            <h3 className="text-base font-bold text-[#047857] mb-4 flex items-center gap-2 border-b border-[#e2e8f0] pb-2">
               <Briefcase className="w-4 h-4" />
               <span>3. المعلومات المهنية والرتبة</span>
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="lg:col-span-2">
-                <label className="block text-xs font-bold text-[#443e33] mb-1.5">
+                <label className="block text-xs font-bold text-[#1e293b] mb-1.5">
                   الوظيفة / الرتبة المعتمدة
                 </label>
                 <select
                   value={jobIdx}
                   onChange={e => handleJobChange(parseInt(e.target.value))}
-                  className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#176b4a]"
+                  className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#047857]"
                 >
                   {JOBS.map((j, i) => (
                     <option key={i} value={i}>
@@ -515,13 +515,13 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#443e33] mb-1.5">
+                <label className="block text-xs font-bold text-[#1e293b] mb-1.5">
                   الصنف (الرقم الاستدلالي الأدنى)
                 </label>
                 <select
                   value={category}
                   disabled
-                  className="w-full bg-[#f0eae0] border border-[#cfc4ac] rounded-xl px-3.5 py-2 text-sm font-bold text-[#234c38]"
+                  className="w-full bg-[#f1f5f9] border border-[#cbd5e1] rounded-xl px-3.5 py-2 text-sm font-bold text-[#234c38]"
                 >
                   {GRILLE.map((g, idx) => (
                     <option key={idx} value={idx}>
@@ -533,11 +533,11 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
 
               {!isPW ? (
                 <div>
-                  <label className="block text-xs font-bold text-[#443e33] mb-1.5">الدرجة (0 إلى 12)</label>
+                  <label className="block text-xs font-bold text-[#1e293b] mb-1.5">الدرجة (0 إلى 12)</label>
                   <select
                     value={echelon}
                     onChange={e => setEchelon(parseInt(e.target.value))}
-                    className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#176b4a]"
+                    className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#047857]"
                   >
                     <option value={0}>بدون درجة (0)</option>
                     {Array.from({ length: 12 }, (_, i) => (
@@ -549,11 +549,11 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
                 </div>
               ) : (
                 <div>
-                  <label className="block text-xs font-bold text-[#443e33] mb-1.5">صفة التوظيف</label>
+                  <label className="block text-xs font-bold text-[#1e293b] mb-1.5">صفة التوظيف</label>
                   <select
                     value={employmentStatus}
                     onChange={e => setEmploymentStatus(e.target.value as EmploymentStatus)}
-                    className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#176b4a]"
+                    className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#047857]"
                   >
                     <option value="متعاقد">متعاقد (خبرة 1.40% عن كل سنة)</option>
                     <option value="مرسم">مرسم (بالدرجة)</option>
@@ -562,17 +562,17 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
               )}
 
               <div>
-                <label className="block text-xs font-bold text-[#443e33] mb-1.5">تاريخ التوظيف</label>
+                <label className="block text-xs font-bold text-[#1e293b] mb-1.5">تاريخ التوظيف</label>
                 <input
                   type="date"
                   value={hireDate}
                   onChange={e => setHireDate(e.target.value)}
-                  className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#176b4a]"
+                  className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#047857]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#443e33] mb-1.5">
+                <label className="block text-xs font-bold text-[#1e293b] mb-1.5">
                   سنوات الخدمة (يدوي / اختياري)
                 </label>
                 <input
@@ -581,39 +581,39 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
                   placeholder="يُحسب آلياً من تاريخ التوظيف إن ترك فارغاً"
                   value={yearsOverride}
                   onChange={e => setYearsOverride(e.target.value)}
-                  className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#176b4a]"
+                  className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#047857]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#443e33] mb-1.5">
+                <label className="block text-xs font-bold text-[#1e293b] mb-1.5">
                   تاريخ آخر يوم عمل (في حالة توقف)
                 </label>
                 <input
                   type="date"
                   value={lastWorkDate}
                   onChange={e => setLastWorkDate(e.target.value)}
-                  className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#176b4a]"
+                  className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#047857]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#443e33] mb-1.5">
+                <label className="block text-xs font-bold text-[#1e293b] mb-1.5">
                   تاريخ استئناف العمل
                 </label>
                 <input
                   type="date"
                   value={resumeDate}
                   onChange={e => setResumeDate(e.target.value)}
-                  className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#176b4a]"
+                  className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#047857]"
                 />
               </div>
             </div>
           </div>
 
           {/* Section 4: Salary, Deductions & Allowances */}
-          <div className="bg-[#fcfbf7] border border-[#ded5be] rounded-2xl p-5">
-            <h3 className="text-base font-bold text-[#176b4a] mb-4 flex items-center gap-2 border-b border-[#eadeca] pb-2">
+          <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-5">
+            <h3 className="text-base font-bold text-[#047857] mb-4 flex items-center gap-2 border-b border-[#e2e8f0] pb-2">
               <DollarSign className="w-4 h-4" />
               <span>4. معلومات الراتب والمنح الخاصة</span>
             </h3>
@@ -625,9 +625,9 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
                     type="checkbox"
                     checked={mutuelle}
                     onChange={e => setMutuelle(e.target.checked)}
-                    className="w-4 h-4 rounded text-[#176b4a] accent-[#176b4a]"
+                    className="w-4 h-4 rounded text-[#047857] accent-[#047857]"
                   />
-                  <span className="text-xs font-bold text-[#353026]">
+                  <span className="text-xs font-bold text-[#1e293b]">
                     يستفيد من التعاضدية (1% من الخام)
                   </span>
                 </label>
@@ -637,13 +637,13 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
                     placeholder="رقم بطاقة التعاضدية"
                     value={mutuelleNum}
                     onChange={e => setMutuelleNum(e.target.value)}
-                    className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3 py-1.5 text-xs font-mono"
+                    className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3 py-1.5 text-xs font-mono"
                   />
                 )}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#443e33] mb-1">
+                <label className="block text-xs font-bold text-[#1e293b] mb-1">
                   نسبة علاوة الأداء / المردودية (%)
                 </label>
                 <input
@@ -652,12 +652,12 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
                   max="40"
                   value={performancePct}
                   onChange={e => setPerformancePct(Number(e.target.value) || 0)}
-                  className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3 py-2 text-sm"
+                  className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3 py-2 text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#443e33] mb-1">
+                <label className="block text-xs font-bold text-[#1e293b] mb-1">
                   فارق الدخل (يدوي)
                 </label>
                 <input
@@ -665,7 +665,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
                   step="0.01"
                   value={incomeDifference}
                   onChange={e => setIncomeDifference(Number(e.target.value) || 0)}
-                  className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3 py-2 text-sm"
+                  className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3 py-2 text-sm"
                 />
               </div>
             </div>
@@ -679,7 +679,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
                 <button
                   type="button"
                   onClick={handleAddManualAllowance}
-                  className="text-xs bg-[#e9f2ec] hover:bg-[#d8e9dc] text-[#176b4a] font-bold px-3 py-1 rounded-lg flex items-center gap-1 transition-colors"
+                  className="text-xs bg-[#e9f2ec] hover:bg-[#d8e9dc] text-[#047857] font-bold px-3 py-1 rounded-lg flex items-center gap-1 transition-colors"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>إضافة منحة خاصة</span>
@@ -690,13 +690,13 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
                 {allowances.map((al, idx) => (
                   <div
                     key={idx}
-                    className="flex flex-wrap items-center gap-2 bg-[#faf8f2] p-2 rounded-lg border border-[#e5dece] text-xs"
+                    className="flex flex-wrap items-center gap-2 bg-[#f8fafc] p-2 rounded-lg border border-[#e5dece] text-xs"
                   >
                     <input
                       type="text"
                       value={al.name}
                       onChange={e => handleAllowanceChange(idx, 'name', e.target.value)}
-                      className="flex-1 min-w-[140px] bg-white border border-[#d8d0bc] rounded-lg px-2 py-1 font-semibold text-[#1a3828]"
+                      className="flex-1 min-w-[140px] bg-white border border-[#a7f3d0] rounded-lg px-2 py-1 font-semibold text-[#1a3828]"
                       placeholder="اسم المنحة"
                     />
 
@@ -705,26 +705,26 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
                       step="0.01"
                       value={al.amount}
                       onChange={e => handleAllowanceChange(idx, 'amount', Number(e.target.value) || 0)}
-                      className="w-24 bg-white border border-[#d8d0bc] rounded-lg px-2 py-1 font-mono text-center"
+                      className="w-24 bg-white border border-[#a7f3d0] rounded-lg px-2 py-1 font-mono text-center"
                       placeholder="المبلغ"
                     />
 
-                    <label className="flex items-center gap-1 text-[11px] text-[#4f483b] bg-white px-2 py-1 rounded border border-[#d8d0bc] cursor-pointer">
+                    <label className="flex items-center gap-1 text-[11px] text-[#4f483b] bg-white px-2 py-1 rounded border border-[#a7f3d0] cursor-pointer">
                       <input
                         type="checkbox"
                         checked={al.cnas}
                         onChange={e => handleAllowanceChange(idx, 'cnas', e.target.checked)}
-                        className="accent-[#176b4a]"
+                        className="accent-[#047857]"
                       />
                       <span>ضمان (CNAS)</span>
                     </label>
 
-                    <label className="flex items-center gap-1 text-[11px] text-[#4f483b] bg-white px-2 py-1 rounded border border-[#d8d0bc] cursor-pointer">
+                    <label className="flex items-center gap-1 text-[11px] text-[#4f483b] bg-white px-2 py-1 rounded border border-[#a7f3d0] cursor-pointer">
                       <input
                         type="checkbox"
                         checked={al.irg}
                         onChange={e => handleAllowanceChange(idx, 'irg', e.target.checked)}
-                        className="accent-[#176b4a]"
+                        className="accent-[#047857]"
                       />
                       <span>ضريبة (IRG)</span>
                     </label>
@@ -752,30 +752,30 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 text-center text-xs">
                 <div className="bg-white/80 p-2 rounded-xl border border-emerald-100">
-                  <div className="text-[#6c757d]">الأجر القاعدي</div>
-                  <div className="font-bold text-[#1b4332] font-mono mt-0.5">{fmt(previewCalculation.basic)} دج</div>
+                  <div className="text-[#64748b]">الأجر القاعدي</div>
+                  <div className="font-bold text-[#065f46] font-mono mt-0.5">{fmt(previewCalculation.basic)} دج</div>
                 </div>
                 <div className="bg-white/80 p-2 rounded-xl border border-emerald-100">
-                  <div className="text-[#6c757d]">الخبرة المهنية</div>
-                  <div className="font-bold text-[#1b4332] font-mono mt-0.5">{fmt(previewCalculation.seniority)} دج</div>
+                  <div className="text-[#64748b]">الخبرة المهنية</div>
+                  <div className="font-bold text-[#065f46] font-mono mt-0.5">{fmt(previewCalculation.seniority)} دج</div>
                 </div>
                 <div className="bg-white/80 p-2 rounded-xl border border-emerald-100">
-                  <div className="text-[#6c757d]">مجموع المنح</div>
-                  <div className="font-bold text-[#1b4332] font-mono mt-0.5">{fmt(previewCalculation.allowTotal)} دج</div>
+                  <div className="text-[#64748b]">مجموع المنح</div>
+                  <div className="font-bold text-[#065f46] font-mono mt-0.5">{fmt(previewCalculation.allowTotal)} دج</div>
                 </div>
                 <div className="bg-white/80 p-2 rounded-xl border border-emerald-100">
-                  <div className="text-[#6c757d]">الأجر الخام</div>
-                  <div className="font-bold text-[#1b4332] font-mono mt-0.5">{fmt(previewCalculation.gross)} دج</div>
+                  <div className="text-[#64748b]">الأجر الخام</div>
+                  <div className="font-bold text-[#065f46] font-mono mt-0.5">{fmt(previewCalculation.gross)} دج</div>
                 </div>
                 <div className="bg-white/80 p-2 rounded-xl border border-emerald-100">
-                  <div className="text-[#6c757d]">اقتطاع CNAS (9%)</div>
+                  <div className="text-[#64748b]">اقتطاع CNAS (9%)</div>
                   <div className="font-bold text-red-700 font-mono mt-0.5">{fmt(previewCalculation.cnasDeduction)} دج</div>
                 </div>
                 <div className="bg-white/80 p-2 rounded-xl border border-emerald-100">
-                  <div className="text-[#6c757d]">ضريبة IRG 2022</div>
+                  <div className="text-[#64748b]">ضريبة IRG 2022</div>
                   <div className="font-bold text-red-700 font-mono mt-0.5">{fmt(previewCalculation.irgTax)} دج</div>
                 </div>
-                <div className="bg-[#176b4a] text-white p-2 rounded-xl col-span-2 sm:col-span-1 shadow-sm">
+                <div className="bg-[#047857] text-white p-2 rounded-xl col-span-2 sm:col-span-1 shadow-sm">
                   <div className="text-emerald-100 font-bold">الصافي للدفع</div>
                   <div className="font-black text-sm font-mono mt-0.5">{fmt(previewCalculation.net)} دج</div>
                 </div>
@@ -784,7 +784,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
           )}
 
           {/* Form Action Buttons */}
-          <div className="flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-[#e2d9c5]">
+          <div className="flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-[#e2e8f0]">
             {editingId && (
               <button
                 type="button"
@@ -797,7 +797,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
 
             <button
               type="submit"
-              className="bg-[#176b4a] hover:bg-[#12553b] text-white px-8 py-3.5 rounded-xl font-black text-sm sm:text-base shadow-md flex items-center gap-2 transition-all cursor-pointer hover:shadow-lg"
+              className="bg-[#047857] hover:bg-[#065f46] text-white px-8 py-3.5 rounded-xl font-black text-sm sm:text-base shadow-md flex items-center gap-2 transition-all cursor-pointer hover:shadow-lg"
             >
               <Save className="w-5 h-5" />
               <span>{editingId ? '💾 حفظ التعديلات على الموظف' : '💾 حفظ وتسجيل الموظف في السجل'}</span>
@@ -807,14 +807,14 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
       </div>
 
       {/* Employees Table Card */}
-      <div className="bg-[#fffdfa] border border-[#d8d0bc] rounded-3xl p-6 sm:p-8 shadow-sm">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 mb-4 border-b border-[#e5ddcb] gap-3">
+      <div className="bg-[#ffffff] border border-[#a7f3d0] rounded-3xl p-6 sm:p-8 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 mb-4 border-b border-[#e2e8f0] gap-3">
           <div>
-            <h3 className="text-lg sm:text-xl font-black text-[#1a3d2b] font-['Cairo'] flex items-center gap-2">
-              <Users className="w-5 h-5 text-[#176b4a]" />
+            <h3 className="text-lg sm:text-xl font-black text-[#0f172a] flex items-center gap-2">
+              <Users className="w-5 h-5 text-[#047857]" />
               <span>قائمة الموظفين المسجلين ({employees.length} موظف)</span>
             </h3>
-            <p className="text-xs text-[#706856] mt-0.5">
+            <p className="text-xs text-[#64748b] mt-0.5">
               يمكنك استخراج كشف الراتب أو شهادة التقاعد أو التعديل والحذف لأي موظف مباشرة.
             </p>
           </div>
@@ -828,7 +828,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
                 placeholder="بحث بالاسم أو رقم الضمان..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full sm:w-60 bg-white border border-[#d4cbba] rounded-xl pr-9 pl-3 py-1.5 text-xs focus:outline-none focus:border-[#176b4a]"
+                className="w-full sm:w-60 bg-white border border-[#d4cbba] rounded-xl pr-9 pl-3 py-1.5 text-xs focus:outline-none focus:border-[#047857]"
               />
             </div>
 
@@ -851,10 +851,10 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
             لا يوجد موظفون مطابقون لشروط البحث.
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-[#ded5be]">
+          <div className="overflow-x-auto rounded-xl border border-[#e2e8f0]">
             <table className="w-full text-right text-xs border-collapse">
               <thead>
-                <tr className="bg-[#f4efe4] text-[#1a3d2b] border-b border-[#ded5be]">
+                <tr className="bg-[#f1f5f9] text-[#0f172a] border-b border-[#e2e8f0]">
                   <th className="p-3 font-bold">#</th>
                   <th className="p-3 font-bold">الاسم واللقب</th>
                   <th className="p-3 font-bold">الوظيفة / الرتبة</th>
@@ -864,14 +864,14 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
                   <th className="p-3 font-bold text-center">الإجراءات والوثائق</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#ece3cf]">
+              <tbody className="divide-y divide-[#e2e8f0]">
                 {filteredEmployees.map((emp, i) => {
                   const job = JOBS[emp.jobIdx];
                   const g = GRILLE[emp.category] || GRILLE[0];
                   return (
-                    <tr key={emp.id} className="hover:bg-[#faf7ee] transition-colors">
+                    <tr key={emp.id} className="hover:bg-[#f8fafc] transition-colors">
                       <td className="p-3 text-[#7a7261]">{i + 1}</td>
-                      <td className="p-3 font-bold text-[#1b3e2b]">{emp.name}</td>
+                      <td className="p-3 font-bold text-[#0f172a]">{emp.name}</td>
                       <td className="p-3">{job ? job.name : '—'}</td>
                       <td className="p-3 font-mono">
                         الصنف {g.cat} / {isProfessionalWorkerJob(job) ? `${emp.yearsOverride || 0} سنة` : `د ${emp.echelon}`}
@@ -882,7 +882,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
                         <div className="flex items-center justify-center gap-1.5">
                           <button
                             onClick={() => onOpenPayslip(emp.id)}
-                            className="bg-[#176b4a] hover:bg-[#115037] text-white p-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                            className="bg-[#047857] hover:bg-[#115037] text-white p-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
                             title="كشف الراتب"
                           >
                             <Eye className="w-3.5 h-3.5" />
@@ -891,7 +891,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
 
                           <button
                             onClick={() => onOpenPension(emp.id)}
-                            className="bg-amber-700 hover:bg-amber-800 text-white p-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                            className="bg-amber-500 hover:bg-amber-400 text-slate-950 p-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
                             title="وثائق التقاعد الرسمية (CNR)"
                           >
                             <Award className="w-3.5 h-3.5" />

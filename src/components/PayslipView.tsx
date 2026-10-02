@@ -120,7 +120,7 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
 
   if (!currentEmployee || !result) {
     return (
-      <div className="py-12 text-center text-[#736a58]">
+      <div className="py-12 text-center text-[#64748b]">
         لا يوجد موظف محدد لعرض كشف الراتب. يرجى تسجيل موظف أولاً.
       </div>
     );
@@ -144,13 +144,13 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
   return (
     <div className="py-6 max-w-4xl mx-auto px-4 print:py-0 print:px-0">
       {/* Control bar (no print) */}
-      <div className="bg-[#fffdfa] border border-[#d8d0bc] rounded-3xl p-5 sm:p-6 shadow-sm mb-6 print:hidden">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 mb-4 border-b border-[#e5ddcb]">
+      <div className="bg-[#ffffff] border border-[#a7f3d0] rounded-3xl p-5 sm:p-6 shadow-sm mb-6 print:hidden">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 mb-4 border-b border-[#e2e8f0]">
           <div>
-            <h2 className="text-xl sm:text-2xl font-black text-[#1a3d2b] font-['Cairo']">
+            <h2 className="text-xl sm:text-2xl font-black text-[#0f172a]">
               كشف الراتب الشهري (Fiche de Paie)
             </h2>
-            <p className="text-xs text-[#706856] mt-0.5">
+            <p className="text-xs text-[#64748b] mt-0.5">
               نموذج معتمد وفق الشبكات الاستدلالية الرسمية المتعاقبة (07-304، 22-138، 23-54) وسلم الضريبة IRG الساري في سنة الكشف.
             </p>
           </div>
@@ -158,7 +158,7 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
-              className="bg-[#176b4a] hover:bg-[#12553b] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              className="bg-[#047857] hover:bg-[#065f46] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
             >
               <Printer className="w-4 h-4" />
               <span>طباعة الكشف</span>
@@ -166,7 +166,7 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
             <button
               onClick={handleDownload}
               disabled={exporting}
-              className="bg-white hover:bg-[#f5f2e8] text-[#176b4a] border border-[#176b4a] px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-60 disabled:cursor-wait"
+              className="bg-white hover:bg-[#f1f5f9] text-[#047857] border border-[#047857] px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-60 disabled:cursor-wait"
             >
               <Download className="w-4 h-4" />
               <span>{exporting ? 'جاري التوليد...' : 'تحميل (PDF)'}</span>
@@ -176,27 +176,27 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
 
         {/* نوع الكشف + النسخة النموذجية */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
-          <div className="flex bg-white border border-[#cfc4ac] rounded-xl p-1 gap-1 w-fit">
+          <div className="flex bg-white border border-[#cbd5e1] rounded-xl p-1 gap-1 w-fit">
             <button
               onClick={() => setMode('monthly')}
-              className={`px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${mode === 'monthly' ? 'bg-[#176b4a] text-white shadow-sm' : 'text-[#1a3d2b] hover:bg-[#f5f2e8]'}`}
+              className={`px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${mode === 'monthly' ? 'bg-[#047857] text-white shadow-sm' : 'text-[#0f172a] hover:bg-[#f1f5f9]'}`}
             >
               كشف شهري
             </button>
             <button
               onClick={() => setMode('annual')}
-              className={`px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${mode === 'annual' ? 'bg-[#176b4a] text-white shadow-sm' : 'text-[#1a3d2b] hover:bg-[#f5f2e8]'}`}
+              className={`px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${mode === 'annual' ? 'bg-[#047857] text-white shadow-sm' : 'text-[#0f172a] hover:bg-[#f1f5f9]'}`}
             >
               كشف سنوي
             </button>
           </div>
 
-          <label className="flex items-center gap-2 text-xs sm:text-sm font-bold text-[#443e33] cursor-pointer select-none w-fit">
+          <label className="flex items-center gap-2 text-xs sm:text-sm font-bold text-[#1e293b] cursor-pointer select-none w-fit">
             <input
               type="checkbox"
               checked={specimen}
               onChange={e => setSpecimen(e.target.checked)}
-              className="w-4 h-4 accent-[#176b4a] cursor-pointer"
+              className="w-4 h-4 accent-[#047857] cursor-pointer"
             />
             كشف الراتب النموذجي (Specimen)
           </label>
@@ -204,11 +204,11 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
-            <label className="block text-xs font-bold text-[#443e33] mb-1">اختيار الموظف</label>
+            <label className="block text-xs font-bold text-[#1e293b] mb-1">اختيار الموظف</label>
             <select
               value={empId}
               onChange={e => setEmpId(e.target.value)}
-              className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-[#1a3d2b] focus:outline-none"
+              className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-[#0f172a] focus:outline-none"
             >
               {employees.map(e => (
                 <option key={e.id} value={e.id}>
@@ -220,11 +220,11 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
 
           {mode === 'monthly' ? (
             <div>
-              <label className="block text-xs font-bold text-[#443e33] mb-1">الشهر</label>
+              <label className="block text-xs font-bold text-[#1e293b] mb-1">الشهر</label>
               <select
                 value={month}
                 onChange={e => setMonth(Number(e.target.value))}
-                className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3 py-2 text-xs sm:text-sm focus:outline-none"
+                className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3 py-2 text-xs sm:text-sm focus:outline-none"
               >
                 {Object.entries(MONTHS_AR).map(([m, name]) => (
                   <option key={m} value={m}>
@@ -235,27 +235,27 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
             </div>
           ) : (
             <div>
-              <label className="block text-xs font-bold text-[#443e33] mb-1">الفترة</label>
-              <div className="w-full bg-[#f5f2e8] border border-[#cfc4ac] rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-[#1a3d2b] text-center">
+              <label className="block text-xs font-bold text-[#1e293b] mb-1">الفترة</label>
+              <div className="w-full bg-[#f1f5f9] border border-[#cbd5e1] rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-[#0f172a] text-center">
                 السنة الكاملة (جانفي — ديسمبر)
               </div>
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-bold text-[#443e33] mb-1">السنة</label>
+            <label className="block text-xs font-bold text-[#1e293b] mb-1">السنة</label>
             <input
               type="number"
               value={year}
               onChange={e => setYear(Number(e.target.value) || new Date().getFullYear())}
-              className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3 py-2 text-xs sm:text-sm font-mono focus:outline-none"
+              className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3 py-2 text-xs sm:text-sm font-mono focus:outline-none"
             />
           </div>
         </div>
 
         {/* سنوات التغيير — الضغط على السنة يعرض الكشف وفق أنظمتها */}
-        <div className="mt-4 pt-4 border-t border-[#e5ddcb]">
-          <div className="text-xs font-bold text-[#443e33] mb-2">
+        <div className="mt-4 pt-4 border-t border-[#e2e8f0]">
+          <div className="text-xs font-bold text-[#1e293b] mb-2">
             سنوات التغيير — اضغط على السنة لعرض الكشف وفق الأنظمة القانونية السارية فيها:
           </div>
           <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2">
@@ -266,10 +266,10 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
                   key={cy.year}
                   title={cy.note}
                   onClick={() => setYear(cy.year)}
-                  className={`rounded-xl border px-2 py-2 text-center transition-all cursor-pointer ${active ? 'bg-[#176b4a] border-[#176b4a] text-white shadow' : 'bg-white border-[#cfc4ac] text-[#1a3d2b] hover:bg-[#f5f2e8]'}`}
+                  className={`rounded-xl border px-2 py-2 text-center transition-all cursor-pointer ${active ? 'bg-[#047857] border-[#047857] text-white shadow' : 'bg-white border-[#cbd5e1] text-[#0f172a] hover:bg-[#f1f5f9]'}`}
                 >
                   <div className="text-sm font-black font-mono">{cy.year}</div>
-                  <div className={`text-[9px] leading-tight mt-0.5 ${active ? 'text-white/90' : 'text-[#706856]'}`}>{cy.note}</div>
+                  <div className={`text-[9px] leading-tight mt-0.5 ${active ? 'text-white/90' : 'text-[#64748b]'}`}>{cy.note}</div>
                 </button>
               );
             })}
@@ -292,7 +292,7 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
             <h2 className="text-sm sm:text-base font-bold text-gray-900 underline decoration-black mb-2">
               وزارة التربية الوطنية
             </h2>
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-950 my-2 tracking-widest font-['Cairo']">
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-950 my-2 tracking-widest">
               {bigTitle}
             </h3>
 
@@ -324,7 +324,7 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
 
           {/* Employee Info Section */}
           <div className="border border-black rounded-lg p-3 mb-3 text-xs leading-relaxed">
-            <div className="text-center font-bold text-sm text-gray-900 border-b border-black pb-1.5 mb-2 font-['Cairo']">
+            <div className="text-center font-bold text-sm text-gray-900 border-b border-black pb-1.5 mb-2">
               مـعـلـومـات الـمـوظـف
             </div>
 
@@ -519,16 +519,16 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
 
               {/* Annual Net Pay Callout */}
               <div className="net-callout border-2 border-black bg-white p-3 sm:p-4 text-center mb-4 rounded-xl">
-                <div className="text-sm sm:text-base font-bold text-gray-800 mb-1 font-['Cairo']">
+                <div className="text-sm sm:text-base font-bold text-gray-800 mb-1">
                   الـصـافـي السـنـوي لـلـدفـع (Net annuel à payer)
                 </div>
                 <div className="flex items-baseline justify-center gap-1 text-[#111]">
                   <span className="text-2xl sm:text-4xl font-black font-mono tracking-tight">
                     {fmt(annual.net)}
                   </span>
-                  <span className="text-lg sm:text-xl font-bold font-['Cairo']">دج</span>
+                  <span className="text-lg sm:text-xl font-bold">دج</span>
                 </div>
-                <div className="text-[10px] sm:text-xs text-gray-800 mt-1 italic font-['Cairo']">
+                <div className="text-[10px] sm:text-xs text-gray-800 mt-1 italic">
                   المبلغ بالأحرف: {amountWordsDZD(annual.net)}
                 </div>
               </div>
@@ -683,16 +683,16 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
 
               {/* Net Pay Callout */}
               <div className="net-callout border-2 border-black bg-white p-3 sm:p-4 text-center mb-4 rounded-xl">
-                <div className="text-sm sm:text-base font-bold text-gray-800 mb-1 font-['Cairo']">
+                <div className="text-sm sm:text-base font-bold text-gray-800 mb-1">
                   الـصـافـي لـلـدفـع (Net à payer)
                 </div>
                 <div className="flex items-baseline justify-center gap-1 text-[#111]">
                   <span className="text-2xl sm:text-4xl font-black font-mono tracking-tight">
                     {fmt(result.net)}
                   </span>
-                  <span className="text-lg sm:text-xl font-bold font-['Cairo']">دج</span>
+                  <span className="text-lg sm:text-xl font-bold">دج</span>
                 </div>
-                <div className="text-[10px] sm:text-xs text-gray-800 mt-1 italic font-['Cairo']">
+                <div className="text-[10px] sm:text-xs text-gray-800 mt-1 italic">
                   المبلغ بالأحرف: {amountWordsDZD(result.net)}
                 </div>
               </div>

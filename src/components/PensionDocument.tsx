@@ -291,7 +291,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
 
   if (!currentEmployee) {
     return (
-      <div className="py-12 text-center text-[#736a58]">
+      <div className="py-12 text-center text-[#64748b]">
         يرجى اختيار أو تسجيل موظف أولاً لعرض وثائق التقاعد.
       </div>
     );
@@ -304,24 +304,24 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
 
       {/* Toast Alert */}
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#176b4a] text-white px-6 py-3 rounded-2xl shadow-xl flex items-center gap-2 font-bold text-sm animate-in fade-in">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#047857] text-white px-6 py-3 rounded-2xl shadow-xl flex items-center gap-2 font-bold text-sm animate-in fade-in">
           <FileCheck className="w-5 h-5 text-amber-300" />
           <span>{toast}</span>
         </div>
       )}
 
       {/* Control & Selection Bar (No-Print) */}
-      <div className="bg-[#fffdfa] border border-[#d8d0bc] rounded-3xl p-5 sm:p-6 shadow-sm mb-6 print:hidden">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-[#e6decb]">
+      <div className="bg-[#ffffff] border border-[#a7f3d0] rounded-3xl p-5 sm:p-6 shadow-sm mb-6 print:hidden">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-[#e2e8f0]">
           <div>
             <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 bg-amber-100 px-3 py-1 rounded-full mb-1">
               <Award className="w-3.5 h-3.5 text-amber-700" />
               <span>الصندوق الوطني للتقاعد (C.N.R) — النموذج الرسمي مطابق طبق الأصل</span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-black text-[#1a3d2b] font-['Cairo']">
+            <h2 className="text-xl sm:text-2xl font-black text-[#0f172a]">
               شهادة الأجور للتقاعد (الوجه الأمامي والخلفي 60 شهراً)
             </h2>
-            <p className="text-xs sm:text-sm text-[#706856] mt-0.5">
+            <p className="text-xs sm:text-sm text-[#64748b] mt-0.5">
               وثيقة رسمية مبرمجة لحساب وتحديد أجور الـ 60 شهراً المعتمدة كأساس لتصفية منحة أو معاش التقاعد.
             </p>
           </div>
@@ -338,7 +338,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
 
             <button
               onClick={handlePrint}
-              className="bg-[#176b4a] hover:bg-[#12553b] text-white px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              className="bg-[#047857] hover:bg-[#065f46] text-white px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
             >
               <Printer className="w-4 h-4" />
               <span>طباعة الوثيقة</span>
@@ -347,7 +347,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
             <button
               onClick={handleDownload}
               disabled={exportingPdf}
-              className="bg-[#fff] hover:bg-[#f6f2e8] text-[#176b4a] border border-[#176b4a] px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-60 disabled:cursor-wait"
+              className="bg-[#fff] hover:bg-[#f6f2e8] text-[#047857] border border-[#047857] px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-60 disabled:cursor-wait"
             >
               <Download className="w-4 h-4" />
               <span>{exportingPdf ? 'جاري التوليد...' : 'تحميل (PDF)'}</span>
@@ -358,11 +358,11 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
         {/* Filters and Face Selection */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
           <div>
-            <label className="block text-xs font-bold text-[#443e33] mb-1">الموظف المعني بالتقاعد</label>
+            <label className="block text-xs font-bold text-[#1e293b] mb-1">الموظف المعني بالتقاعد</label>
             <select
               value={empId}
               onChange={e => setEmpId(e.target.value)}
-              className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-[#1b3e2b] focus:outline-none focus:border-[#176b4a]"
+              className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-[#0f172a] focus:outline-none focus:border-[#047857]"
             >
               {employees.map(e => (
                 <option key={e.id} value={e.id}>
@@ -373,11 +373,11 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#443e33] mb-1">الشهر المرجعي الأخير (نهاية الـ 60 شهراً)</label>
+            <label className="block text-xs font-bold text-[#1e293b] mb-1">الشهر المرجعي الأخير (نهاية الـ 60 شهراً)</label>
             <select
               value={refMonth}
               onChange={e => setRefMonth(Number(e.target.value))}
-              className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3 py-2 text-xs sm:text-sm focus:outline-none"
+              className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3 py-2 text-xs sm:text-sm focus:outline-none"
             >
               {Object.entries(MONTHS_AR).map(([m, name]) => (
                 <option key={m} value={m}>
@@ -388,23 +388,23 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#443e33] mb-1">السنة المرجعية</label>
+            <label className="block text-xs font-bold text-[#1e293b] mb-1">السنة المرجعية</label>
             <input
               type="number"
               value={refYear}
               onChange={e => setRefYear(Number(e.target.value) || new Date().getFullYear())}
-              className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3 py-2 text-xs sm:text-sm font-mono focus:outline-none"
+              className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3 py-2 text-xs sm:text-sm font-mono focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#443e33] mb-1">عرض الصفحات</label>
-            <div className="flex rounded-xl bg-[#eee7d8] p-1 gap-1">
+            <label className="block text-xs font-bold text-[#1e293b] mb-1">عرض الصفحات</label>
+            <div className="flex rounded-xl bg-[#e2e8f0] p-1 gap-1">
               <button
                 type="button"
                 onClick={() => setActiveFace('both')}
                 className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${
-                  activeFace === 'both' ? 'bg-[#176b4a] text-white shadow-sm' : 'text-[#4e4738]'
+                  activeFace === 'both' ? 'bg-[#047857] text-white shadow-sm' : 'text-[#475569]'
                 }`}
               >
                 الوجهان معاً
@@ -413,7 +413,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                 type="button"
                 onClick={() => setActiveFace('front')}
                 className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${
-                  activeFace === 'front' ? 'bg-[#176b4a] text-white shadow-sm' : 'text-[#4e4738]'
+                  activeFace === 'front' ? 'bg-[#047857] text-white shadow-sm' : 'text-[#475569]'
                 }`}
               >
                 الوجه الأول
@@ -422,7 +422,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                 type="button"
                 onClick={() => setActiveFace('back')}
                 className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${
-                  activeFace === 'back' ? 'bg-[#176b4a] text-white shadow-sm' : 'text-[#4e4738]'
+                  activeFace === 'back' ? 'bg-[#047857] text-white shadow-sm' : 'text-[#475569]'
                 }`}
               >
                 الوجه الثاني (60)
@@ -433,9 +433,9 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
 
         {/* Programming & Configuration Dropdown Panel */}
         {showConfigPanel && (
-          <div className="mt-5 pt-5 border-t border-[#ded6c2] bg-[#fbf9f3] p-4 sm:p-5 rounded-2xl border border-[#d8cfb9] animate-in fade-in">
+          <div className="mt-5 pt-5 border-t border-[#e2e8f0] bg-[#f8fafc] p-4 sm:p-5 rounded-2xl border border-[#d8cfb9] animate-in fade-in">
             <div className="flex items-center justify-between mb-3">
-              <div className="text-sm font-black text-[#176b4a] flex items-center gap-1.5">
+              <div className="text-sm font-black text-[#047857] flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-amber-600" />
                 <span>برمجة فترات الأجور وتطور الراتب عبر 5 فترات سابقة</span>
               </div>
@@ -446,20 +446,20 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                   setMonthsData(regenerated);
                   triggerToast('تمت إعادة الضبط الآلي لجميع الأشهر');
                 }}
-                className="text-xs bg-[#e9f2ec] hover:bg-[#d5ebd9] text-[#176b4a] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
+                className="text-xs bg-[#e9f2ec] hover:bg-[#d5ebd9] text-[#047857] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
               >
                 <span>⚙ إعادة الضبط الآلي من الراتب الحالي</span>
               </button>
             </div>
 
-            <p className="text-xs text-[#706958] mb-4">
+            <p className="text-xs text-[#64748b] mb-4">
               حدد فترات الترقية أو تغير الراتب (من شهر/سنة إلى شهر/سنة) ومبلغ الراتب الخاضع للاشتراك لكل فترة، وسيتم تطبيقها فوراً على جدول الـ 60 شهراً وحساب المجاميع.
             </p>
 
-            <div className="overflow-x-auto rounded-xl border border-[#ded5be] bg-white">
+            <div className="overflow-x-auto rounded-xl border border-[#e2e8f0] bg-white">
               <table className="w-full text-right text-xs border-collapse">
                 <thead>
-                  <tr className="bg-[#f0eae0] text-[#1a3d2b] border-b border-[#ded5be]">
+                  <tr className="bg-[#f1f5f9] text-[#0f172a] border-b border-[#e2e8f0]">
                     <th className="p-2.5">الفترة من (شهر/سنة)</th>
                     <th className="p-2.5">إلى (شهر/سنة)</th>
                     <th className="p-2.5">الرتبة</th>
@@ -468,7 +468,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                     <th className="p-2.5">الأجر الخاضع للاشتراك (دج)</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#ece3cf]">
+                <tbody className="divide-y divide-[#e2e8f0]">
                   {salaryRules.map((rule, idx) => (
                     <tr key={idx}>
                       <td className="p-2">
@@ -480,7 +480,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                             copy[idx].from = e.target.value;
                             setSalaryRules(copy);
                           }}
-                          className="w-full bg-[#faf8f2] border border-[#cfc4ac] rounded-lg px-2 py-1 font-mono text-center"
+                          className="w-full bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-2 py-1 font-mono text-center"
                         />
                       </td>
                       <td className="p-2">
@@ -492,7 +492,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                             copy[idx].to = e.target.value;
                             setSalaryRules(copy);
                           }}
-                          className="w-full bg-[#faf8f2] border border-[#cfc4ac] rounded-lg px-2 py-1 font-mono text-center"
+                          className="w-full bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-2 py-1 font-mono text-center"
                         />
                       </td>
                       <td className="p-2">
@@ -505,7 +505,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                             copy[idx].rank = e.target.value;
                             setSalaryRules(copy);
                           }}
-                          className="w-full bg-[#faf8f2] border border-[#cfc4ac] rounded-lg px-2 py-1"
+                          className="w-full bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-2 py-1"
                         />
                       </td>
                       <td className="p-2">
@@ -518,7 +518,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                             copy[idx].cat = e.target.value;
                             setSalaryRules(copy);
                           }}
-                          className="w-full bg-[#faf8f2] border border-[#cfc4ac] rounded-lg px-2 py-1 text-center"
+                          className="w-full bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-2 py-1 text-center"
                         />
                       </td>
                       <td className="p-2">
@@ -531,7 +531,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                             copy[idx].grade = e.target.value;
                             setSalaryRules(copy);
                           }}
-                          className="w-full bg-[#faf8f2] border border-[#cfc4ac] rounded-lg px-2 py-1 text-center"
+                          className="w-full bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-2 py-1 text-center"
                         />
                       </td>
                       <td className="p-2">
@@ -545,7 +545,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                             copy[idx].wage = e.target.value;
                             setSalaryRules(copy);
                           }}
-                          className="w-full bg-[#faf8f2] border border-[#cfc4ac] rounded-lg px-2 py-1 font-mono font-bold text-center text-[#176b4a]"
+                          className="w-full bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-2 py-1 font-mono font-bold text-center text-[#047857]"
                         />
                       </td>
                     </tr>
@@ -556,26 +556,26 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
 
             {/* ===== جدول برمجة علاوة المردودية ===== */}
             <div className="flex items-center justify-between mb-3 mt-6">
-              <div className="text-sm font-black text-[#8a5a00] flex items-center gap-1.5">
+              <div className="text-sm font-black text-[#b45309] flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-amber-600" />
                 <span>برمجة علاوة المردودية — تدفع كل ثلاثة (3) أشهر ابتداء من جانفي</span>
               </div>
             </div>
 
-            <p className="text-xs text-[#706958] mb-4">
+            <p className="text-xs text-[#64748b] mb-4">
               تُضاف المردودية تلقائياً لأشهر <b>جانفي، أفريل، جويلية وأكتوبر</b> من كل سنة داخل الفترة المحددة، ويُعرض المبلغ في خانة الشهر مضافاً إلى الأجر الخاضع للاشتراك، مع احتسابه في المجاميع والمعدل العام.
             </p>
 
-            <div className="overflow-x-auto rounded-xl border border-[#e5d9b8] bg-white">
+            <div className="overflow-x-auto rounded-xl border border-[#fde68a] bg-white">
               <table className="w-full text-right text-xs border-collapse">
                 <thead>
-                  <tr className="bg-[#f5eedb] text-[#5c4300] border-b border-[#e5d9b8]">
+                  <tr className="bg-[#fffbeb] text-[#92400e] border-b border-[#fde68a]">
                     <th className="p-2.5">الفترة من (شهر/سنة)</th>
                     <th className="p-2.5">إلى (شهر/سنة)</th>
                     <th className="p-2.5">مبلغ المردودية الفصلي (دج) — كل 3 أشهر</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#f0e6cb]">
+                <tbody className="divide-y divide-[#fef3c7]">
                   {yieldRules.map((rule, idx) => (
                     <tr key={idx}>
                       <td className="p-2">
@@ -587,7 +587,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                             copy[idx].from = e.target.value;
                             setYieldRules(copy);
                           }}
-                          className="w-full bg-[#faf8f2] border border-[#cfc4ac] rounded-lg px-2 py-1 font-mono text-center"
+                          className="w-full bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-2 py-1 font-mono text-center"
                         />
                       </td>
                       <td className="p-2">
@@ -599,7 +599,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                             copy[idx].to = e.target.value;
                             setYieldRules(copy);
                           }}
-                          className="w-full bg-[#faf8f2] border border-[#cfc4ac] rounded-lg px-2 py-1 font-mono text-center"
+                          className="w-full bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-2 py-1 font-mono text-center"
                         />
                       </td>
                       <td className="p-2">
@@ -613,7 +613,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                             copy[idx].amount = e.target.value;
                             setYieldRules(copy);
                           }}
-                          className="w-full bg-[#faf8f2] border border-[#cfc4ac] rounded-lg px-2 py-1 font-mono font-bold text-center text-[#8a5a00]"
+                          className="w-full bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-2 py-1 font-mono font-bold text-center text-[#b45309]"
                         />
                       </td>
                     </tr>
@@ -626,7 +626,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
               <button
                 type="button"
                 onClick={applySalaryRules}
-                className="bg-[#176b4a] hover:bg-[#12553b] text-white px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm"
+                className="bg-[#047857] hover:bg-[#065f46] text-white px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm"
               >
                 <Save className="w-4 h-4" />
                 <span>حفظ وتطبيق البرمجة (الأجور + المردودية) على الـ 60 شهراً</span>

@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@layer base {
+  body {
+    font-family: 'Amiri', 'Traditional Arabic', 'Tahoma', system-ui, sans-serif;
+  }
+}
+
 /* ===== طباعة كشف الراتب على ورقة A4 ===== */
 @media print {
   @page {

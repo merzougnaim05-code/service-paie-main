@@ -9,10 +9,10 @@ import {
   Menu,
   X,
   Scroll,
-  FileCheck,
   Award,
   Monitor,
-  Smartphone
+  Smartphone,
+  DoorOpen
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -35,405 +35,271 @@ export const Navbar: React.FC<NavbarProps> = ({
   institutionName
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [salaryDropdownOpen, setSalaryDropdownOpen] = useState(false);
-  const [docsDropdownOpen, setDocsDropdownOpen] = useState(false);
-  const [pensionDropdownOpen, setPensionDropdownOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const closeAll = () => {
+    setDropdownOpen(false);
+    setMobileMenuOpen(false);
+  };
 
   const handleTabClick = (tab: string) => {
     onSelectTab(tab);
-    setSalaryDropdownOpen(false);
-    setDocsDropdownOpen(false);
-    setPensionDropdownOpen(false);
-    setMobileMenuOpen(false);
+    closeAll();
   };
 
   const handleDocClick = (doc: string) => {
     onSelectDoc(doc);
-    setDocsDropdownOpen(false);
-    setPensionDropdownOpen(false);
-    setMobileMenuOpen(false);
+    closeAll();
   };
 
-  return (
-    <header className="sticky top-0 z-50 bg-[#fffdfa]/95 backdrop-blur-md border-b border-[#d8d0bc] shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo & Brand */}
-          <div
-            className="flex items-center gap-3 cursor-pointer group"
-            onClick={() => handleTabClick('landing')}
+  const handleDeviceToggle = () => {
+    if (onSelectDeviceMode) {
+      onSelectDeviceMode(deviceMode === 'mobile' ? 'desktop' : 'mobile');
+    }
+  };
+
+  const tabs: { id: string; label: string; shortLabel: string; icon: React.ReactNode; desc: string }[] = [
+    {
+      id: 'landing',
+      label: 'بوابة الدخول والشاشة الرئيسية',
+      shortLabel: 'الرئيسية',
+      icon: <DoorOpen className="w-4 h-4 text-amber-400" />,
+      desc: 'الإحصائيات العامة والدمغة الرسمية'
+    },
+    {
+      id: 'employees',
+      label: 'سجل الموظفين وإدخال البيانات',
+      shortLabel: 'الموظفون',
+      icon: <Users className="w-4 h-4 text-emerald-400" />,
+      desc: 'إضافة وتعديل الموظفين والبحث'
+    },
+    {
+      id: 'payslip',
+      label: 'كشف الراتب الفردي (نموذج 3)',
+      shortLabel: 'كشف الراتب',
+      icon: <FileText className="w-4 h-4 text-sky-300" />,
+      desc: 'إصدار كشف الراتب الرسمي لأي موظف'
+    },
+    {
+      id: 'payrollTables',
+      label: 'طلائح الرواتب (3 أسلاك)',
+      shortLabel: 'طلائح الرواتب',
+      icon: <FileSpreadsheet className="w-4 h-4 text-orange-300" />,
+      desc: 'جداول الرواتب الشهرية حسب الأسلاك'
+    },
+    {
+      id: 'pension',
+      label: 'وثائق التقاعد الرسمية (CNR)',
+      shortLabel: 'وثائق التقاعد',
+      icon: <Award className="w-4 h-4 text-amber-400" />,
+      desc: 'شهادة الأجور وجهها الاثنان + 60 شهراً'
+    },
+    {
+      id: 'docs',
+      label: 'الوثائق الإدارية والضمان الاجتماعي',
+      shortLabel: 'الوثائق الإدارية',
+      icon: <Scroll className="w-4 h-4 text-teal-300" />,
+      desc: 'ATS واستئناف العمل والشهادات الإدارية'
+    },
+    {
+      id: 'settings',
+      label: 'إعدادات المؤسسة والنظام',
+      shortLabel: 'الإعدادات',
+      icon: <SettingsIcon className="w-4 h-4 text-slate-300" />,
+      desc: 'بيانات المؤسسة والنقطة الاستدلالية'
+    }
+  ];
+
+  const docItems: { id: string; label: string; tag?: string; tagColor?: string }[] = [
+    { id: 'cert_recto', label: 'ATS Recto (الوجه الأول)', tag: 'CNAS', tagColor: 'text-emerald-300' },
+    { id: 'cert_verso', label: 'ATS Verso (الوجه الثاني)', tag: 'CNAS', tagColor: 'text-emerald-300' },
+    { id: 'res', label: 'استئناف العمل (AS-09)', tag: 'DRT', tagColor: 'text-sky-300' },
+    { id: 'form', label: 'استمارة الموظف السنوية' },
+    { id: 'req', label: 'طلب وثائق الملف الإداري' },
+    { id: 'nr', label: 'شهادة عدم تقاضي المنح العائلية' },
+    { id: 'salary_disclosure', label: 'استمارة كشف المرتبات (منحة دراسية)' }
+  ];
+
+  const currentTabObj = tabs.find(t => t.id === activeTab) || tabs[0];
+
+  const navMenuContent = (compact: boolean) => (
+    <div className="space-y-1">
+      {tabs.map(tab => {
+        const isActive = activeTab === tab.id;
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => handleTabClick(tab.id)}
+            className={`w-full text-right p-2.5 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
+              isActive
+                ? 'bg-amber-500 text-slate-950 font-black shadow-md'
+                : 'hover:bg-emerald-950 text-slate-200'
+            }`}
           >
-            <div className="w-10 h-10 rounded-xl bg-[#176b4a] text-white flex items-center justify-center font-bold text-lg shadow-sm group-hover:bg-[#12583c] transition-colors">
-              🇩🇿
+            <div className={`p-1.5 rounded-lg shrink-0 ${isActive ? 'bg-slate-950/20' : 'bg-slate-800'}`}>
+              {tab.icon}
             </div>
-            <div>
-              <div className="font-bold text-sm sm:text-base text-[#176b4a] leading-tight font-['Cairo']">
-                نظام تسيير الرواتب والتقاعد
+            <div className="flex-1 min-w-0">
+              <div className={`text-xs sm:text-sm font-bold ${isActive ? 'text-slate-950' : 'text-white'}`}>
+                {tab.label}
               </div>
-              <div className="text-xs text-[#706856] truncate max-w-[200px] sm:max-w-xs">
-                {institutionName || 'الوظيفة العمومية والتربية الوطنية'}
+              <div className={`text-[10px] truncate ${isActive ? 'text-slate-800 font-medium' : 'text-slate-400'}`}>
+                {tab.desc}
               </div>
             </div>
+            {isActive && (
+              <span className="bg-slate-950 text-amber-400 text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">
+                النشط
+              </span>
+            )}
+          </button>
+        );
+      })}
+
+      {/* Quick administrative documents */}
+      <div className={`pt-2 mt-2 border-t ${compact ? 'border-slate-800' : 'border-slate-800'}`}>
+        <div className="text-[11px] font-bold text-amber-400 px-3 py-1.5 flex items-center justify-between">
+          <span>وثائق إدارية سريعة:</span>
+          {activeDoc && activeTab === 'docs' && (
+            <span className="text-[10px] text-slate-400">اختيار مباشر</span>
+          )}
+        </div>
+        {docItems.map(doc => (
+          <button
+            key={doc.id}
+            type="button"
+            onClick={() => handleDocClick(doc.id)}
+            className="w-full text-right px-3 py-1.5 rounded-lg text-xs sm:text-[13px] text-slate-200 hover:bg-emerald-950 flex items-center justify-between transition-colors cursor-pointer"
+          >
+            <span>{doc.label}</span>
+            {doc.tag && (
+              <span className={`text-[10px] font-mono ${doc.tagColor}`}>{doc.tag}</span>
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  return (
+    <header
+      className="sticky top-0 z-50 bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-950 text-white border-b-4 border-amber-500 shadow-xl backdrop-blur-md transition-all duration-200"
+      dir="rtl"
+    >
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 flex items-center justify-between gap-3">
+
+        {/* Brand & Flag */}
+        <div
+          className="flex items-center gap-2 sm:gap-3 shrink-0 cursor-pointer"
+          onClick={() => handleTabClick('landing')}
+          title="العودة إلى البوابة الرئيسية"
+        >
+          {/* Algerian Flag Roundel */}
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white/90 shadow-md relative overflow-hidden shrink-0 flex items-center justify-center bg-white">
+            <div className="absolute inset-0 flex">
+              <div className="w-1/2 h-full bg-[#006233]"></div>
+              <div className="w-1/2 h-full bg-white"></div>
+            </div>
+            <div className="relative z-10 text-[#d21034] text-xs font-black select-none">★</div>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1 text-sm font-semibold">
-            {/* Home / Landing */}
-            <button
-              onClick={() => handleTabClick('landing')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all ${
-                activeTab === 'landing'
-                  ? 'bg-[#176b4a] text-white shadow-sm'
-                  : 'text-[#4a4437] hover:bg-[#ede7d8]'
-              }`}
-            >
-              <Home className="w-4 h-4" />
-              <span>الرئيسية</span>
-            </button>
-
-            {/* Employees */}
-            <button
-              onClick={() => handleTabClick('employees')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all ${
-                activeTab === 'employees'
-                  ? 'bg-[#176b4a] text-white shadow-sm'
-                  : 'text-[#4a4437] hover:bg-[#ede7d8]'
-              }`}
-            >
-              <Users className="w-4 h-4" />
-              <span>سجل الموظفين</span>
-            </button>
-
-            {/* Salary Menu */}
-            <div className="relative">
-              <button
-                onClick={() => {
-                  setSalaryDropdownOpen(!salaryDropdownOpen);
-                  setDocsDropdownOpen(false);
-                  setPensionDropdownOpen(false);
-                }}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all ${
-                  activeTab === 'payslip' || activeTab === 'payrollTables'
-                    ? 'bg-[#176b4a] text-white shadow-sm'
-                    : 'text-[#4a4437] hover:bg-[#ede7d8]'
-                }`}
-              >
-                <FileSpreadsheet className="w-4 h-4" />
-                <span>الرواتب</span>
-                <ChevronDown className="w-3.5 h-3.5 opacity-70" />
-              </button>
-
-              {salaryDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-[#d8d0bc] py-1.5 z-50 animate-in fade-in slide-in-from-top-1">
-                  <button
-                    onClick={() => handleTabClick('payslip')}
-                    className="w-full text-right px-4 py-2 text-sm text-[#383329] hover:bg-[#f5f2e8] flex items-center justify-between"
-                  >
-                    <span>كشف الراتب (Fiche)</span>
-                    <span className="text-xs bg-[#e8e2d2] px-1.5 py-0.5 rounded text-[#554e3f]">
-                      نموذج 3
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => handleTabClick('payrollTables')}
-                    className="w-full text-right px-4 py-2 text-sm text-[#383329] hover:bg-[#f5f2e8] flex items-center justify-between"
-                  >
-                    <span>طلائح الرواتب</span>
-                    <span className="text-xs bg-[#e8e2d2] px-1.5 py-0.5 rounded text-[#554e3f]">
-                      3 أسلاك
-                    </span>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Retirement / Pension Documents (CNR) */}
-            <button
-              onClick={() => handleTabClick('pension')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all ${
-                activeTab === 'pension'
-                  ? 'bg-[#176b4a] text-white shadow-sm'
-                  : 'text-[#4a4437] hover:bg-[#ede7d8]'
-              }`}
-            >
-              <Award className="w-4 h-4 text-amber-500" />
-              <span>وثائق التقاعد (CNR)</span>
-              <span className="text-[10px] bg-amber-500/20 text-amber-800 px-1.5 py-0.2 rounded font-bold">
-                جديد
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-extrabold text-sm sm:text-base md:text-lg tracking-tight text-white whitespace-nowrap">
+                نظام تسيير الرواتب والتقاعد
               </span>
-            </button>
-
-            {/* Administrative Documents */}
-            <div className="relative">
-              <button
-                onClick={() => {
-                  setDocsDropdownOpen(!docsDropdownOpen);
-                  setSalaryDropdownOpen(false);
-                  setPensionDropdownOpen(false);
-                }}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all ${
-                  activeTab === 'docs'
-                    ? 'bg-[#176b4a] text-white shadow-sm'
-                    : 'text-[#4a4437] hover:bg-[#ede7d8]'
-                }`}
-              >
-                <FileText className="w-4 h-4" />
-                <span>الوثائق الإدارية</span>
-                <ChevronDown className="w-3.5 h-3.5 opacity-70" />
-              </button>
-
-              {docsDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-[#d8d0bc] py-1.5 z-50">
-                  <button
-                    onClick={() => handleDocClick('cert_recto')}
-                    className="w-full text-right px-4 py-2 text-sm text-[#383329] hover:bg-[#f5f2e8] flex items-center justify-between"
-                  >
-                    <span>ATS Recto (الوجه الأول)</span>
-                    <span className="text-xs text-emerald-700 font-mono">CNAS</span>
-                  </button>
-                  <button
-                    onClick={() => handleDocClick('cert_verso')}
-                    className="w-full text-right px-4 py-2 text-sm text-[#383329] hover:bg-[#f5f2e8] flex items-center justify-between"
-                  >
-                    <span>ATS Verso (الوجه الثاني)</span>
-                    <span className="text-xs text-emerald-700 font-mono">CNAS</span>
-                  </button>
-                  <button
-                    onClick={() => handleDocClick('res')}
-                    className="w-full text-right px-4 py-2 text-sm text-[#383329] hover:bg-[#f5f2e8] flex items-center justify-between"
-                  >
-                    <span>استئناف العمل (AS-09)</span>
-                    <span className="text-xs text-blue-700 font-mono">DRT</span>
-                  </button>
-                  <button
-                    onClick={() => handleDocClick('form')}
-                    className="w-full text-right px-4 py-2 text-sm text-[#383329] hover:bg-[#f5f2e8]"
-                  >
-                    <span>استمارة الموظف السنوية</span>
-                  </button>
-                  <button
-                    onClick={() => handleDocClick('req')}
-                    className="w-full text-right px-4 py-2 text-sm text-[#383329] hover:bg-[#f5f2e8]"
-                  >
-                    <span>طلب وثائق الملف الإداري</span>
-                  </button>
-                  <button
-                    onClick={() => handleDocClick('nr')}
-                    className="w-full text-right px-4 py-2 text-sm text-[#383329] hover:bg-[#f5f2e8]"
-                  >
-                    <span>شهادة عدم تقاضي المنح العائلية</span>
-                  </button>
-                  <button
-                    onClick={() => handleDocClick('salary_disclosure')}
-                    className="w-full text-right px-4 py-2 text-sm text-[#383329] hover:bg-[#f5f2e8]"
-                  >
-                    <span>استمارة كشف المرتبات (منحة دراسية)</span>
-                  </button>
-                </div>
-              )}
             </div>
-
-            {/* Device Mode Switch (phone / desktop preview) */}
-            <div
-              className="hidden lg:flex items-center rounded-xl border border-[#d8d0bc] bg-[#f5f2e8] p-0.5 gap-0.5"
-              title="التبديل بين وضع الهاتف ووضع الكمبيوتر"
-            >
-              <button
-                onClick={() => onSelectDeviceMode && onSelectDeviceMode('desktop')}
-                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  deviceMode === 'desktop'
-                    ? 'bg-[#176b4a] text-white shadow-sm'
-                    : 'text-[#4a4437] hover:bg-[#ede7d8]'
-                }`}
-                title="وضع الكمبيوتر"
-              >
-                <Monitor className="w-4 h-4" />
-                <span>كمبيوتر</span>
-              </button>
-              <button
-                onClick={() => onSelectDeviceMode && onSelectDeviceMode('mobile')}
-                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  deviceMode === 'mobile'
-                    ? 'bg-[#176b4a] text-white shadow-sm'
-                    : 'text-[#4a4437] hover:bg-[#ede7d8]'
-                }`}
-                title="وضع الهاتف"
-              >
-                <Smartphone className="w-4 h-4" />
-                <span>هاتف</span>
-              </button>
+            <div className="flex items-center gap-2 text-[11px] sm:text-xs text-emerald-200/80">
+              <span className="truncate max-w-[140px] sm:max-w-[220px] md:max-w-none">
+                {institutionName || 'الوظيفة العمومية والتربية الوطنية'}
+              </span>
             </div>
-
-            {/* Settings */}
-            <button
-              onClick={() => handleTabClick('settings')}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all ${
-                activeTab === 'settings'
-                  ? 'bg-[#176b4a] text-white shadow-sm'
-                  : 'text-[#4a4437] hover:bg-[#ede7d8]'
-              }`}
-            >
-              <SettingsIcon className="w-4 h-4" />
-              <span>الإعدادات</span>
-            </button>
-          </nav>
-
-          {/* Mobile Menu Button */}
-          <div className="flex md:hidden">
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-[#3b3529] hover:bg-[#ede7d8] focus:outline-none"
-              aria-label="القائمة الرئيسية"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
           </div>
         </div>
+
+        {/* Center: Dropdown Navigation */}
+        <div className="relative hidden md:block flex-1 max-w-xs sm:max-w-sm md:max-w-md min-w-[160px]">
+          <button
+            type="button"
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className="w-full bg-emerald-900/90 hover:bg-emerald-800/95 border-2 border-amber-400/70 text-white rounded-xl px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-bold flex items-center justify-between shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-amber-400 cursor-pointer"
+            title="انقر لفتح قائمة الأقسام والانتقال السريع"
+          >
+            <div className="flex items-center gap-2 truncate min-w-0">
+              <div className="p-1 rounded-lg bg-amber-500/20 shrink-0">
+                {currentTabObj.icon}
+              </div>
+              <span className="text-amber-300 truncate font-black whitespace-nowrap">
+                {currentTabObj.shortLabel}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-amber-400 shrink-0 mr-1.5">
+              <span className="text-[10px] text-emerald-200 font-normal hidden lg:inline whitespace-nowrap">تبديل القسم</span>
+              <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
+            </div>
+          </button>
+
+          {/* Navigation Dropdown Menu */}
+          {dropdownOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setDropdownOpen(false)} />
+              <div className="absolute right-0 left-0 top-full mt-2 bg-slate-900 border-2 border-amber-500 rounded-2xl shadow-2xl p-1.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150 max-h-[420px] overflow-y-auto">
+                <div className="text-[11px] font-bold text-amber-400 px-3 py-1.5 border-b border-slate-800 mb-1 flex items-center justify-between">
+                  <span>الانتقال السريع بين أقسام النظام:</span>
+                  <span className="text-[10px] text-slate-400">{tabs.length} أقسام</span>
+                </div>
+                {navMenuContent(false)}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Right Tools: Device Toggle & Mobile Menu */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Phone / Desktop View Mode Toggle */}
+          <button
+            type="button"
+            onClick={handleDeviceToggle}
+            className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all border shadow-sm cursor-pointer whitespace-nowrap shrink-0 ${
+              deviceMode === 'mobile'
+                ? 'bg-amber-400 text-slate-950 border-amber-300 font-black'
+                : 'bg-emerald-950/80 hover:bg-emerald-800 text-emerald-100 border-emerald-600/50'
+            }`}
+            title={deviceMode === 'mobile' ? 'التبديل إلى وضع الكمبيوتر (كامل العرض)' : 'التبديل إلى وضع الهاتف المحمول'}
+          >
+            {deviceMode === 'mobile' ? (
+              <>
+                <Smartphone className="w-3.5 h-3.5 text-slate-950 shrink-0" />
+                <span className="whitespace-nowrap">وضع الهاتف</span>
+              </>
+            ) : (
+              <>
+                <Monitor className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+                <span className="whitespace-nowrap">وضع الكمبيوتر</span>
+              </>
+            )}
+          </button>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 rounded-xl bg-emerald-950/80 hover:bg-emerald-800 text-amber-300 border border-emerald-600/50 focus:outline-none"
+            aria-label="القائمة الرئيسية"
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
+
       </div>
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-[#d8d0bc] bg-[#fffdfa] px-4 pt-2 pb-4 space-y-1">
-          <button
-            onClick={() => handleTabClick('landing')}
-            className={`w-full text-right flex items-center gap-3 px-3 py-2.5 rounded-lg font-bold text-sm ${
-              activeTab === 'landing' ? 'bg-[#176b4a] text-white' : 'text-[#433e31]'
-            }`}
-          >
-            <Home className="w-4 h-4" />
-            <span>الرئيسية والإحصائيات</span>
-          </button>
-
-          <button
-            onClick={() => handleTabClick('employees')}
-            className={`w-full text-right flex items-center gap-3 px-3 py-2.5 rounded-lg font-bold text-sm ${
-              activeTab === 'employees' ? 'bg-[#176b4a] text-white' : 'text-[#433e31]'
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            <span>سجل الموظفين وإدخال البيانات</span>
-          </button>
-
-          <div className="pt-2 pb-1 border-t border-[#ede7d8]">
-            <div className="text-xs font-bold text-[#807661] px-3 mb-1">الرواتب</div>
-            <button
-              onClick={() => handleTabClick('payslip')}
-              className={`w-full text-right flex items-center justify-between px-3 py-2 rounded-lg text-sm ${
-                activeTab === 'payslip' ? 'bg-[#176b4a] text-white' : 'text-[#433e31]'
-              }`}
-            >
-              <span>كشف الراتب (Fiche de Paie)</span>
-              <span className="text-xs opacity-75">نموذج 3</span>
-            </button>
-            <button
-              onClick={() => handleTabClick('payrollTables')}
-              className={`w-full text-right flex items-center justify-between px-3 py-2 rounded-lg text-sm ${
-                activeTab === 'payrollTables' ? 'bg-[#176b4a] text-white' : 'text-[#433e31]'
-              }`}
-            >
-              <span>طلائح الرواتب (3 أسلاك)</span>
-              <span className="text-xs opacity-75">Excel</span>
-            </button>
+        <div className="md:hidden border-t-2 border-amber-500/70 bg-slate-900 px-3 pt-2 pb-4 max-h-[70vh] overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="text-[11px] font-bold text-amber-400 px-2 py-1.5 border-b border-slate-800 mb-1">
+            الانتقال السريع بين أقسام النظام:
           </div>
-
-          <div className="pt-2 pb-1 border-t border-[#ede7d8]">
-            <div className="text-xs font-bold text-[#b45309] px-3 mb-1 flex items-center gap-1">
-              <Award className="w-3.5 h-3.5" />
-              <span>وثائق التقاعد الرسمية (CNR)</span>
-            </div>
-            <button
-              onClick={() => handleTabClick('pension')}
-              className={`w-full text-right flex items-center justify-between px-3 py-2 rounded-lg text-sm ${
-                activeTab === 'pension' ? 'bg-amber-700 text-white font-bold' : 'text-[#433e31]'
-              }`}
-            >
-              <span>شهادة الأجور (الوجه الأول والوجه الثاني 60 شهراً)</span>
-              <span className="text-xs bg-amber-100 text-amber-900 px-1 rounded">معاينة وبرمجة</span>
-            </button>
-          </div>
-
-          <div className="pt-2 pb-1 border-t border-[#ede7d8]">
-            <div className="text-xs font-bold text-[#807661] px-3 mb-1">الوثائق الإدارية</div>
-            <button
-              onClick={() => handleDocClick('cert_recto')}
-              className="w-full text-right px-3 py-1.5 text-sm text-[#433e31] flex justify-between"
-            >
-              <span>ATS Recto (الوجه الأول)</span>
-              <span className="text-xs text-emerald-700">CNAS</span>
-            </button>
-            <button
-              onClick={() => handleDocClick('cert_verso')}
-              className="w-full text-right px-3 py-1.5 text-sm text-[#433e31] flex justify-between"
-            >
-              <span>ATS Verso (الوجه الثاني)</span>
-              <span className="text-xs text-emerald-700">CNAS</span>
-            </button>
-            <button
-              onClick={() => handleDocClick('res')}
-              className="w-full text-right px-3 py-1.5 text-sm text-[#433e31] flex justify-between"
-            >
-              <span>استئناف العمل (AS-09)</span>
-              <span className="text-xs text-blue-700">DRT</span>
-            </button>
-            <button
-              onClick={() => handleDocClick('form')}
-              className="w-full text-right px-3 py-1.5 text-sm text-[#433e31]"
-            >
-              <span>استمارة الموظف</span>
-            </button>
-            <button
-              onClick={() => handleDocClick('req')}
-              className="w-full text-right px-3 py-1.5 text-sm text-[#433e31]"
-            >
-              <span>طلب وثائق الملف</span>
-            </button>
-            <button
-              onClick={() => handleDocClick('nr')}
-              className="w-full text-right px-3 py-1.5 text-sm text-[#433e31]"
-            >
-              <span>شهادة عدم تقاضي المنح</span>
-            </button>
-            <button
-              onClick={() => handleDocClick('salary_disclosure')}
-              className="w-full text-right px-3 py-1.5 text-sm text-[#433e31]"
-            >
-              <span>استمارة كشف المرتبات</span>
-            </button>
-          </div>
-
-          <div className="pt-2 pb-1 border-t border-[#ede7d8]">
-            <div className="text-xs font-bold text-[#807661] px-3 mb-1">وضع العرض</div>
-            <div className="flex gap-2 px-3">
-              <button
-                onClick={() => onSelectDeviceMode && onSelectDeviceMode('desktop')}
-                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-bold ${
-                  deviceMode === 'desktop' ? 'bg-[#176b4a] text-white' : 'bg-[#f5f2e8] text-[#433e31]'
-                }`}
-              >
-                <Monitor className="w-4 h-4" />
-                <span>كمبيوتر</span>
-              </button>
-              <button
-                onClick={() => onSelectDeviceMode && onSelectDeviceMode('mobile')}
-                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-bold ${
-                  deviceMode === 'mobile' ? 'bg-[#176b4a] text-white' : 'bg-[#f5f2e8] text-[#433e31]'
-                }`}
-              >
-                <Smartphone className="w-4 h-4" />
-                <span>هاتف</span>
-              </button>
-            </div>
-          </div>
-
-          <button
-            onClick={() => handleTabClick('settings')}
-            className={`w-full text-right flex items-center gap-3 px-3 py-2.5 rounded-lg font-bold text-sm border-t border-[#ede7d8] ${
-              activeTab === 'settings' ? 'bg-[#176b4a] text-white' : 'text-[#433e31]'
-            }`}
-          >
-            <SettingsIcon className="w-4 h-4" />
-            <span>إعدادات المؤسسة والنظام</span>
-          </button>
+          {navMenuContent(true)}
         </div>
       )}
     </header>

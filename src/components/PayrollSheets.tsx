@@ -143,21 +143,21 @@ export const PayrollSheets: React.FC<PayrollSheetsProps> = ({
   return (
     <div className="py-6 max-w-7xl mx-auto px-4 sm:px-6">
       {/* Sector Selection & Filter Bar */}
-      <div className="bg-[#fffdfa] border border-[#d8d0bc] rounded-3xl p-5 sm:p-6 shadow-sm mb-6 print:hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-[#e5ddcb] gap-3">
+      <div className="bg-[#ffffff] border border-[#a7f3d0] rounded-3xl p-5 sm:p-6 shadow-sm mb-6 print:hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-[#e2e8f0] gap-3">
           <div>
-            <h2 className="text-xl sm:text-2xl font-black text-[#1a3d2b] font-['Cairo'] flex items-center gap-2">
-              <FileSpreadsheet className="w-6 h-6 text-[#176b4a]" />
+            <h2 className="text-xl sm:text-2xl font-black text-[#0f172a] flex items-center gap-2">
+              <FileSpreadsheet className="w-6 h-6 text-[#047857]" />
               <span>طلائح الرواتب الشهرية حسب السلك</span>
             </h2>
-            <p className="text-xs text-[#706856] mt-0.5">
+            <p className="text-xs text-[#64748b] mt-0.5">
               كل سلك معزول ومستقل، ويُحسب جدول الرواتب تلقائياً مع خيار التصدير الكامل إلى ملف Excel.
             </p>
           </div>
 
           <button
             onClick={handleExportExcel}
-            className="bg-[#176b4a] hover:bg-[#12553b] text-white px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+            className="bg-[#047857] hover:bg-[#065f46] text-white px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
           >
             <Download className="w-4 h-4" />
             <span>تصدير طليحة السلك إلى Excel</span>
@@ -171,13 +171,13 @@ export const PayrollSheets: React.FC<PayrollSheetsProps> = ({
             onClick={() => setSector('admin')}
             className={`p-3.5 rounded-2xl border text-right transition-all flex items-center justify-between cursor-pointer ${
               sector === 'admin'
-                ? 'bg-[#176b4a] text-white border-[#176b4a] shadow-sm'
-                : 'bg-[#faf8f2] text-[#3e382c] border-[#d8d0bc] hover:bg-[#f1ebe0]'
+                ? 'bg-[#047857] text-white border-[#047857] shadow-sm'
+                : 'bg-[#f8fafc] text-[#1e293b] border-[#a7f3d0] hover:bg-[#e2e8f0]'
             }`}
           >
             <div>
               <div className="font-bold text-sm">سلك الإداريين</div>
-              <div className={`text-xs mt-0.5 ${sector === 'admin' ? 'text-emerald-100' : 'text-[#7e735e]'}`}>
+              <div className={`text-xs mt-0.5 ${sector === 'admin' ? 'text-emerald-100' : 'text-[#64748b]'}`}>
                 المصالح الاقتصادية، الإدارة والتربية
               </div>
             </div>
@@ -191,13 +191,13 @@ export const PayrollSheets: React.FC<PayrollSheetsProps> = ({
             onClick={() => setSector('teach')}
             className={`p-3.5 rounded-2xl border text-right transition-all flex items-center justify-between cursor-pointer ${
               sector === 'teach'
-                ? 'bg-[#176b4a] text-white border-[#176b4a] shadow-sm'
-                : 'bg-[#faf8f2] text-[#3e382c] border-[#d8d0bc] hover:bg-[#f1ebe0]'
+                ? 'bg-[#047857] text-white border-[#047857] shadow-sm'
+                : 'bg-[#f8fafc] text-[#1e293b] border-[#a7f3d0] hover:bg-[#e2e8f0]'
             }`}
           >
             <div>
               <div className="font-bold text-sm">سلك التعليم</div>
-              <div className={`text-xs mt-0.5 ${sector === 'teach' ? 'text-emerald-100' : 'text-[#7e735e]'}`}>
+              <div className={`text-xs mt-0.5 ${sector === 'teach' ? 'text-emerald-100' : 'text-[#64748b]'}`}>
                 أساتذة ومعلمو الأطوار الثلاثة
               </div>
             </div>
@@ -211,13 +211,13 @@ export const PayrollSheets: React.FC<PayrollSheetsProps> = ({
             onClick={() => setSector('workers')}
             className={`p-3.5 rounded-2xl border text-right transition-all flex items-center justify-between cursor-pointer ${
               sector === 'workers'
-                ? 'bg-[#176b4a] text-white border-[#176b4a] shadow-sm'
-                : 'bg-[#faf8f2] text-[#3e382c] border-[#d8d0bc] hover:bg-[#f1ebe0]'
+                ? 'bg-[#047857] text-white border-[#047857] shadow-sm'
+                : 'bg-[#f8fafc] text-[#1e293b] border-[#a7f3d0] hover:bg-[#e2e8f0]'
             }`}
           >
             <div>
               <div className="font-bold text-sm">العمال المهنيون</div>
-              <div className={`text-xs mt-0.5 ${sector === 'workers' ? 'text-emerald-100' : 'text-[#7e735e]'}`}>
+              <div className={`text-xs mt-0.5 ${sector === 'workers' ? 'text-emerald-100' : 'text-[#64748b]'}`}>
                 السائقون والحراس وعمال الخدمات
               </div>
             </div>
@@ -230,11 +230,11 @@ export const PayrollSheets: React.FC<PayrollSheetsProps> = ({
         {/* Date and Search Bar */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
-            <label className="block text-xs font-bold text-[#443e33] mb-1">الشهر</label>
+            <label className="block text-xs font-bold text-[#1e293b] mb-1">الشهر</label>
             <select
               value={month}
               onChange={e => setMonth(Number(e.target.value))}
-              className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3 py-2 text-xs sm:text-sm focus:outline-none"
+              className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3 py-2 text-xs sm:text-sm focus:outline-none"
             >
               {Object.entries(MONTHS_AR).map(([m, name]) => (
                 <option key={m} value={m}>
@@ -245,17 +245,17 @@ export const PayrollSheets: React.FC<PayrollSheetsProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#443e33] mb-1">السنة</label>
+            <label className="block text-xs font-bold text-[#1e293b] mb-1">السنة</label>
             <input
               type="number"
               value={year}
               onChange={e => setYear(Number(e.target.value) || new Date().getFullYear())}
-              className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3 py-2 text-xs sm:text-sm font-mono focus:outline-none"
+              className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3 py-2 text-xs sm:text-sm font-mono focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#443e33] mb-1">بحث في الطليحة</label>
+            <label className="block text-xs font-bold text-[#1e293b] mb-1">بحث في الطليحة</label>
             <div className="relative">
               <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
@@ -263,7 +263,7 @@ export const PayrollSheets: React.FC<PayrollSheetsProps> = ({
                 placeholder="ابحث بالاسم أو رقم الضمان..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-white border border-[#cfc4ac] rounded-xl pr-9 pl-3 py-2 text-xs sm:text-sm focus:outline-none"
+                className="w-full bg-white border border-[#cbd5e1] rounded-xl pr-9 pl-3 py-2 text-xs sm:text-sm focus:outline-none"
               />
             </div>
           </div>
@@ -271,25 +271,25 @@ export const PayrollSheets: React.FC<PayrollSheetsProps> = ({
       </div>
 
       {/* Spreadsheet Card */}
-      <div className="bg-[#fffdfa] border border-[#d8d0bc] rounded-3xl p-5 sm:p-6 shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#e5ddcb]">
-          <h3 className="text-base sm:text-lg font-bold text-[#1b3e2b] font-['Cairo']">
+      <div className="bg-[#ffffff] border border-[#a7f3d0] rounded-3xl p-5 sm:p-6 shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#e2e8f0]">
+          <h3 className="text-base sm:text-lg font-bold text-[#0f172a]">
             طليحة {SECTOR_NAMES[sector]} لشهر {MONTHS_AR[month]} {year}
           </h3>
-          <span className="text-xs text-[#706856]">
+          <span className="text-xs text-[#64748b]">
             عدد الموظفين المعروضين: <strong className="font-mono text-emerald-800">{payrollData.length}</strong>
           </span>
         </div>
 
         {payrollData.length === 0 ? (
-          <div className="py-12 text-center text-[#807662] text-sm">
+          <div className="py-12 text-center text-[#64748b] text-sm">
             لا يوجد موظفون مسجلون في {SECTOR_NAMES[sector]} مطابقون لشروط البحث.
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-[#ded5be]">
+          <div className="overflow-x-auto rounded-xl border border-[#e2e8f0]">
             <table className="w-full text-right text-xs border-collapse min-w-[1100px]">
               <thead>
-                <tr className="bg-[#25543b] text-white">
+                <tr className="bg-[#047857] text-white">
                   <th className="p-2.5 font-bold text-center">#</th>
                   <th className="p-2.5 font-bold">الاسم واللقب</th>
                   <th className="p-2.5 font-bold">الرتبة</th>
@@ -311,12 +311,12 @@ export const PayrollSheets: React.FC<PayrollSheetsProps> = ({
                   <th className="p-2.5 font-bold text-center">كشف</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#ece3cf]">
+              <tbody className="divide-y divide-[#e2e8f0]">
                 {payrollData.map(item => (
-                  <tr key={item.emp.id} className="hover:bg-[#faf7ee] transition-colors">
+                  <tr key={item.emp.id} className="hover:bg-[#f8fafc] transition-colors">
                     <td className="p-2.5 text-center text-[#7e7663]">{item.index}</td>
-                    <td className="p-2.5 font-bold text-[#1b3e2b] whitespace-nowrap">{item.emp.name}</td>
-                    <td className="p-2.5 text-[#443e33] whitespace-nowrap">{item.job?.name || '—'}</td>
+                    <td className="p-2.5 font-bold text-[#0f172a] whitespace-nowrap">{item.emp.name}</td>
+                    <td className="p-2.5 text-[#1e293b] whitespace-nowrap">{item.job?.name || '—'}</td>
                     <td className="p-2.5 text-center font-mono font-bold">{item.r.g.cat}</td>
                     <td className="p-2.5 text-center font-mono">
                       {isProfessionalWorkerJob(item.job) ? `${item.r.years} سنة` : item.emp.echelon}
@@ -332,19 +332,19 @@ export const PayrollSheets: React.FC<PayrollSheetsProps> = ({
                       );
                     })}
                     <td className="p-2.5 text-left font-mono">{fmt(item.r.familyTotal)}</td>
-                    <td className="p-2.5 text-left font-mono font-bold bg-[#faf7ee] text-[#1b3e2b]">
+                    <td className="p-2.5 text-left font-mono font-bold bg-[#f8fafc] text-[#0f172a]">
                       {fmt(item.r.gross)}
                     </td>
                     <td className="p-2.5 text-left font-mono text-red-800">{fmt(item.r.cnasDeduction)}</td>
                     <td className="p-2.5 text-left font-mono text-red-800">{fmt(item.r.irgTax)}</td>
                     <td className="p-2.5 text-left font-mono text-red-800">{fmt(item.r.mutDeduction)}</td>
-                    <td className="p-2.5 text-left font-mono font-black text-[#176b4a] bg-emerald-50/50">
+                    <td className="p-2.5 text-left font-mono font-black text-[#047857] bg-emerald-50/50">
                       {fmt(item.r.net)}
                     </td>
                     <td className="p-2.5 text-center">
                       <button
                         onClick={() => onOpenPayslip(item.emp.id)}
-                        className="text-[#176b4a] hover:bg-[#e9f2ec] p-1.5 rounded-lg transition-colors cursor-pointer"
+                        className="text-[#047857] hover:bg-[#e9f2ec] p-1.5 rounded-lg transition-colors cursor-pointer"
                         title="عرض كشف الراتب"
                       >
                         <Eye className="w-4 h-4" />
@@ -354,8 +354,8 @@ export const PayrollSheets: React.FC<PayrollSheetsProps> = ({
                 ))}
 
                 {/* Column Totals Row */}
-                <tr className="bg-[#f2ecde] border-t-2 border-[#25543b] font-black text-xs">
-                  <td colSpan={5} className="p-3 text-center text-[#1b3e2b]">
+                <tr className="bg-[#f2ecde] border-t-2 border-[#047857] font-black text-xs">
+                  <td colSpan={5} className="p-3 text-center text-[#0f172a]">
                     المـجـمـوع الإجـمـالـي لـطـلـيـحـة {SECTOR_NAMES[sector]}
                   </td>
                   <td className="p-3 text-left font-mono">{fmt(totals.basic)}</td>
@@ -372,7 +372,7 @@ export const PayrollSheets: React.FC<PayrollSheetsProps> = ({
                     );
                   })}
                   <td className="p-3 text-left font-mono">{fmt(totals.familyTotal)}</td>
-                  <td className="p-3 text-left font-mono text-[#1a3d2b] font-black">{fmt(totals.gross)}</td>
+                  <td className="p-3 text-left font-mono text-[#0f172a] font-black">{fmt(totals.gross)}</td>
                   <td className="p-3 text-left font-mono text-red-800">{fmt(totals.cnas)}</td>
                   <td className="p-3 text-left font-mono text-red-800">{fmt(totals.irg)}</td>
                   <td className="p-3 text-left font-mono text-red-800">{fmt(totals.mut)}</td>

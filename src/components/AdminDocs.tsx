@@ -78,7 +78,7 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
 
   if (!currentEmployee) {
     return (
-      <div className="py-12 text-center text-[#736a58]">
+      <div className="py-12 text-center text-[#64748b]">
         يرجى اختيار أو تسجيل موظف أولاً لعرض الوثائق الإدارية.
       </div>
     );
@@ -89,14 +89,14 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
   return (
     <div className="py-6 max-w-7xl mx-auto px-4">
       {/* Control bar */}
-      <div className="bg-[#fffdfa] border border-[#d8d0bc] rounded-3xl p-5 sm:p-6 shadow-sm mb-6 print:hidden">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 mb-4 border-b border-[#e5ddcb]">
+      <div className="bg-[#ffffff] border border-[#a7f3d0] rounded-3xl p-5 sm:p-6 shadow-sm mb-6 print:hidden">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 mb-4 border-b border-[#e2e8f0]">
           <div>
-            <h2 className="text-xl sm:text-2xl font-black text-[#1a3d2b] font-['Cairo'] flex items-center gap-2">
-              <FileText className="w-6 h-6 text-[#176b4a]" />
+            <h2 className="text-xl sm:text-2xl font-black text-[#0f172a] flex items-center gap-2">
+              <FileText className="w-6 h-6 text-[#047857]" />
               <span>شهادة العمل والأجر (ATS) والنماذج الرسمية CNAS</span>
             </h2>
-            <p className="text-xs text-[#706856] mt-0.5">
+            <p className="text-xs text-[#64748b] mt-0.5">
               نماذج مطابقة طبق الأصل لـ (CNAS AS.01) مع الملء الآلي من جدول الرواتب وقابلية التعديل والطباعة.
             </p>
           </div>
@@ -104,7 +104,7 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={handlePrint}
-              className="bg-[#176b4a] hover:bg-[#12553b] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              className="bg-[#047857] hover:bg-[#065f46] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
             >
               <Printer className="w-4 h-4" />
               <span>طباعة الوثيقة</span>
@@ -112,7 +112,7 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
             <button
               onClick={handleDownload}
               disabled={exportingPdf}
-              className="bg-white hover:bg-[#f5f2e8] text-[#176b4a] border border-[#176b4a] px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-60 disabled:cursor-wait"
+              className="bg-white hover:bg-[#f1f5f9] text-[#047857] border border-[#047857] px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-60 disabled:cursor-wait"
             >
               <Download className="w-4 h-4" />
               <span>{exportingPdf ? 'جاري التوليد...' : 'تحميل (PDF)'}</span>
@@ -122,11 +122,11 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-end">
           <div>
-            <label className="block text-xs font-bold text-[#443e33] mb-1">اختيار الموظف</label>
+            <label className="block text-xs font-bold text-[#1e293b] mb-1">اختيار الموظف</label>
             <select
               value={empId}
               onChange={e => setEmpId(e.target.value)}
-              className="w-full bg-white border border-[#cfc4ac] rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-[#1a3d2b] focus:outline-none"
+              className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-[#0f172a] focus:outline-none"
             >
               {employees.map(e => (
                 <option key={e.id} value={e.id}>
@@ -137,11 +137,11 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#443e33] mb-1">نوع الوثيقة الرسمية</label>
+            <label className="block text-xs font-bold text-[#1e293b] mb-1">نوع الوثيقة الرسمية</label>
             <select
               value={docType}
               onChange={e => setDocType(e.target.value)}
-              className="w-full bg-white border border-[#176b4a] rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-[#176b4a] focus:outline-none shadow-sm"
+              className="w-full bg-white border border-[#047857] rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-[#047857] focus:outline-none shadow-sm"
             >
               <option value="ats-front">⭐ شهادة العمل والأجر ATS (الوجه الأول - AS.01)</option>
               <option value="ats-back">⭐ شهادة العمل والأجر ATS (الوجه الثاني - جدول 12 شهراً)</option>
@@ -189,14 +189,14 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
           {/* ======================================================== */}
           {docType === 'ats-both' && (
             <div className="space-y-8 w-full flex flex-col items-center">
-              <div className="w-full text-center py-2 text-xs font-bold text-[#706856] print:hidden">
+              <div className="w-full text-center py-2 text-xs font-bold text-[#64748b] print:hidden">
                 — الوجه الأول (Recto - عمودي A4) —
               </div>
               <AutoFitScale docWidth={794}>
                 <ATSFront employee={currentEmployee} settings={settings} />
               </AutoFitScale>
 
-              <div className="w-full text-center py-2 text-xs font-bold text-[#706856] print:hidden">
+              <div className="w-full text-center py-2 text-xs font-bold text-[#64748b] print:hidden">
                 — الوجه الثاني (Verso - أفقي A4) —
               </div>
               <AutoFitScale docWidth={1123}>
@@ -226,7 +226,7 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
               </div>
 
               <div className="text-center my-6">
-                <h1 className="text-2xl font-black font-['Cairo'] text-black underline tracking-wide">
+                <h1 className="text-2xl font-black text-black underline tracking-wide">
                   تــصــريـــح بـمـبـاشــرة / اسـتـئـنــاف الــعــمــل
                 </h1>
                 <div className="text-sm font-bold font-mono tracking-widest text-gray-800 mt-1">
@@ -257,7 +257,7 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="font-bold">تاريخ استئناف العمل الفعلي:</span>
-                    <span className="font-mono font-bold text-[#176b4a]">
+                    <span className="font-mono font-bold text-[#047857]">
                       {currentEmployee.resumeDate || today}
                     </span>
                   </div>

@@ -138,7 +138,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f4ec] text-[#2c271e] flex flex-col font-['Cairo',Tahoma,sans-serif]" style={{ direction: 'rtl' }}>
+    <div className="min-h-screen bg-gradient-to-b from-slate-100 via-stone-50 to-emerald-50 text-[#0f172a] flex flex-col" style={{ direction: 'rtl' }}>
       {/* Navigation Bar */}
       <Navbar
         activeTab={activeTab}
@@ -158,7 +158,7 @@ export default function App() {
         <div
           className={
             deviceMode === 'mobile'
-              ? 'mx-auto w-full max-w-[430px] min-h-full bg-[#fffdfa] border-x border-[#d8d0bc] shadow-lg'
+              ? 'mx-auto w-full max-w-[430px] min-h-full bg-[#ffffff] border-x border-[#a7f3d0] shadow-lg'
               : ''
           }
         >
@@ -228,12 +228,12 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-[#fffdfa] border-t border-[#d8d0bc] py-6 text-center text-xs text-[#706856] print:hidden">
+      <footer className="bg-[#ffffff] border-t border-[#a7f3d0] py-6 text-center text-xs text-[#64748b] print:hidden">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div>
             الجمهورية الجزائرية الديمقراطية الشعبية — وزارة التربية الوطنية — قطاع الوظيفة العمومية
           </div>
-          <div className="font-mono text-[11px] text-[#8e8574]">
+          <div className="font-mono text-[11px] text-[#64748b]">
             نظام تسيير الرواتب والتقاعد © 2026 | مطابقة لقوانين الضمان الاجتماعي والصندوق الوطني للتقاعد CNR
           </div>
         </div>
