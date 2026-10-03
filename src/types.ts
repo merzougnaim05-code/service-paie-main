@@ -29,6 +29,42 @@ export interface Allowance {
   auto?: boolean;
 }
 
+/* ===== مركز الجداول والمعطيات ===== */
+
+// سطر تغيير داخل جدول النقطة الاستدلالية (كل تعديل = سطر)
+export interface PointChangeRow {
+  id: string;
+  label: string;          // مثال: "+75 نقطة (المرحلة الأولى)"
+  effectiveYear: number;  // سارية ابتداء من هذه السنة
+  bonusPoints: number;    // نقاط إضافية فوق النقطة الأساس
+  note?: string;
+  active: boolean;
+}
+
+// جدول نقاط استدلالية كامل (كل جدول = قرار/مرسوم مع تغييراته)
+export interface PointTable {
+  id: string;
+  name: string;           // اسم الشبكة/الجدول
+  decree: string;         // المرسوم المرجعي
+  basePoints: number;     // النقطة الأساس قبل الإضافات
+  fromYear: number;
+  toYear?: number;
+  note?: string;
+  active: boolean;        // تفعيل/تعطيل الجدول في كل الوثائق
+  rows: PointChangeRow[];
+}
+
+// منحة مخصصة (جديدة) تُضاف مركزياً إلى كل كشوف الرواتب
+export interface CustomAllowance {
+  id: string;
+  name: string;
+  type: 'percent' | 'fixed'; // نسبة من الأجر التصاعدي أو مبلغ ثابت
+  value: number;
+  cnas: boolean;         // تدخل في الأجر الخاضع للضمان الاجتماعي
+  active: boolean;       // تفعيل/تعطيل في كل الوثائق
+  note?: string;
+}
+
 export interface PensionHistoryRecord {
   key: string; // e.g. "2024-03" or "2024-Q1"
   effectiveFrom?: string;
@@ -102,6 +138,10 @@ export interface Settings {
   auresEnabled: boolean;
   signatory?: string;
   director?: string;
+  /* مركز الجداول والمعطيات */
+  pointTables?: PointTable[];
+  customAllowances?: CustomAllowance[];
+  disabledBuiltins?: string[];
 }
 
 export interface PayslipResult {

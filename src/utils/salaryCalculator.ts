@@ -327,14 +327,41 @@ export function performanceBonusForJob(
   };
 }
 
+/**
+ * مركز الجداول والمعطيات: تحديد قيمة النقطة الاستدلالية لسنة معينة
+ * - تُفحص الجداول المفعلة في مركز الجداول (سطور التغيير بترتيب سنة السريان، الأحدث يفوز)
+ * - إذا لم يطابقها شيء نرجع إلى settings.pointValue
+ */
+export function resolvePointValue(settings: Settings, year: number): number {
+  const tables = settings.pointTables;
+  if (tables && tables.length) {
+    let bestVal: number | null = null;
+    let bestYear = -Infinity;
+    for (const t of tables) {
+      if (t.active === false) continue;
+      if (t.fromYear && year < t.fromYear) continue;
+      if (t.toYear != null && t.toYear > 0 && year > t.toYear) continue;
+      for (const r of t.rows || []) {
+        if (r.active === false) continue;
+        const ey = Number(r.effectiveYear) || 0;
+        if (year >= ey && ey >= bestYear) {
+          bestYear = ey;
+          bestVal = (Number(t.basePoints) || settings.pointValue || 45) + (Number(r.bonusPoints) || 0);
+        }
+      }
+    }
+    if (bestVal != null) return bestVal;
+  }
+  return settings.pointValue || 45;
+}
+
 export function computePayslip(emp: Employee, month: number, year: number, settings: Settings): PayslipResult {
-  // الشبكة الاستدلالية والنقطة تتبدلان تلقائياً حسب سنة الكشف
-  // (07-304 للفترة 2008-2021، ثم 22-138 لسنة 2022، ثم 23-54 لسنتي 2023 و2024-2026)
+  // الشبكة الاستدلالية تتبدل حسب سنة الكشف، وقيمة النقطة من مركز الجداول والمعطيات
   const grille = getGrilleForYear(year);
   const grilleIndex = emp.category >= 0 && emp.category < grille.length ? emp.category : 0;
   const g = grille[grilleIndex] || grille[0];
   const job = JOBS[emp.jobIdx];
-  const pointVal = settings.pointValue || 45;
+  const pointVal = resolvePointValue(settings, year);
 
   const atDate = new Date(year, month - 1, 1);
   const years = emp.yearsOverride != null ? emp.yearsOverride : yearsOfService(emp.hireDate, atDate);
@@ -351,8 +378,28 @@ export function computePayslip(emp: Employee, month: number, year: number, setti
     autoAllow.push({ name: 'منحة الأوراس', amount: aures, cnas: true, irg: false, auto: true });
   }
 
+  // منح مخصصة من مركز الجداول والمعطيات — نسبة من الأجر التصاعدي أو مبلغ ثابت
+  for (const ca of settings.customAllowances || []) {
+    if (ca.active === false) continue;
+    const pctBase = Math.round((basic + seniority) * 100) / 100;
+    const amount = ca.type === 'fixed'
+      ? Math.round((Number(ca.value) || 0) * 100) / 100
+      : Math.round(pctBase * (Number(ca.value) || 0) / 100 * 100) / 100;
+    if (!amount) continue;
+    const detail = ca.type === 'fixed' ? `مبلغ ثابت ${fmt(ca.value)} دج` : `${ca.value}% × ${fmt(pctBase)}`;
+    autoAllow.push({ name: `${ca.name} (${detail})`, amount, cnas: !!ca.cnas, irg: false, auto: true });
+  }
+
   const manualAllowances = (emp.allowances || []).filter(a => !a.auto);
-  const allAllowances = [...autoAllow, ...manualAllowances];
+
+  // تعطيل المنح النظامية من مركز الجداول والمعطيات (بالمطابقة مع بداية الاسم دون الأقواس)
+  const disabledBuiltins = settings.disabledBuiltins || [];
+  const stripParens = (s: string) => s.replace(/\s*\([^)]*\)\s*$/, '').trim();
+  const isBuiltinDisabled = (name: string) => {
+    const st = stripParens(name);
+    return disabledBuiltins.some(k => st === k || st.startsWith(k));
+  };
+  const allAllowances = [...autoAllow, ...manualAllowances].filter(a => !isBuiltinDisabled(a.name));
 
   let allowTotal = 0;
   let cnasAllow = 0;

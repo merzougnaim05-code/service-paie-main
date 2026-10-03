@@ -1,4 +1,5 @@
 import { Employee, Settings } from '../types';
+import { DEFAULT_POINT_TABLES } from '../data/salaryGrids';
 
 const EMPLOYEES_STORAGE_KEY = 'dz_payroll_employees_v3';
 const SETTINGS_STORAGE_KEY = 'dz_payroll_settings_v3';
@@ -115,17 +116,29 @@ export const INITIAL_EMPLOYEES: Employee[] = [
   }
 ];
 
+/**
+ * بذر مركز الجداول والمعطيات: جداول النقاط الرسمية + حاويات المنح
+ */
+function withDataHubDefaults(s: Settings): Settings {
+  return {
+    ...s,
+    pointTables: !s.pointTables || s.pointTables.length === 0 ? DEFAULT_POINT_TABLES : s.pointTables,
+    customAllowances: s.customAllowances || [],
+    disabledBuiltins: s.disabledBuiltins || []
+  };
+}
+
 export function loadSettings(): Settings {
   try {
     const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      return { ...DEFAULT_SETTINGS, ...parsed };
+      return withDataHubDefaults({ ...DEFAULT_SETTINGS, ...parsed });
     }
   } catch (err) {
     console.warn('Failed to load settings from localStorage', err);
   }
-  return DEFAULT_SETTINGS;
+  return withDataHubDefaults(DEFAULT_SETTINGS);
 }
 
 export function saveSettings(settings: Settings): boolean {

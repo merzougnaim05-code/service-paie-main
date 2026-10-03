@@ -13,7 +13,8 @@ import {
   Monitor,
   Smartphone,
   DoorOpen,
-  LayoutDashboard
+  LayoutDashboard,
+  Database
 } from 'lucide-react';
 
 /** بوابة التطبيقات المدرسية — لوحة التحكم المركزية */
@@ -97,6 +98,13 @@ export const Navbar: React.FC<NavbarProps> = ({
       shortLabel: 'وثائق التقاعد',
       icon: <Award className="w-4 h-4 text-amber-400" />,
       desc: 'شهادة الأجور وجهها الاثنان + 60 شهراً'
+    },
+    {
+      id: 'datahub',
+      label: 'مركز الجداول والمعطيات (النقاط والمنح)',
+      shortLabel: 'الجداول والمعطيات',
+      icon: <Database className="w-4 h-4 text-amber-400" />,
+      desc: 'جداول النقاط والمنح — تسري على كل الوثائق'
     },
     {
       id: 'docs',

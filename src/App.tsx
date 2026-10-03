@@ -16,6 +16,7 @@ import { PensionDocument } from './components/PensionDocument';
 import { PayslipView } from './components/PayslipView';
 import { PayrollSheets } from './components/PayrollSheets';
 import { AdminDocs } from './components/AdminDocs';
+import { DataHub } from './components/DataHub';
 import { SettingsView } from './components/SettingsView';
 
 export default function App() {
@@ -222,6 +223,13 @@ export default function App() {
             settings={settings}
             onSaveSettings={handleSaveSettings}
             onResetAllData={handleResetAllData}
+          />
+        )}
+
+        {activeTab === 'datahub' && (
+          <DataHub
+            settings={settings}
+            onSaveSettings={handleSaveSettings}
           />
         )}
         </div>
