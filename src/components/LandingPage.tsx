@@ -13,7 +13,8 @@ import {
   Building2,
   Landmark,
   CheckCircle2,
-  Wallet
+  Wallet,
+  LayoutDashboard
 } from 'lucide-react';
 
 interface LandingPageProps {
@@ -346,6 +347,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               >
                 كشف الراتب الفردي (Fiche de Paie)
               </button>
+            </div>
+
+            {/* زر العودة إلى بوابة التطبيقات المدرسية */}
+            <div className="mt-4 text-center">
+              <a
+                href="https://service-intendance.pages.dev"
+                className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition-colors cursor-pointer border-2 border-amber-500/70"
+              >
+                <LayoutDashboard className="w-4 h-4 text-amber-400" />
+                <span>العودة إلى لوحة التحكم — بوابة التطبيقات المدرسية</span>
+              </a>
             </div>
 
           </div>

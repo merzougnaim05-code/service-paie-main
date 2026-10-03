@@ -12,8 +12,12 @@ import {
   Award,
   Monitor,
   Smartphone,
-  DoorOpen
+  DoorOpen,
+  LayoutDashboard
 } from 'lucide-react';
+
+/** بوابة التطبيقات المدرسية — لوحة التحكم المركزية */
+const PORTAL_URL = 'https://service-intendance.pages.dev';
 
 interface NavbarProps {
   activeTab: string;
@@ -187,23 +191,32 @@ export const Navbar: React.FC<NavbarProps> = ({
       className="sticky top-0 z-50 bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-950 text-white border-b-4 border-amber-500 shadow-xl backdrop-blur-md transition-all duration-200"
       dir="rtl"
     >
+      <style>{`
+        .dz-sphere-wrap { width: 36px; height: 36px; perspective: 420px; }
+        .dz-sphere { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; animation: dz-spin 6s linear infinite; }
+        @keyframes dz-spin { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
+        .dz-face {
+          position: absolute; inset: 0; border-radius: 50%; overflow: hidden;
+          backface-visibility: hidden; -webkit-backface-visibility: hidden; background: #fff;
+          box-shadow: inset -4px -6px 10px rgba(0,0,0,.35), inset 3px 4px 6px rgba(255,255,255,.5), 0 2px 6px rgba(0,0,0,.45);
+        }
+        .dz-face-back { transform: rotateY(180deg); }
+        .dz-half-green { position: absolute; inset: 0; background: linear-gradient(90deg, #006233 0%, #006233 50%, #ffffff 50%, #ffffff 100%); }
+        .dz-star { position: relative; z-index: 2; color: #d21034; font-size: 13px; font-weight: 900; line-height: 1; }
+        .dz-gloss {
+          position: absolute; inset: 0; border-radius: 50%; z-index: 3; pointer-events: none;
+          background: radial-gradient(circle at 30% 22%, rgba(255,255,255,.85), rgba(255,255,255,.12) 42%, rgba(0,0,0,.18) 78%, rgba(0,0,0,.38) 100%);
+        }
+        @media (prefers-reduced-motion: reduce) { .dz-sphere { animation: none; } }
+      `}</style>
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 flex items-center justify-between gap-3">
 
-        {/* Brand & Flag */}
+        {/* Brand */}
         <div
           className="flex items-center gap-2 sm:gap-3 shrink-0 cursor-pointer"
           onClick={() => handleTabClick('landing')}
           title="العودة إلى البوابة الرئيسية"
         >
-          {/* Algerian Flag Roundel */}
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white/90 shadow-md relative overflow-hidden shrink-0 flex items-center justify-center bg-white">
-            <div className="absolute inset-0 flex">
-              <div className="w-1/2 h-full bg-[#006233]"></div>
-              <div className="w-1/2 h-full bg-white"></div>
-            </div>
-            <div className="relative z-10 text-[#d21034] text-xs font-black select-none">★</div>
-          </div>
-
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-extrabold text-sm sm:text-base md:text-lg tracking-tight text-white whitespace-nowrap">
@@ -255,8 +268,19 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
         </div>
 
-        {/* Right Tools: Device Toggle & Mobile Menu */}
+        {/* Right Tools: Portal Button, Device Toggle, 3D Flag & Mobile Menu */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+
+          {/* زر العودة إلى لوحة التحكم (بوابة التطبيقات المدرسية) */}
+          <a
+            href={PORTAL_URL}
+            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all border shadow-sm cursor-pointer whitespace-nowrap shrink-0 bg-white/10 hover:bg-amber-500 hover:text-slate-950 text-amber-300 border-amber-400/40"
+            title="العودة إلى بوابة التطبيقات المدرسية (لوحة التحكم)"
+          >
+            <LayoutDashboard className="w-3.5 h-3.5 shrink-0" />
+            <span className="whitespace-nowrap">لوحة التحكم</span>
+          </a>
+
           {/* Phone / Desktop View Mode Toggle */}
           <button
             type="button"
@@ -281,6 +305,22 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </button>
 
+          {/* العلم الوطني — كرة ثلاثية الأبعاد قابلة للدوران (أقصى اليسار) */}
+          <div className="dz-sphere-wrap shrink-0" title="الجمهورية الجزائرية الديمقراطية الشعبية">
+            <div className="dz-sphere">
+              <div className="dz-face">
+                <span className="dz-half-green" />
+                <span className="dz-star">★</span>
+                <span className="dz-gloss" />
+              </div>
+              <div className="dz-face dz-face-back">
+                <span className="dz-half-green" />
+                <span className="dz-star">★</span>
+                <span className="dz-gloss" />
+              </div>
+            </div>
+          </div>
+
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -300,6 +340,19 @@ export const Navbar: React.FC<NavbarProps> = ({
             الانتقال السريع بين أقسام النظام:
           </div>
           {navMenuContent(true)}
+
+          <a
+            href={PORTAL_URL}
+            className="mt-2 w-full text-right p-2.5 rounded-xl flex items-center gap-2.5 bg-white/10 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-400/40 transition-all cursor-pointer"
+          >
+            <div className="p-1.5 rounded-lg bg-slate-800">
+              <LayoutDashboard className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-xs sm:text-sm font-bold">العودة إلى لوحة التحكم</div>
+              <div className="text-[10px] opacity-80">بوابة التطبيقات المدرسية — service-intendance</div>
+            </div>
+          </a>
         </div>
       )}
     </header>

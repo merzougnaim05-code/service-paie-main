@@ -130,14 +130,14 @@ const PayslipSheet: React.FC<PayslipSheetProps> = ({
           </div>
         )}
 
-        {/* معلومات المؤسسة والتوثيق — موسّطة في الوسط */}
-        <div className="text-center text-[10.5px] sm:text-[11px] text-gray-800 mt-1.5 space-y-0.5">
-          <div><strong>المديرية:</strong> مديرية التربية لولاية {directorate}</div>
-          <div><strong>المؤسسة:</strong> {institution}</div>
-          <div>
-            <strong>الرقم التسلسلي:</strong> <span className="font-mono">{serial}</span>
-            {' '}•{' '}
-            <strong>تاريخ الإصدار:</strong> <span className="font-mono">{issueDate}</span>
+        {/* معلومات المؤسسة يميناً والرقم التسلسلي يساراً */}
+        <div className="flex justify-between items-start text-[10.5px] sm:text-[11px] text-gray-800 mt-1.5 px-1">
+          <div className="text-right space-y-0.5">
+            <div><strong>مديرية التربية لولاية {directorate}</strong></div>
+            <div><strong>المؤسسة:</strong> {institution}</div>
+          </div>
+          <div className="text-left space-y-0.5">
+            <div><strong>الرقم التسلسلي:</strong> <span className="font-mono">{serial}</span></div>
           </div>
         </div>
 
@@ -241,6 +241,13 @@ const PayslipSheet: React.FC<PayslipSheetProps> = ({
         <div className="text-[9.5px] sm:text-[10.5px] text-gray-800 mt-0.5 italic">
           المبلغ بالأحرف: {amountWordsDZD(net)}
         </div>
+      </div>
+
+      {/* حرر بـ والتاريخ — أسفل اليسار */}
+      <div className="text-left text-[10px] text-gray-800 mb-1 px-1">
+        <strong>حرر بـ:</strong> {directorate}
+        {' '}•{' '}
+        <strong>بتاريخ:</strong> <span className="font-mono">{issueDate}</span>
       </div>
 
       {/* Footer with QR Code and Signature */}
