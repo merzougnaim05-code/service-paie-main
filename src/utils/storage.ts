@@ -1,5 +1,5 @@
 import { Employee, Settings } from '../types';
-import { DEFAULT_POINT_TABLES } from '../data/salaryGrids';
+import { DEFAULT_POINT_TABLES, buildOfficialCells } from '../data/salaryGrids';
 
 const EMPLOYEES_STORAGE_KEY = 'dz_payroll_employees_v3';
 const SETTINGS_STORAGE_KEY = 'dz_payroll_settings_v3';
@@ -118,11 +118,19 @@ export const INITIAL_EMPLOYEES: Employee[] = [
 
 /**
  * بذر مركز الجداول والمعطيات: جداول النقاط الرسمية + حاويات المنح
+ * والترقية: إرفاق شبكة النقاط الرسمية (كل صنف × كل درجة) بأي جدول محفوظ سابقاً بدون خلايا
  */
 function withDataHubDefaults(s: Settings): Settings {
+  const pointTables = !s.pointTables || s.pointTables.length === 0
+    ? DEFAULT_POINT_TABLES
+    : s.pointTables.map(t =>
+      !t.cells || t.cells.length === 0
+        ? { ...t, cells: buildOfficialCells(Number(t.fromYear) || new Date().getFullYear()) }
+        : t
+    );
   return {
     ...s,
-    pointTables: !s.pointTables || s.pointTables.length === 0 ? DEFAULT_POINT_TABLES : s.pointTables,
+    pointTables,
     customAllowances: s.customAllowances || [],
     disabledBuiltins: s.disabledBuiltins || []
   };

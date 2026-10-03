@@ -41,24 +41,34 @@ export interface PointChangeRow {
   active: boolean;
 }
 
+// خلية نقاط استدلالية: الرقم الاستدلالي الكامل لصنف معين في درجة معينة داخل الشبكة
+export interface PointCell {
+  id: string;
+  cat: string;        // اسم الصنف كما في الشبكة ('1'..'17'، 'خارج الفئة 1'..'خارج الفئة 7')
+  grade: number;      // الدرجة (1..12)
+  points: number;     // الرقم الاستدلالي الكامل لهذه الدرجة
+  active: boolean;    // تعطيل الخلية يعيد قيمة الشبكة الرسمية المدمجة
+}
+
 // جدول نقاط استدلالية كامل (كل جدول = قرار/مرسوم مع تغييراته)
 export interface PointTable {
   id: string;
   name: string;           // اسم الشبكة/الجدول
   decree: string;         // المرسوم المرجعي
-  basePoints: number;     // النقطة الأساس قبل الإضافات
+  basePoints: number;     // قيمة النقطة (دج) قبل إضافات سطور التغيير
   fromYear: number;
   toYear?: number;
   note?: string;
   active: boolean;        // تفعيل/تعطيل الجدول في كل الوثائق
   rows: PointChangeRow[];
+  cells?: PointCell[];    // شبكة النقاط الاستدلالية لكل صنف وكل درجة
 }
 
 // منحة مخصصة (جديدة) تُضاف مركزياً إلى كل كشوف الرواتب
 export interface CustomAllowance {
   id: string;
   name: string;
-  type: 'percent' | 'fixed'; // نسبة من الأجر التصاعدي أو مبلغ ثابت
+  type: 'percent' | 'fixed'; // نسبة من الأجر الرئيسي أو مبلغ ثابت
   value: number;
   cnas: boolean;         // تدخل في الأجر الخاضع للضمان الاجتماعي
   active: boolean;       // تفعيل/تعطيل في كل الوثائق

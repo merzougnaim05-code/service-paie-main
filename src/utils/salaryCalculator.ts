@@ -355,9 +355,49 @@ export function resolvePointValue(settings: Settings, year: number): number {
   return settings.pointValue || 45;
 }
 
+/**
+ * مركز الجداول والمعطيات: بناء شبكة الأجور (الرقم الاستدلالي لكل صنف وكل درجة) لسنة معينة
+ * من خلايا النقاط المعدلة في المركز — الجدول المفعّل الأحدث تغطية للسنة يفوز.
+ * الخلايا المعطلة أو المفقودة تعيد قيمة الشبكة الرسمية المرفوعة من الجريدة الرسمية.
+ * تعيد null إذا لم يعدّل المركز شبكة السنة (فتُستعمل الشبكة الرسمية المدمجة كما هي).
+ */
+export function resolveGridForYear(settings: Settings, year: number): GrilleCategory[] | null {
+  const covering = (settings.pointTables || []).filter(t =>
+    t.active !== false &&
+    Array.isArray(t.cells) && t.cells.length > 0 &&
+    (!t.fromYear || year >= Number(t.fromYear)) &&
+    (t.toYear == null || Number(t.toYear) <= 0 || year <= Number(t.toYear))
+  );
+  if (!covering.length) return null;
+  covering.sort((a, b) => (Number(b.fromYear) || 0) - (Number(a.fromYear) || 0));
+  const table = covering[0];
+  const builtin = getGrilleForYear(year);
+  const cellMap = new Map<string, number>();
+  for (const c of table.cells!) {
+    if (c.active === false) continue;
+    const p = Number(c.points);
+    if (!isFinite(p) || p <= 0) continue;
+    cellMap.set(`${c.cat}|${Number(c.grade)}`, p);
+  }
+  if (!cellMap.size) return null;
+  return builtin.map(g => {
+    // خلية الدرجة = الرقم الاستدلالي الكامل للدرجة = base + ech[الدرجة-1] في نموذج الحساب
+    // إعادة البناء: base = خلية الدرجة 1 - أول زيادة، وech[n-1] = خلية الدرجة n - base
+    const ech0 = Number(g.ech[0]) || 0;
+    const c1 = cellMap.get(`${g.cat}|1`);
+    const base = c1 != null ? c1 - ech0 : (Number(g.base) || 0);
+    const ech = g.ech.map((inc, i) => {
+      const v = cellMap.get(`${g.cat}|${i + 1}`);
+      return v != null ? v - base : (Number(inc) || 0);
+    });
+    return { ...g, base, ech };
+  });
+}
+
 export function computePayslip(emp: Employee, month: number, year: number, settings: Settings): PayslipResult {
-  // الشبكة الاستدلالية تتبدل حسب سنة الكشف، وقيمة النقطة من مركز الجداول والمعطيات
-  const grille = getGrilleForYear(year);
+  // الشبكة الاستدلالية تتبدل حسب سنة الكشف (ومن مركز الجداول إذا عُدّلت)،
+  // وقيمة النقطة من مركز الجداول والمعطيات
+  const grille = resolveGridForYear(settings, year) || getGrilleForYear(year);
   const grilleIndex = emp.category >= 0 && emp.category < grille.length ? emp.category : 0;
   const g = grille[grilleIndex] || grille[0];
   const job = JOBS[emp.jobIdx];
@@ -378,15 +418,15 @@ export function computePayslip(emp: Employee, month: number, year: number, setti
     autoAllow.push({ name: 'منحة الأوراس', amount: aures, cnas: true, irg: false, auto: true });
   }
 
-  // منح مخصصة من مركز الجداول والمعطيات — نسبة من الأجر التصاعدي أو مبلغ ثابت
+  // منح مخصصة من مركز الجداول والمعطيات — نسبة من الأجر الرئيسي أو مبلغ ثابت
   for (const ca of settings.customAllowances || []) {
     if (ca.active === false) continue;
-    const pctBase = Math.round((basic + seniority) * 100) / 100;
+    const pctBase = Math.round(basic * 100) / 100;
     const amount = ca.type === 'fixed'
       ? Math.round((Number(ca.value) || 0) * 100) / 100
       : Math.round(pctBase * (Number(ca.value) || 0) / 100 * 100) / 100;
     if (!amount) continue;
-    const detail = ca.type === 'fixed' ? `مبلغ ثابت ${fmt(ca.value)} دج` : `${ca.value}% × ${fmt(pctBase)}`;
+    const detail = ca.type === 'fixed' ? `مبلغ ثابت ${fmt(ca.value)} دج` : `${ca.value}% × الأجر الرئيسي ${fmt(pctBase)}`;
     autoAllow.push({ name: `${ca.name} (${detail})`, amount, cnas: !!ca.cnas, irg: false, auto: true });
   }
 

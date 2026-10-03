@@ -491,8 +491,31 @@ export const ALGERIAN_WILAYAS = WILAYAS69;
  * ===== مركز الجداول والمعطيات =====
  * جداول النقطة الاستدلالية الرسمية (تُبذر افتراضياً وقابلة للتعديل من مركز الجداول)
  * القيمة الفعلية = basePoints + bonusPoints (آخر سطر ساري للسنة المطلوبة)
+ * كل جدول يحمل شبكة النقاط الاستدلالية لكل صنف وكل درجة مرفوعة من الجرائد الرسمية
  */
-import { PointTable } from '../types';
+import { PointTable, PointCell } from '../types';
+
+/**
+ * توليد خلايا الشبكة الرسمية (الرقم الاستدلالي لكل صنف وكل درجة)
+ * من الشبكات المرفوعة من الجرائد الرسمية المدمجة في هذا الملف:
+ * الرقم الكامل للدرجة n = معامل الأساس + الزيادة الاستدلالية للدرجة
+ */
+export function buildOfficialCells(year: number): PointCell[] {
+  const grille = getGrilleForYear(year);
+  const cells: PointCell[] = [];
+  grille.forEach((g, gi) => {
+    g.ech.forEach((inc, i) => {
+      cells.push({
+        id: `pc-${year}-${gi}-${i + 1}`,
+        cat: g.cat,
+        grade: i + 1,
+        points: (Number(g.base) || 0) + (Number(inc) || 0),
+        active: true
+      });
+    });
+  });
+  return cells;
+}
 
 export const DEFAULT_POINT_TABLES: PointTable[] = [
   {
@@ -504,6 +527,7 @@ export const DEFAULT_POINT_TABLES: PointTable[] = [
     toYear: 2021,
     note: 'النقطة الاستدلالية الأصلية',
     active: true,
+    cells: buildOfficialCells(2008),
     rows: [
       { id: 'ptr-2008', label: 'النقطة الأصلية 45 دج', effectiveYear: 2008, bonusPoints: 0, note: 'سارية من جانفي 2008', active: true }
     ]
@@ -517,6 +541,7 @@ export const DEFAULT_POINT_TABLES: PointTable[] = [
     toYear: 2022,
     note: '+50 نقطة استدلالية',
     active: true,
+    cells: buildOfficialCells(2022),
     rows: [
       { id: 'ptr-2022', label: '+50 نقطة (المجموع 95 دج)', effectiveYear: 2022, bonusPoints: 50, note: 'سارية من مارس 2022', active: true }
     ]
@@ -530,6 +555,7 @@ export const DEFAULT_POINT_TABLES: PointTable[] = [
     toYear: 2023,
     note: '+75 نقطة إضافية (مجموع 125)',
     active: true,
+    cells: buildOfficialCells(2023),
     rows: [
       { id: 'ptr-2023', label: '+75 نقطة (المجموع 170 دج)', effectiveYear: 2023, bonusPoints: 125, note: 'سارية من جانفي 2023', active: true }
     ]
@@ -543,6 +569,7 @@ export const DEFAULT_POINT_TABLES: PointTable[] = [
     toYear: 2026,
     note: '+75 نقطة إضافية (مجموع 200) والنظام التعويضي 2025',
     active: true,
+    cells: buildOfficialCells(2024),
     rows: [
       { id: 'ptr-2024', label: '+75 نقطة (المجموع 245 دج)', effectiveYear: 2024, bonusPoints: 200, note: 'سارية من جانفي 2024 — والنظام التعويضي 25-55 لسنة 2025', active: true }
     ]

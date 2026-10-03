@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Settings, PointTable, PointChangeRow, CustomAllowance } from '../types';
-import { BUILTIN_ALLOWANCE_KEYS } from '../data/salaryGrids';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { Settings, PointTable, PointChangeRow, PointCell, CustomAllowance, GrilleCategory } from '../types';
+import { BUILTIN_ALLOWANCE_KEYS, buildOfficialCells, getGrilleForYear } from '../data/salaryGrids';
 import { resolvePointValue, fmt } from '../utils/salaryCalculator';
 import {
   Database,
@@ -11,7 +11,11 @@ import {
   Table2,
   HandCoins,
   Power,
-  CheckCircle2
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  RotateCcw,
+  Grid3X3
 } from 'lucide-react';
 
 interface DataHubProps {
@@ -46,40 +50,143 @@ const Toggle: React.FC<{ on: boolean; onChange: () => void; onLabel?: string; of
 const inputCls =
   'w-full bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-[#047857]';
 
+/* ================================================================
+   محرّر شبكة النقاط الاستدلالية: كل صنف × كل درجة (قابل للتعديل)
+   الخلايا الصفراء = خلايا الجدول القابلة للتعديل
+   الخلايا الرمادية = قيم الجريدة الرسمية المدمجة (تتحول لخلايا قابلة للتعديل عند أول تعديل)
+   ================================================================ */
+const GridEditor = React.memo<{
+  tableId: string;
+  cells: PointCell[];
+  builtin: GrilleCategory[];
+  pointValue: number;
+  onEdit: (tableId: string, cat: string, grade: number, cellId: string | null, value: number) => void;
+}>(({ tableId, cells, builtin, pointValue, onEdit }) => {
+  const cellMap = useMemo(() => {
+    const m = new Map<string, PointCell>();
+    for (const c of cells) m.set(`${c.cat}|${c.grade}`, c);
+    return m;
+  }, [cells]);
+
+  const gradeCount = builtin[0]?.ech.length || 12;
+  const grades = Array.from({ length: gradeCount }, (_, i) => i + 1);
+
+  return (
+    <div className="overflow-x-auto rounded-xl border border-[#cbd5e1] bg-white max-h-[520px] overflow-y-auto">
+      <table className="text-[11px] border-collapse w-full">
+        <thead>
+          <tr className="bg-[#0f172a] text-white">
+            <th className="sticky right-0 bg-[#0f172a] p-1.5 text-right font-black min-w-[110px] z-10">الصنف</th>
+            {grades.map(g => (
+              <th key={g} className="p-1 font-bold text-center border-r border-white/10 min-w-[60px] whitespace-nowrap">
+                درجة {g}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {builtin.map(g => (
+            <tr key={g.cat} className="odd:bg-[#f8fafc] even:bg-white border-b border-[#e2e8f0]">
+              <td className="sticky right-0 bg-inherit p-1.5 font-black text-[#0f172a] whitespace-nowrap z-10 border-l border-[#e2e8f0]">
+                {g.cat} <span className="text-[9px] text-[#64748b] font-bold">({g.group})</span>
+              </td>
+              {grades.map(grade => {
+                const cell = cellMap.get(`${g.cat}|${grade}`);
+                const fallbackVal = (Number(g.base) || 0) + (Number(g.ech[grade - 1]) || 0);
+                const val = cell ? cell.points : fallbackVal;
+                return (
+                  <td key={grade} className="p-0.5 border-r border-[#e2e8f0]">
+                    <input
+                      type="number"
+                      dir="ltr"
+                      className={`w-full px-0.5 py-1 text-center font-mono text-[11px] rounded border focus:outline-none focus:border-[#047857] ${
+                        cell ? 'bg-[#fffbeb] border-[#fcd34d] font-bold text-[#0f172a]' : 'bg-transparent border-transparent text-[#94a3b8]'
+                      }`}
+                      value={val}
+                      title={`القيمة الشهرية لهذه الدرجة: ${fmt(val * pointValue)} دج`}
+                      onChange={e => onEdit(tableId, g.cat, grade, cell?.id ?? null, Number(e.target.value) || 0)}
+                    />
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+});
+
 export const DataHub: React.FC<DataHubProps> = ({ settings, onSaveSettings }) => {
   const [toast, setToast] = useState<string | null>(null);
+  const [view, setView] = useState<Settings>(settings);
+  const [openGrids, setOpenGrids] = useState<Record<string, boolean>>({});
 
-  const showToast = (msg: string) => {
+  /* مرايا refs لتفادي الإغلاق القديم — كل تعديل يُركّب على أحدث حالة حتى مع النقر المتتالي السريع */
+  const viewRef = useRef<Settings>(settings);
+  const onSaveRef = useRef(onSaveSettings);
+  useEffect(() => {
+    viewRef.current = settings;
+    setView(settings);
+  }, [settings]);
+
+  const showToast = useCallback((msg: string) => {
     setToast(msg);
-    setTimeout(() => setToast(null), 2600);
-  };
+    setTimeout(() => setToast(null), 3000);
+  }, []);
 
-  const patch = (p: Partial<Settings>, msg = 'تم الحفظ — طُبّق على كل الوثائق ✓') => {
-    onSaveSettings({ ...settings, ...p });
-    showToast(msg);
+  const patch = useCallback((p: Partial<Settings>, msg?: string) => {
+    const next = { ...viewRef.current, ...p };
+    viewRef.current = next;
+    setView(next);
+    onSaveRef.current(next);
+    if (msg) showToast(msg);
+  }, [showToast]);
+
+  const scrollToId = (id: string) => {
+    setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 90);
   };
 
   const currentYear = new Date().getFullYear();
-  const effectiveVal = resolvePointValue(settings, currentYear);
+  const effectiveVal = resolvePointValue(view, currentYear);
+
+  /* الجدول الذي تسري شبكته (خلاياه) على السنة الحالية */
+  const activeGridTable = useMemo(
+    () =>
+      [...(view.pointTables || [])]
+        .filter(
+          t =>
+            t.active !== false &&
+            (t.cells?.length || 0) > 0 &&
+            (!t.fromYear || currentYear >= Number(t.fromYear)) &&
+            (t.toYear == null || Number(t.toYear) <= 0 || currentYear <= Number(t.toYear))
+        )
+        .sort((a, b) => (Number(b.fromYear) || 0) - (Number(a.fromYear) || 0))[0],
+    [view.pointTables, currentYear]
+  );
 
   /* ===== عمليات جداول النقاط ===== */
-  const tables = settings.pointTables || [];
+  const tables = view.pointTables || [];
 
   const addTable = () => {
     const t: PointTable = {
       id: uid(),
       name: 'جدول نقاط جديد',
       decree: '',
-      basePoints: settings.pointValue || 45,
+      basePoints: resolvePointValue(view, currentYear),
       fromYear: currentYear,
       toYear: undefined,
       note: '',
       active: true,
       rows: [
         { id: uid(), label: 'تغيير جديد', effectiveYear: currentYear, bonusPoints: 0, note: '', active: true }
-      ]
+      ],
+      cells: buildOfficialCells(currentYear)
     };
-    patch({ pointTables: [...tables, t] }, 'أُضيف جدول جديد — عدّل بياناته ثم يُطبق تلقائياً ✓');
+    patch({ pointTables: [...tables, t] }, 'أُضيف جدول جديد بشبكته الرسمية — عدّل بياناته ثم يُطبق تلقائياً ✓');
+    scrollToId(`tbl-${t.id}`);
   };
 
   const updateTable = (id: string, p: Partial<PointTable>) => {
@@ -105,6 +212,7 @@ export const DataHub: React.FC<DataHubProps> = ({ settings, onSaveSettings }) =>
         t.id === tableId ? { ...t, rows: [...t.rows, r] } : t
       )
     }, 'أُضيف سطر تغيير جديد ✓');
+    scrollToId(`prow-${r.id}`);
   };
 
   const updateRow = (tableId: string, rowId: string, p: Partial<PointChangeRow>) => {
@@ -123,8 +231,41 @@ export const DataHub: React.FC<DataHubProps> = ({ settings, onSaveSettings }) =>
     }, 'حُذف سطر التغيير — أُعيد الحساب ✓');
   };
 
+  /* تعديل خلية واحدة في شبكة صنف/درجة — أو إنشاؤها إن لم توجد بعد */
+  const handleCellEdit = useCallback(
+    (tableId: string, cat: string, grade: number, cellId: string | null, value: number) => {
+      patch({
+        pointTables: (viewRef.current.pointTables || []).map(t => {
+          if (t.id !== tableId) return t;
+          if (cellId) {
+            return { ...t, cells: (t.cells || []).map(c => (c.id === cellId ? { ...c, points: value } : c)) };
+          }
+          const cell: PointCell = { id: uid(), cat, grade, points: value, active: true };
+          return { ...t, cells: [...(t.cells || []), cell] };
+        })
+      });
+    },
+    [patch]
+  );
+
+  /* توليد/استرجاع الشبكة الرسمية لجدول من الشبكات المرفوعة من الجرائد الرسمية */
+  const generateCells = (tableId: string, restore: boolean) => {
+    const t = tables.find(x => x.id === tableId);
+    if (!t) return;
+    if (restore && !window.confirm(`استرجاع القيم الرسمية من الجريدة الرسمية لسنة ${t.fromYear}؟ ستفقد تعديلاتك على خلايا الشبكة.`)) return;
+    patch(
+      {
+        pointTables: tables.map(x =>
+          x.id === tableId ? { ...x, cells: buildOfficialCells(Number(x.fromYear) || currentYear) } : x
+        )
+      },
+      restore ? 'استُرجعت القيم الرسمية من الجريدة الرسمية ✓' : 'وُلّدت شبكة النقاط الرسمية لكل صنف ودرجة ✓'
+    );
+    if (!restore) setOpenGrids(prev => ({ ...prev, [tableId]: true }));
+  };
+
   /* ===== عمليات المنح المخصصة ===== */
-  const allowances = settings.customAllowances || [];
+  const allowances = view.customAllowances || [];
 
   const addAllowance = () => {
     const a: CustomAllowance = {
@@ -137,6 +278,7 @@ export const DataHub: React.FC<DataHubProps> = ({ settings, onSaveSettings }) =>
       note: ''
     };
     patch({ customAllowances: [...allowances, a] }, 'أُضيفت منحة جديدة — عدّل نوعها وقيمتها ✓');
+    scrollToId(`alw-${a.id}`);
   };
 
   const updateAllowance = (id: string, p: Partial<CustomAllowance>) => {
@@ -149,7 +291,7 @@ export const DataHub: React.FC<DataHubProps> = ({ settings, onSaveSettings }) =>
   };
 
   /* ===== تعطيل/تفعيل المنح النظامية ===== */
-  const disabled = settings.disabledBuiltins || [];
+  const disabled = view.disabledBuiltins || [];
 
   const toggleBuiltin = (key: string) => {
     const next = disabled.includes(key)
@@ -167,7 +309,7 @@ export const DataHub: React.FC<DataHubProps> = ({ settings, onSaveSettings }) =>
     <div className="py-6 max-w-6xl mx-auto px-4">
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#047857] text-white px-6 py-3 rounded-2xl shadow-xl flex items-center gap-2 font-bold text-sm animate-in fade-in">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#047857] text-white px-6 py-3 rounded-2xl shadow-xl flex items-center gap-2 font-bold text-sm">
           <CheckCircle2 className="w-5 h-5 text-amber-300" />
           <span>{toast}</span>
         </div>
@@ -185,7 +327,7 @@ export const DataHub: React.FC<DataHubProps> = ({ settings, onSaveSettings }) =>
               مركز الجداول والمعطيات
             </h2>
             <p className="text-xs text-[#64748b] mt-0.5">
-              جداول النقطة الاستدلالية بتغييراتها + المنح الجديدة والقديمة — كل تعديل أو تفعيل/تعطيل يُعاد به حساب كشوف الرواتب ووثائق CNR والوثائق الإدارية تلقائياً.
+              جداول النقطة الاستدلالية بشبكاتها لكل صنف وكل درجة + المنح الجديدة والقديمة — كل تعديل أو تفعيل/تعطيل يُعاد به حساب كشوف الرواتب ووثائق CNR والوثائق الإدارية تلقائياً.
             </p>
           </div>
 
@@ -193,8 +335,14 @@ export const DataHub: React.FC<DataHubProps> = ({ settings, onSaveSettings }) =>
             <div className="bg-[#0f172a] text-white rounded-xl px-4 py-2 text-center shadow-md border border-amber-500/60">
               <div className="text-[10px] text-emerald-300 font-bold">النقطة السارية لسنة {currentYear}</div>
               <div className="text-lg font-black text-amber-400 font-mono">{fmt(effectiveVal)} دج</div>
+              {activeGridTable && (
+                <div className="text-[9px] text-emerald-200/80 font-bold mt-0.5">
+                  شبكة «{activeGridTable.name}» تسري الآن
+                </div>
+              )}
             </div>
             <button
+              type="button"
               onClick={addTable}
               className="bg-[#047857] hover:bg-[#065f46] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
             >
@@ -202,6 +350,7 @@ export const DataHub: React.FC<DataHubProps> = ({ settings, onSaveSettings }) =>
               <span>جدول نقاط جديد</span>
             </button>
             <button
+              type="button"
               onClick={addAllowance}
               className="bg-[#b45309] hover:bg-[#92400e] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
             >
@@ -215,7 +364,7 @@ export const DataHub: React.FC<DataHubProps> = ({ settings, onSaveSettings }) =>
         <div className="bg-[#eef5ff] border border-[#b8d4fe] rounded-xl p-3 text-xs text-[#004e9a] flex items-start gap-2">
           <Info className="w-4 h-4 flex-shrink-0 text-[#0070C0] mt-0.5" />
           <span>
-            <strong>كيف تعمل المركزية؟</strong> لكل جدول نقاط سطر يحدد سنة السريان والنقاط الإضافية — القيمة الفعلية = النقطة الأساس + آخر سطر ساري للسنة المطلوبة. المنح المخصصة تُضاف لكل الموظفين (نسبة تُحسب من الأجر التصاعدي: القاعدي + الخبرة، أو مبلغ ثابت). أي جدول أو منحة <b>معطلة</b> تُستبعد نهائياً من الحساب حتى إعادة تفعيلها.
+            <strong>كيف تعمل المركزية؟</strong> كل جدول يحمل قيمة النقطة (سطور التغيير) وشبكة النقاط الاستدلالية <b>لكل صنف وكل درجة</b> مرفوعة من الجرائد الرسمية وقابلة للتعديل — افتح «شبكة النقاط» في أي جدول لتعديل أي خلية. المنح المخصصة تُضاف لكل الموظفين (نسبة تُحسب من <b>الأجر الرئيسي</b>، أو مبلغ ثابت). أي جدول أو سطر أو منحة <b>معطل</b> يُستبعد نهائياً من الحساب حتى إعادة تفعيله.
           </span>
         </div>
       </div>
@@ -232,10 +381,11 @@ export const DataHub: React.FC<DataHubProps> = ({ settings, onSaveSettings }) =>
               </div>
               <div>
                 <div className="text-base md:text-lg font-black">جداول النقطة الاستدلالية</div>
-                <div className="text-[11px] text-emerald-200/80">كل جدول = قرار رسمي — وكل تغيير فيه = سطر بسنة السريان</div>
+                <div className="text-[11px] text-emerald-200/80">كل جدول = قرار رسمي — بشبكته الكاملة لكل صنف وكل درجة وسطور تغييراته</div>
               </div>
             </div>
             <button
+              type="button"
               onClick={addTable}
               className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2 rounded-xl text-xs shadow-md transition-colors flex items-center gap-1.5 cursor-pointer"
             >
@@ -251,10 +401,14 @@ export const DataHub: React.FC<DataHubProps> = ({ settings, onSaveSettings }) =>
               t.active !== false &&
               (!t.fromYear || currentYear >= t.fromYear) &&
               (t.toYear == null || t.toYear <= 0 || currentYear <= t.toYear);
+            const gridOpen = !!openGrids[t.id];
+            const builtinGrid = getGrilleForYear(Number(t.fromYear) || currentYear);
+            const hasCells = (t.cells?.length || 0) > 0;
             return (
               <div
                 key={t.id}
-                className={`bg-white rounded-2xl border-2 shadow-sm overflow-hidden ${t.active === false ? 'border-slate-300 opacity-70' : 'border-[#a7f3d0]'}`}
+                id={`tbl-${t.id}`}
+                className={`bg-white rounded-2xl border-2 shadow-sm overflow-hidden scroll-mt-24 ${t.active === false ? 'border-slate-300 opacity-70' : 'border-[#a7f3d0]'}`}
               >
                 {/* Table header */}
                 <div className="bg-[#f8fafc] border-b border-[#e2e8f0] p-3 flex flex-col lg:flex-row lg:items-end gap-3">
@@ -268,7 +422,7 @@ export const DataHub: React.FC<DataHubProps> = ({ settings, onSaveSettings }) =>
                       <input className={inputCls} value={t.decree} onChange={e => updateTable(t.id, { decree: e.target.value })} placeholder="مثال: المرسوم الرئاسي 27-100" />
                     </label>
                     <label className="block">
-                      <span className="block text-[10px] font-bold text-[#475569] mb-0.5">النقطة الأساس (دج)</span>
+                      <span className="block text-[10px] font-bold text-[#475569] mb-0.5">قيمة النقطة (دج)</span>
                       <input type="number" className={inputCls + ' font-mono text-center'} value={t.basePoints} onChange={e => updateTable(t.id, { basePoints: Number(e.target.value) || 0 })} />
                     </label>
                     <label className="block">
@@ -293,6 +447,7 @@ export const DataHub: React.FC<DataHubProps> = ({ settings, onSaveSettings }) =>
                     )}
                     <Toggle on={t.active !== false} onChange={() => updateTable(t.id, { active: t.active === false })} onLabel="الجدول مفعّل" offLabel="الجدول معطّل" />
                     <button
+                      type="button"
                       onClick={() => deleteTable(t.id)}
                       className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition-colors cursor-pointer"
                       title="حذف الجدول بالكامل"
@@ -318,7 +473,7 @@ export const DataHub: React.FC<DataHubProps> = ({ settings, onSaveSettings }) =>
                     </thead>
                     <tbody className="divide-y divide-[#e2e8f0]">
                       {t.rows.map(r => (
-                        <tr key={r.id} className={r.active === false ? 'opacity-50' : ''}>
+                        <tr key={r.id} id={`prow-${r.id}`} className={`scroll-mt-24 ${r.active === false ? 'opacity-50' : ''}`}>
                           <td className="p-1.5">
                             <input className={inputCls} value={r.label} onChange={e => updateRow(t.id, r.id, { label: e.target.value })} />
                           </td>
@@ -339,6 +494,7 @@ export const DataHub: React.FC<DataHubProps> = ({ settings, onSaveSettings }) =>
                           </td>
                           <td className="p-1.5 text-center">
                             <button
+                              type="button"
                               onClick={() => deleteRow(t.id, r.id)}
                               className="p-1 rounded-md bg-red-50 hover:bg-red-100 text-red-500 transition-colors cursor-pointer"
                               title="حذف السطر"
@@ -352,8 +508,70 @@ export const DataHub: React.FC<DataHubProps> = ({ settings, onSaveSettings }) =>
                   </table>
                 </div>
 
-                <div className="p-2.5 bg-[#fbfdff] border-t border-[#e2e8f0] flex justify-end">
+                {/* شبكة النقاط لكل صنف وكل درجة */}
+                <div className="border-t-2 border-[#e2e8f0] bg-[#fbfdff]">
                   <button
+                    type="button"
+                    onClick={() => setOpenGrids(prev => ({ ...prev, [t.id]: !prev[t.id] }))}
+                    className="w-full flex items-center justify-between px-3 py-2.5 text-xs font-black text-[#0f172a] hover:bg-[#f1f5f9] transition-colors cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2 flex-wrap">
+                      <Grid3X3 className="w-4 h-4 text-[#047857]" />
+                      <span>شبكة النقاط الاستدلالية — كل صنف × كل درجة</span>
+                      <span className="text-[10px] font-bold text-[#64748b]">
+                        {hasCells ? `${t.cells!.length} خلية قابلة للتعديل — الرقم الاستدلالي الكامل لكل درجة` : 'لا توجد خلايا بعد — ولّدها من الجريدة الرسمية'}
+                      </span>
+                    </span>
+                    {gridOpen ? <ChevronUp className="w-4 h-4 text-[#64748b]" /> : <ChevronDown className="w-4 h-4 text-[#64748b]" />}
+                  </button>
+
+                  {gridOpen && (
+                    <div className="p-3 space-y-2">
+                      {hasCells ? (
+                        <>
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <span className="text-[10px] text-[#64748b] font-bold">
+                              عدّل أي خلية (الرقم الاستدلالي الكامل للدرجة) — يُحفظ ويُطبق فوراً على كل كشوف هذه الشبكة. القيمة الشهرية = الرقم × قيمة النقطة (تظهر عند التمرير فوق الخلية).
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => generateCells(t.id, true)}
+                              className="bg-white hover:bg-[#f1f5f9] text-[#b45309] border border-[#b45309] px-3 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5" />
+                              استرجاع قيم الجريدة الرسمية
+                            </button>
+                          </div>
+                          <GridEditor
+                            tableId={t.id}
+                            cells={t.cells!}
+                            builtin={builtinGrid}
+                            pointValue={effectiveVal}
+                            onEdit={handleCellEdit}
+                          />
+                        </>
+                      ) : (
+                        <div className="text-center py-4 space-y-2">
+                          <div className="text-xs text-[#64748b] font-bold">
+                            هذا الجدول لا يحمل شبكة نقاط بعد — ولّد الشبكة الرسمية (كل صنف × 12 درجة) من الجرائد الرسمية لسنة {Number(t.fromYear) || currentYear} ثم عدّل أي خلية.
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => generateCells(t.id, false)}
+                            className="bg-[#047857] hover:bg-[#065f46] text-white px-4 py-2 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                          >
+                            <Grid3X3 className="w-4 h-4" />
+                            توليد الشبكة الرسمية
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-2.5 bg-white border-t border-[#e2e8f0] flex justify-end">
+                  <button
+                    type="button"
                     onClick={() => addRow(t.id)}
                     className="bg-white hover:bg-[#f1f5f9] text-[#047857] border border-[#047857] px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
@@ -385,10 +603,11 @@ export const DataHub: React.FC<DataHubProps> = ({ settings, onSaveSettings }) =>
               </div>
               <div>
                 <div className="text-base md:text-lg font-black">جدول المنح — الجديدة والقديمة</div>
-                <div className="text-[11px] text-stone-300/80">منح مخصصة قابلة للتعديل (نسبة أو مبلغ ثابت) + المنح النظامية مع إمكانية التعطيل</div>
+                <div className="text-[11px] text-stone-300/80">منح مخصصة قابلة للتعديل (نسبة من الأجر الرئيسي أو مبلغ ثابت) + المنح النظامية مع إمكانية التعطيل</div>
               </div>
             </div>
             <button
+              type="button"
               onClick={addAllowance}
               className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2 rounded-xl text-xs shadow-md transition-colors flex items-center gap-1.5 cursor-pointer"
             >
@@ -419,7 +638,7 @@ export const DataHub: React.FC<DataHubProps> = ({ settings, onSaveSettings }) =>
               </thead>
               <tbody className="divide-y divide-[#e2e8f0]">
                 {allowances.map(a => (
-                  <tr key={a.id} className={a.active === false ? 'opacity-50' : ''}>
+                  <tr key={a.id} id={`alw-${a.id}`} className={`scroll-mt-24 ${a.active === false ? 'opacity-50' : ''}`}>
                     <td className="p-1.5">
                       <input className={inputCls + ' font-bold'} value={a.name} onChange={e => updateAllowance(a.id, { name: e.target.value })} />
                     </td>
@@ -444,7 +663,7 @@ export const DataHub: React.FC<DataHubProps> = ({ settings, onSaveSettings }) =>
                     </td>
                     <td className="p-1.5 text-center font-mono font-bold text-[#0f172a]">
                       {a.value ? fmt(a.type === 'fixed' ? a.value : 0) : '—'}
-                      {a.type === 'percent' && <span className="block text-[9px] text-[#64748b] font-sans">% من الأجر التصاعدي لكل موظف</span>}
+                      {a.type === 'percent' && <span className="block text-[9px] text-[#64748b] font-sans">% من الأجر الرئيسي لكل موظف</span>}
                     </td>
                     <td className="p-1.5 text-center">
                       <input
@@ -460,6 +679,7 @@ export const DataHub: React.FC<DataHubProps> = ({ settings, onSaveSettings }) =>
                     </td>
                     <td className="p-1.5 text-center">
                       <button
+                        type="button"
                         onClick={() => deleteAllowance(a.id)}
                         className="p-1 rounded-md bg-red-50 hover:bg-red-100 text-red-500 transition-colors cursor-pointer"
                         title="حذف المنحة"
@@ -472,7 +692,7 @@ export const DataHub: React.FC<DataHubProps> = ({ settings, onSaveSettings }) =>
                 {allowances.length === 0 && (
                   <tr>
                     <td colSpan={7} className="p-6 text-center text-[#64748b]">
-                      لا توجد منح مخصصة بعد — اضغط "إضافة منحة جديدة" لإضافة منحة بنسبة أو بمبلغ ثابت.
+                      لا توجد منح مخصصة بعد — اضغط "إضافة منحة جديدة" لإضافة منحة بنسبة من الأجر الرئيسي أو بمبلغ ثابت.
                     </td>
                   </tr>
                 )}
