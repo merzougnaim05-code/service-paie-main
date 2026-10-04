@@ -286,7 +286,7 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
   const [empId, setEmpId] = useState<string>(selectedEmpId || employees[0]?.id || '');
   const [month, setMonth] = useState<number>(new Date().getMonth() + 1);
   const [year, setYear] = useState<number>(new Date().getFullYear());
-  const [mode, setMode] = useState<'monthly' | 'annual' | 'both'>('monthly');
+  const [mode, setMode] = useState<'monthly' | 'annual' | 'both'>('both');
   const [printTarget, setPrintTarget] = useState<'monthly' | 'annual' | 'both'>('both');
   const [specimen, setSpecimen] = useState<boolean>(false);
   const [exporting, setExporting] = useState<boolean>(false);
@@ -591,6 +591,12 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
           <div className="flex bg-white border border-[#cbd5e1] rounded-xl p-1 gap-1 w-fit">
             <button
+              onClick={() => setMode('both')}
+              className={`px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${mode === 'both' ? 'bg-[#0f172a] text-white shadow-sm' : 'text-[#0f172a] hover:bg-[#f1f5f9]'}`}
+            >
+              وثيقة كاملة (شهري + سنوي)
+            </button>
+            <button
               onClick={() => setMode('monthly')}
               className={`px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${mode === 'monthly' ? 'bg-[#047857] text-white shadow-sm' : 'text-[#0f172a] hover:bg-[#f1f5f9]'}`}
             >
@@ -601,12 +607,6 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
               className={`px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${mode === 'annual' ? 'bg-[#b45309] text-white shadow-sm' : 'text-[#0f172a] hover:bg-[#f1f5f9]'}`}
             >
               كشف سنوي
-            </button>
-            <button
-              onClick={() => setMode('both')}
-              className={`px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${mode === 'both' ? 'bg-[#0f172a] text-white shadow-sm' : 'text-[#0f172a] hover:bg-[#f1f5f9]'}`}
-            >
-              وثيقة كاملة (شهري + سنوي)
             </button>
           </div>
 
