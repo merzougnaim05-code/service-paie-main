@@ -276,6 +276,222 @@ const PayslipSheet: React.FC<PayslipSheetProps> = ({
   </div>
 );
 
+/* ================= عمود واحد داخل الوثيقة المدمجة (إيرادات + استقطاعات) ================= */
+
+const MergedColumn: React.FC<{ title: string; allowances: SheetSection; deductions: SheetSection }> = ({
+  title,
+  allowances,
+  deductions
+}) => (
+  <div className="border-2 border-black rounded-lg overflow-hidden flex flex-col">
+    <div className="bg-black text-white text-center py-1 font-bold text-[10.5px]">{title}</div>
+    <div className="p-1.5 flex flex-col gap-1.5 flex-1">
+      <table className="w-full border-collapse text-[9.5px] border border-black">
+        <thead>
+          <tr className="border-b-2 border-black">
+            <th className="p-0.5 text-right w-[42%]">البيان</th>
+            <th className="p-0.5 text-center w-[33%]">التفاصيل / النسبة</th>
+            <th className="p-0.5 text-center w-[25%] font-mono">{allowances.amountHeader || 'المبلغ (دج)'}</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-dotted divide-black">
+          {allowances.rows.map((r, i) => (
+            <tr key={i}>
+              <td className="p-0.5 font-bold text-right">{r.name}</td>
+              <td className="p-0.5 text-center text-gray-800">{r.detail}</td>
+              <td className="p-0.5 text-center font-mono font-bold">{fmt(r.amount)}</td>
+            </tr>
+          ))}
+          <tr className="border-t-2 border-black font-bold">
+            <td colSpan={2} className="p-0.5 text-center text-gray-900">{allowances.subtotalLabel}</td>
+            <td className="p-0.5 text-center font-mono font-black">{fmt(allowances.subtotalAmount)}</td>
+          </tr>
+          {allowances.extraRows?.map((r, i) => (
+            <tr key={`x${i}`} className="font-bold">
+              <td colSpan={2} className="p-0.5 text-center">{r.label}</td>
+              <td className="p-0.5 text-center font-mono">{fmt(r.amount)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <table className="w-full border-collapse text-[9.5px] border border-black">
+        <tbody className="divide-y divide-dotted divide-black">
+          {deductions.rows.map((r, i) => (
+            <tr key={i}>
+              <td className="p-0.5 font-semibold text-right w-[42%]">{r.name}</td>
+              <td className="p-0.5 text-center text-gray-800 w-[33%]">{r.detail}</td>
+              <td className="p-0.5 text-center font-mono font-bold w-[25%]">{fmt(r.amount)}</td>
+            </tr>
+          ))}
+          <tr className="border-t-2 border-black font-bold">
+            <td colSpan={2} className="p-0.5 text-center text-gray-900">{deductions.subtotalLabel}</td>
+            <td className="p-0.5 text-center font-mono font-black text-black">{fmt(deductions.subtotalAmount)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+);
+
+/* ================= الوثيقة الكاملة المدمجة: شهري + سنوي في ورقة A4 واحدة ================= */
+
+interface MergedSheetProps {
+  specimen: boolean;
+  serial: string;
+  issueDate: string;
+  directorate: string;
+  institution: string;
+  monthLabel: string;
+  year: number;
+  infoItems: { label: string; value: React.ReactNode }[];
+  gridLine: React.ReactNode;
+  monthly: { allowances: SheetSection; deductions: SheetSection; net: number };
+  annual: { allowances: SheetSection; deductions: SheetSection; net: number };
+  qrDataUrl: string;
+}
+
+const MergedPayslipSheet: React.FC<MergedSheetProps> = ({
+  specimen,
+  serial,
+  issueDate,
+  directorate,
+  institution,
+  monthLabel,
+  year,
+  infoItems,
+  gridLine,
+  monthly,
+  annual,
+  qrDataUrl
+}) => (
+  <div className="payslip-page">
+    <div
+      className="payslip-document bg-white border-2 border-black rounded-2xl p-4 sm:p-5 max-w-[760px] w-full text-black font-bold shadow-lg font-['Noto_Naskh_Arabic',serif] print:shadow-none print:rounded-none"
+      style={{ direction: 'rtl' }}
+    >
+      {/* Header مشترك */}
+      <div className="text-center pb-2 mb-2 border-b-[3px] border-double border-black">
+        <h1 className="text-[11px] font-bold text-gray-800 mb-0.5">
+          الجمهورية الجزائرية الديمقراطية الشعبية
+        </h1>
+        <h2 className="text-[13px] font-bold text-gray-900 underline decoration-black mb-1">
+          وزارة التربية الوطنية
+        </h2>
+        <h3 className="text-lg sm:text-xl font-extrabold text-gray-950 my-1 tracking-widest">
+          {specimen ? 'كــــشــــف الـــــراتـــــب الشهري والسنوي النموذجي' : 'كــــشــــف الـــــراتـــــب الشهري والسنوي'}
+        </h3>
+
+        {specimen && (
+          <div className="inline-block px-3 py-0.5 border-2 border-dashed border-black text-black text-[10px] font-bold rounded mb-1">
+            نموذج — غير معتمد للمعاملات الإدارية
+          </div>
+        )}
+
+        {/* معلومات المؤسسة يميناً والرقم التسلسلي يساراً */}
+        <div className="flex justify-between items-start text-[10.5px] text-gray-800 mt-1.5 px-1">
+          <div className="text-right space-y-0.5">
+            <div><strong>مديرية التربية لولاية {directorate}</strong></div>
+            <div><strong>المؤسسة:</strong> {institution}</div>
+          </div>
+          <div className="text-left space-y-0.5">
+            <div><strong>الرقم التسلسلي:</strong> <span className="font-mono">{serial}</span></div>
+          </div>
+        </div>
+
+        <div className="text-center font-bold text-[12.5px] text-gray-900 mt-1.5">
+          شهر : <span className="text-black text-base font-extrabold">{monthLabel}</span>
+          <span className="mx-2 text-gray-400">|</span>
+          السنة المالية : <span className="text-black text-base font-extrabold">{year}</span>
+          <span className="text-[10px] text-gray-800"> (جانفي — ديسمبر، 12 شهراً)</span>
+        </div>
+      </div>
+
+      {/* معلومات الموظف — موسّطة، مرة واحدة للوثيقة */}
+      <div className="border border-black rounded-lg p-2.5 mb-2.5 text-[10.5px] leading-relaxed">
+        <div className="text-center font-bold text-[12px] text-gray-900 border-b border-black pb-1 mb-1.5">
+          مـعـلـومـات الـمـوظـف
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-3 gap-y-1 text-center">
+          {infoItems.map((it, i) => (
+            <div key={i} className="border-b border-dotted border-black pb-0.5">
+              <span className="font-bold text-gray-700">{it.label}:</span>{' '}
+              <span className="font-black text-gray-950">{it.value}</span>
+            </div>
+          ))}
+        </div>
+        <div className="text-center text-[9px] text-gray-700 mt-1.5 border-t border-dotted border-black pt-1">
+          {gridLine}
+        </div>
+      </div>
+
+      {/* العمودان المدمجان: الشهري يميناً والسنوي يساراً في نفس الصفحة */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2.5 items-start">
+        <MergedColumn
+          title={`الجزء الشهري — ${monthLabel}`}
+          allowances={monthly.allowances}
+          deductions={monthly.deductions}
+        />
+        <MergedColumn
+          title="الجزء السنوي — مجموع 12 شهراً"
+          allowances={annual.allowances}
+          deductions={annual.deductions}
+        />
+      </div>
+
+      {/* الصافي المزدوج: الشهري يميناً والسنوي يساراً */}
+      <div className="net-callout border-2 border-black bg-white p-2 mb-2 rounded-lg grid grid-cols-2">
+        <div className="px-1 text-center">
+          <div className="text-[11px] font-bold text-gray-800 mb-0.5">الـصـافـي لـلـدفـع (Net à payer)</div>
+          <div className="flex items-baseline justify-center gap-1 text-[#111]">
+            <span className="text-lg font-black font-mono tracking-tight">{fmt(monthly.net)}</span>
+            <span className="text-xs font-bold">دج</span>
+          </div>
+          <div className="text-[8.5px] text-gray-800 italic">بالأحرف: {amountWordsDZD(monthly.net)}</div>
+        </div>
+        <div className="px-1 text-center border-r-2 border-black">
+          <div className="text-[11px] font-bold text-gray-800 mb-0.5">الـصـافـي السـنـوي (Net annuel à payer)</div>
+          <div className="flex items-baseline justify-center gap-1 text-[#111]">
+            <span className="text-lg font-black font-mono tracking-tight">{fmt(annual.net)}</span>
+            <span className="text-xs font-bold">دج</span>
+          </div>
+          <div className="text-[8.5px] text-gray-800 italic">بالأحرف: {amountWordsDZD(annual.net)}</div>
+        </div>
+      </div>
+
+      {/* حرر بـ والتاريخ — أسفل اليسار */}
+      <div className="text-left text-[10px] text-gray-800 mb-1 px-1">
+        <strong>حرر بـ:</strong> {directorate}
+        {' '}•{' '}
+        <strong>بتاريخ:</strong> <span className="font-mono">{issueDate}</span>
+      </div>
+
+      {/* Footer with QR Code and Signature — مشترك */}
+      <div className="flex justify-between items-center pt-2 border-t border-dotted border-black text-[10px] text-center">
+        <div className="flex-1 text-center">
+          <div className="font-bold text-gray-800">إمضاء وختم المقتصد</div>
+          <div className="h-8 mt-0.5" />
+        </div>
+
+        <div className="flex-1 text-center">
+          <div className="font-bold text-gray-800">التحقق من صحة الكشف</div>
+          <div className="text-[9px] text-gray-500 mt-0.5">امسح رمز الاستجابة السريعة QR</div>
+        </div>
+
+        <div className="flex-1 flex justify-center">
+          {qrDataUrl ? (
+            <img src={qrDataUrl} alt="QR Code" className="w-14 h-14 border border-black p-0.5 rounded bg-white" />
+          ) : (
+            <div className="w-14 h-14 border border-black flex items-center justify-center text-[10px] text-gray-500 bg-white">
+              QR
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 /* ================= الواجهة الرئيسية ================= */
 
 export const PayslipView: React.FC<PayslipViewProps> = ({
@@ -292,8 +508,10 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
   const [exporting, setExporting] = useState<boolean>(false);
   const [qrMonthly, setQrMonthly] = useState<string>('');
   const [qrAnnual, setQrAnnual] = useState<string>('');
+  const [qrBoth, setQrBoth] = useState<string>('');
   const monthlyRef = useRef<HTMLDivElement>(null);
   const annualRef = useRef<HTMLDivElement>(null);
+  const mergedRef = useRef<HTMLDivElement>(null);
 
   const currentEmployee = employees.find(e => e.id === empId) || employees[0];
   const currentJob = currentEmployee ? JOBS[currentEmployee.jobIdx] : undefined;
@@ -315,6 +533,9 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
     QRCode.toDataURL(`كشف راتب سنوي | ${base} | سنة ${year} | الصافي السنوي: ${fmt(annual.net)} دج`, { width: 100, margin: 1 })
       .then(setQrAnnual)
       .catch(() => {});
+    QRCode.toDataURL(`كشف الراتب الشهري والسنوي | ${base} | ${MONTHS_AR[month]} ${year} | الصافي الشهري: ${fmt(result.net)} دج | الصافي السنوي: ${fmt(annual.net)} دج`, { width: 100, margin: 1 })
+      .then(setQrBoth)
+      .catch(() => {});
   }, [currentEmployee, result, annual, month, year, settings.institution]);
 
   const handlePrint = (target: 'monthly' | 'annual' | 'both') => {
@@ -332,7 +553,9 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
         ? [monthlyRef.current]
         : target === 'annual'
           ? [annualRef.current]
-          : [monthlyRef.current, annualRef.current];
+          : mode === 'both'
+            ? [mergedRef.current]
+            : [monthlyRef.current, annualRef.current];
     const list = els.filter((el): el is HTMLDivElement => !!el);
     if (list.length === 0) return;
     setExporting(true);
@@ -505,7 +728,7 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
               كشف الرواتب الشهري والسنوي (Fiche de Paie)
             </h2>
             <p className="text-xs text-[#64748b] mt-0.5">
-              اختر كشف الشهر أو كشف السنة أو الوثيقة الكاملة (كشفان في وثيقة واحدة) — كل كشف يُطبع في ورقة A4 مستقلة.
+              الوثيقة الكاملة (الافتراضية): الكشف الشهري والسنوي مدمجين في ورقة A4 واحدة — أو اختر كشف الشهر أو السنة وحده للطباعة المنفصلة.
             </p>
           </div>
 
@@ -554,33 +777,19 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
             {mode === 'both' && (
               <>
                 <button
-                  onClick={() => handlePrint('monthly')}
-                  className="bg-[#047857] hover:bg-[#065f46] text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
-                >
-                  <Printer className="w-4 h-4" />
-                  <span>طباعة الشهري</span>
-                </button>
-                <button
-                  onClick={() => handlePrint('annual')}
-                  className="bg-[#b45309] hover:bg-[#92400e] text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
-                >
-                  <Printer className="w-4 h-4" />
-                  <span>طباعة السنوي</span>
-                </button>
-                <button
                   onClick={() => handlePrint('both')}
-                  className="bg-[#0f172a] hover:bg-[#1e293b] text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                  className="bg-[#0f172a] hover:bg-[#1e293b] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
                 >
                   <Printer className="w-4 h-4" />
-                  <span>الوثيقة الكاملة</span>
+                  <span>طباعة الوثيقة الكاملة</span>
                 </button>
                 <button
                   onClick={() => handleDownload('both')}
                   disabled={exporting}
-                  className="bg-white hover:bg-[#f1f5f9] text-[#047857] border border-[#047857] px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-60 disabled:cursor-wait"
+                  className="bg-white hover:bg-[#f1f5f9] text-[#0f172a] border border-[#0f172a] px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-60 disabled:cursor-wait"
                 >
                   <Download className="w-4 h-4" />
-                  <span>{exporting ? 'جاري التوليد...' : 'تحميل الكشفين (PDF)'}</span>
+                  <span>{exporting ? 'جاري التوليد...' : 'تحميل الوثيقة الكاملة (PDF)'}</span>
                 </button>
               </>
             )}
@@ -689,8 +898,28 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
 
       {/* Payslips Container — حسب النمط المختار */}
       <div className={`flex flex-col items-center gap-8 print-t-${printTarget}`}>
-        {/* ===== الكشف الشهري ===== */}
-        {(mode === 'monthly' || mode === 'both') && (
+        {/* ===== الوثيقة الكاملة المدمجة: شهري + سنوي في ورقة A4 واحدة ===== */}
+        {mode === 'both' && (
+          <div ref={mergedRef} className="payslip-block w-full flex justify-center">
+            <MergedPayslipSheet
+              specimen={specimen}
+              serial={serial}
+              issueDate={issueDate}
+              directorate={settings.wilaya || 'باتنة'}
+              institution={settings.institution || 'المؤسسة التعليمية'}
+              monthLabel={`${MONTHS_AR[month]} ${year}`}
+              year={year}
+              infoItems={infoItems}
+              gridLine={gridLine}
+              monthly={{ allowances: monthlyAllowances, deductions: monthlyDeductions, net: result.net }}
+              annual={{ allowances: annualAllowances, deductions: annualDeductions, net: annual.net }}
+              qrDataUrl={qrBoth}
+            />
+          </div>
+        )}
+
+        {/* ===== الكشف الشهري وحده ===== */}
+        {mode === 'monthly' && (
           <div ref={monthlyRef} className="payslip-block payslip-block-monthly w-full flex justify-center">
             <PayslipSheet
               bigTitle={monthlyTitle}
@@ -713,8 +942,8 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
           </div>
         )}
 
-        {/* ===== الكشف السنوي ===== */}
-        {(mode === 'annual' || mode === 'both') && (
+        {/* ===== الكشف السنوي وحده ===== */}
+        {mode === 'annual' && (
           <div ref={annualRef} className="payslip-block payslip-block-annual w-full flex justify-center">
             <PayslipSheet
               bigTitle={annualTitle}
