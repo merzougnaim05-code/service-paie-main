@@ -276,65 +276,74 @@ const PayslipSheet: React.FC<PayslipSheetProps> = ({
   </div>
 );
 
-/* ================= عمود واحد داخل الوثيقة المدمجة (إيرادات + استقطاعات) ================= */
+/* ================= الوثيقة الكاملة المدمجة: شهري + سنوي في ورقة A4 واحدة ================= */
+/* جدول موحد بإطار واحد: كل بيان سطر واحد وعمودان للمبلغ (الشهري / السنوي) — دون تكرار المنح */
 
-const MergedColumn: React.FC<{ title: string; allowances: SheetSection; deductions: SheetSection }> = ({
+interface MergedTableRow {
+  name: string;
+  detail: string;
+  monthly: number;
+  annual: number;
+}
+
+interface MergedTableData {
+  title: string;
+  rows: MergedTableRow[];
+  subtotalLabel: string;
+  subtotalMonthly: number;
+  subtotalAnnual: number;
+  extraRows?: { label: string; monthly: number; annual: number }[];
+}
+
+const MergedTable: React.FC<MergedTableData> = ({
   title,
-  allowances,
-  deductions
+  rows,
+  subtotalLabel,
+  subtotalMonthly,
+  subtotalAnnual,
+  extraRows
 }) => (
-  <div className="border-2 border-black rounded-lg overflow-hidden flex flex-col">
-    <div className="bg-black text-white text-center py-1 font-bold text-[10.5px]">{title}</div>
-    <div className="p-1.5 flex flex-col gap-1.5 flex-1">
-      <table className="w-full border-collapse text-[9.5px] border border-black">
-        <thead>
-          <tr className="border-b-2 border-black">
-            <th className="p-0.5 text-right w-[42%]">البيان</th>
-            <th className="p-0.5 text-center w-[33%]">التفاصيل / النسبة</th>
-            <th className="p-0.5 text-center w-[25%] font-mono">{allowances.amountHeader || 'المبلغ (دج)'}</th>
+  <div className="mb-2.5">
+    <div className="bg-black text-white text-center py-1 font-bold text-[11px]">{title}</div>
+    <table className="w-full border-collapse text-[10px] border-2 border-black">
+      <thead>
+        <tr className="bg-white border-b-2 border-black text-black">
+          <th className="p-1 text-right w-[34%]">البيان</th>
+          <th className="p-1 text-center w-[26%]">التفاصيل / النسبة</th>
+          <th className="p-1 text-center w-[20%] font-mono">الشهري (دج)</th>
+          <th className="p-1 text-center w-[20%] font-mono">السنوي (دج)</th>
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-dotted divide-black">
+        {rows.map((r, i) => (
+          <tr key={i}>
+            <td className="p-1 font-bold text-right">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-black shrink-0" />
+                <span>{r.name}</span>
+              </span>
+            </td>
+            <td className="p-1 text-center text-gray-800">{r.detail || '—'}</td>
+            <td className="p-1 text-center font-mono font-bold">{fmt(r.monthly)}</td>
+            <td className="p-1 text-center font-mono font-bold">{fmt(r.annual)}</td>
           </tr>
-        </thead>
-        <tbody className="divide-y divide-dotted divide-black">
-          {allowances.rows.map((r, i) => (
-            <tr key={i}>
-              <td className="p-0.5 font-bold text-right">{r.name}</td>
-              <td className="p-0.5 text-center text-gray-800">{r.detail}</td>
-              <td className="p-0.5 text-center font-mono font-bold">{fmt(r.amount)}</td>
-            </tr>
-          ))}
-          <tr className="border-t-2 border-black font-bold">
-            <td colSpan={2} className="p-0.5 text-center text-gray-900">{allowances.subtotalLabel}</td>
-            <td className="p-0.5 text-center font-mono font-black">{fmt(allowances.subtotalAmount)}</td>
+        ))}
+        <tr className="border-t-2 border-black font-bold">
+          <td colSpan={2} className="p-1.5 text-center text-gray-900">{subtotalLabel}</td>
+          <td className="p-1.5 text-center font-mono font-black text-[11.5px]">{fmt(subtotalMonthly)}</td>
+          <td className="p-1.5 text-center font-mono font-black text-[11.5px]">{fmt(subtotalAnnual)}</td>
+        </tr>
+        {extraRows?.map((r, i) => (
+          <tr key={`x${i}`} className="font-bold">
+            <td colSpan={2} className="p-1 text-center">{r.label}</td>
+            <td className="p-1 text-center font-mono">{fmt(r.monthly)}</td>
+            <td className="p-1 text-center font-mono">{fmt(r.annual)}</td>
           </tr>
-          {allowances.extraRows?.map((r, i) => (
-            <tr key={`x${i}`} className="font-bold">
-              <td colSpan={2} className="p-0.5 text-center">{r.label}</td>
-              <td className="p-0.5 text-center font-mono">{fmt(r.amount)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      <table className="w-full border-collapse text-[9.5px] border border-black">
-        <tbody className="divide-y divide-dotted divide-black">
-          {deductions.rows.map((r, i) => (
-            <tr key={i}>
-              <td className="p-0.5 font-semibold text-right w-[42%]">{r.name}</td>
-              <td className="p-0.5 text-center text-gray-800 w-[33%]">{r.detail}</td>
-              <td className="p-0.5 text-center font-mono font-bold w-[25%]">{fmt(r.amount)}</td>
-            </tr>
-          ))}
-          <tr className="border-t-2 border-black font-bold">
-            <td colSpan={2} className="p-0.5 text-center text-gray-900">{deductions.subtotalLabel}</td>
-            <td className="p-0.5 text-center font-mono font-black text-black">{fmt(deductions.subtotalAmount)}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+        ))}
+      </tbody>
+    </table>
   </div>
 );
-
-/* ================= الوثيقة الكاملة المدمجة: شهري + سنوي في ورقة A4 واحدة ================= */
 
 interface MergedSheetProps {
   specimen: boolean;
@@ -346,8 +355,10 @@ interface MergedSheetProps {
   year: number;
   infoItems: { label: string; value: React.ReactNode }[];
   gridLine: React.ReactNode;
-  monthly: { allowances: SheetSection; deductions: SheetSection; net: number };
-  annual: { allowances: SheetSection; deductions: SheetSection; net: number };
+  earnings: MergedTableData;
+  deductions: MergedTableData;
+  monthlyNet: number;
+  annualNet: number;
   qrDataUrl: string;
 }
 
@@ -361,8 +372,10 @@ const MergedPayslipSheet: React.FC<MergedSheetProps> = ({
   year,
   infoItems,
   gridLine,
-  monthly,
-  annual,
+  earnings,
+  deductions,
+  monthlyNet,
+  annualNet,
   qrDataUrl
 }) => (
   <div className="payslip-page">
@@ -425,37 +438,29 @@ const MergedPayslipSheet: React.FC<MergedSheetProps> = ({
         </div>
       </div>
 
-      {/* العمودان المدمجان: الشهري يميناً والسنوي يساراً في نفس الصفحة */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2.5 items-start">
-        <MergedColumn
-          title={`الجزء الشهري — ${monthLabel}`}
-          allowances={monthly.allowances}
-          deductions={monthly.deductions}
-        />
-        <MergedColumn
-          title="الجزء السنوي — مجموع 12 شهراً"
-          allowances={annual.allowances}
-          deductions={annual.deductions}
-        />
-      </div>
+      {/* الإطار الموحد للإيرادات: كل منحة سطر واحد — شهري وسنوي جنباً إلى جنب */}
+      <MergedTable {...earnings} />
+
+      {/* الإطار الموحد للاقتطاعات */}
+      <MergedTable {...deductions} />
 
       {/* الصافي المزدوج: الشهري يميناً والسنوي يساراً */}
       <div className="net-callout border-2 border-black bg-white p-2 mb-2 rounded-lg grid grid-cols-2">
         <div className="px-1 text-center">
           <div className="text-[11px] font-bold text-gray-800 mb-0.5">الـصـافـي لـلـدفـع (Net à payer)</div>
           <div className="flex items-baseline justify-center gap-1 text-[#111]">
-            <span className="text-lg font-black font-mono tracking-tight">{fmt(monthly.net)}</span>
+            <span className="text-lg font-black font-mono tracking-tight">{fmt(monthlyNet)}</span>
             <span className="text-xs font-bold">دج</span>
           </div>
-          <div className="text-[8.5px] text-gray-800 italic">بالأحرف: {amountWordsDZD(monthly.net)}</div>
+          <div className="text-[8.5px] text-gray-800 italic">بالأحرف: {amountWordsDZD(monthlyNet)}</div>
         </div>
         <div className="px-1 text-center border-r-2 border-black">
           <div className="text-[11px] font-bold text-gray-800 mb-0.5">الـصـافـي السـنـوي (Net annuel à payer)</div>
           <div className="flex items-baseline justify-center gap-1 text-[#111]">
-            <span className="text-lg font-black font-mono tracking-tight">{fmt(annual.net)}</span>
+            <span className="text-lg font-black font-mono tracking-tight">{fmt(annualNet)}</span>
             <span className="text-xs font-bold">دج</span>
           </div>
-          <div className="text-[8.5px] text-gray-800 italic">بالأحرف: {amountWordsDZD(annual.net)}</div>
+          <div className="text-[8.5px] text-gray-800 italic">بالأحرف: {amountWordsDZD(annualNet)}</div>
         </div>
       </div>
 
@@ -718,6 +723,81 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
     subtotalAmount: annualTotalDeductions
   };
 
+  /* ===== الجدول الموحد للوثيقة المدمجة: كل بيان سطر واحد بعمودين (شهري / سنوي) ===== */
+  const normName = (s: string) => s.replace(/\s*\([^)]*\)\s*$/, '').trim();
+
+  const earnMap = new Map<string, MergedTableRow>();
+  const addEarn = (name: string, detail: string, monthlyAmt: number, annualAmt: number) => {
+    const key = normName(name);
+    const prev = earnMap.get(key);
+    if (prev) {
+      prev.monthly += monthlyAmt;
+      prev.annual += annualAmt;
+      if (!prev.detail && detail) prev.detail = detail;
+    } else {
+      earnMap.set(key, { name: key, detail, monthly: monthlyAmt, annual: annualAmt });
+    }
+  };
+
+  addEarn('الأجر القاعدي', `${result.g.base} × ${fmt(result.pointVal)}`, result.basic, annual.basic);
+  if (result.seniority > 0 || annual.seniority > 0) {
+    addEarn(
+      'الخبرة المهنية',
+      isProfessionalWorkerJob(currentJob) ? `1.4% × ${result.years} سنة` : `الدرجة ${currentEmployee.echelon}`,
+      result.seniority,
+      annual.seniority
+    );
+  }
+  result.allAllowances.filter(a => a.amount > 0).forEach(a => {
+    const m = a.name.match(/\(([^)]+)\)/);
+    addEarn(a.name, m ? m[1] : '....................', a.amount, 0);
+  });
+  annual.allowanceRows.forEach(al => addEarn(al.name, '', 0, al.amount));
+  if (result.familyTotal > 0 || annual.familyTotal > 0) {
+    addEarn(
+      'المنح العائلية',
+      `${currentEmployee.children} طفل ${currentEmployee.singleWage ? '+ أجر وحيد' : ''}`.trim(),
+      result.familyTotal,
+      annual.familyTotal
+    );
+  }
+
+  const unifiedEarnings: MergedTableData = {
+    title: 'الـمـنـح والـعـلاوات والإيرادات',
+    rows: Array.from(earnMap.values()).map(r => ({
+      ...r,
+      monthly: Math.round(r.monthly * 100) / 100,
+      annual: Math.round(r.annual * 100) / 100
+    })),
+    subtotalLabel: 'خام الراتب الإجمالي (دون المردودية)',
+    subtotalMonthly: grossExcludingPerf,
+    subtotalAnnual: annualGrossExcludingPerf,
+    extraRows:
+      result.perfBonusTotal > 0 || annual.perfBonusTotal > 0
+        ? [
+            { label: 'خام علاوة الأداء / المردودية', monthly: result.perfBonusTotal, annual: annual.perfBonusTotal },
+            { label: 'صافي المردودية (بعد اقتطاع الضريبة 10%)', monthly: result.perfBonusTotal - result.perfBonusTax, annual: annual.perfBonusTotal - annual.perfBonusTax }
+          ]
+        : undefined
+  };
+
+  const unifiedDeductions: MergedTableData = {
+    title: 'الاقتطاعات القانونية',
+    rows: [
+      { name: 'اقتطاع الضمان الاجتماعي (CNAS)', detail: `${fmt(result.cnasRate)}% من الأجر الخاضع`, monthly: result.cnasDeduction, annual: annual.cnasDeduction },
+      { name: 'اقتطاع الضريبة على الدخل (IRG)', detail: 'سلم الضريبة الساري في سنة الكشف', monthly: result.irgTax, annual: annual.irgTax },
+      ...(result.mutDeduction > 0 || annual.mutDeduction > 0
+        ? [{ name: 'اقتطاع التعاضدية', detail: '1% من الأجر الخام', monthly: result.mutDeduction, annual: annual.mutDeduction }]
+        : []),
+      ...(result.perfBonusTax > 0 || annual.perfBonusTax > 0
+        ? [{ name: 'ضريبة علاوة الأداء (10%)', detail: '10% ثابتة', monthly: result.perfBonusTax, annual: annual.perfBonusTax }]
+        : [])
+    ],
+    subtotalLabel: 'إجمالي الاقتطاعات',
+    subtotalMonthly: totalDeductions,
+    subtotalAnnual: annualTotalDeductions
+  };
+
   return (
     <div className="py-6 max-w-4xl mx-auto px-4 print:py-0 print:px-0">
       {/* Control bar (no print) */}
@@ -911,8 +991,10 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
               year={year}
               infoItems={infoItems}
               gridLine={gridLine}
-              monthly={{ allowances: monthlyAllowances, deductions: monthlyDeductions, net: result.net }}
-              annual={{ allowances: annualAllowances, deductions: annualDeductions, net: annual.net }}
+              earnings={unifiedEarnings}
+              deductions={unifiedDeductions}
+              monthlyNet={result.net}
+              annualNet={annual.net}
               qrDataUrl={qrBoth}
             />
           </div>
