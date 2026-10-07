@@ -20,7 +20,7 @@ const CHANGE_YEARS: { year: number; note: string }[] = [
   { year: 2008, note: 'الشبكة الاستدلالية 07-304 — النقطة 45 دج' },
   { year: 2010, note: 'النظام التعويضي الجديد (10-78)' },
   { year: 2011, note: 'منحة الدعم المدرسي 15% (11-171)' },
-  { year: 2015, note: 'تعديل المنحة الجزافية (15-176)' },
+  { year: 2015, note: 'الجزافية من جانفي والتسيير من سبتمبر (15-176)' },
   { year: 2022, note: '+50 نقطة وسلم IRG جديد (22-138)' },
   { year: 2023, note: '+75 نقطة (23-54 المرحلة الأولى)' },
   { year: 2024, note: '+75 نقطة (23-54 المرحلة الثانية)' },
@@ -952,10 +952,10 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
           </div>
         </div>
 
-        {/* سنوات التغيير — الضغط على السنة يعرض الكشف وفق أنظمتها */}
+        {/* سنوات التغيير — الضغط على السنة يفتح الكشف الشهري وفق أنظمتها */}
         <div className="mt-4 pt-4 border-t border-[#e2e8f0]">
           <div className="text-xs font-bold text-[#1e293b] mb-2">
-            سنوات التغيير — اضغط على السنة لعرض الكشفين وفق الأنظمة القانونية السارية فيها:
+            سنوات التغيير — اضغط على السنة لعرض الكشف الشهري وفق الأنظمة القانونية السارية فيها:
           </div>
           <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2">
             {CHANGE_YEARS.map(cy => {
@@ -964,7 +964,7 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
                 <button
                   key={cy.year}
                   title={cy.note}
-                  onClick={() => setYear(cy.year)}
+                  onClick={() => { setYear(cy.year); setMode('monthly'); }}
                   className={`rounded-xl border px-2 py-2 text-center transition-all cursor-pointer ${active ? 'bg-[#047857] border-[#047857] text-white shadow' : 'bg-white border-[#cbd5e1] text-[#0f172a] hover:bg-[#f1f5f9]'}`}
                 >
                   <div className="text-sm font-black font-mono">{cy.year}</div>

@@ -190,11 +190,16 @@ export function autoAllowancesForJob(
   seniority: number,
   category: number | string,
   echelon: number,
-  year: number = new Date().getFullYear()
+  year: number = new Date().getFullYear(),
+  month: number = 12
 ): Allowance[] {
   if (!job) return [];
   // قبل 2008 لا تطبق المنح الحديثة (النظام التعويضي 10-78 ساري بأثر رجعي من 01-01-2008)
   if (year < 2008) return [];
+  // المرسوم التنفيذي 15-176 (سنة 2015):
+  // - المنحة الجزافية التعويضية تطبيقها من 01 جانفي 2015
+  // - تعويض التسيير المالي والمادي (سلك مصلحة الاقتصاد) وتعويض تسيير مؤسسة تعليمية من 01 سبتمبر 2015
+  const effSep2015 = year > 2015 || (year === 2015 && month >= 9);
   const list: Allowance[] = [];
   const rp = basic + seniority;
   const catNum = Number(category) || 1;
@@ -213,8 +218,13 @@ export function autoAllowancesForJob(
 
   if (isProfessionalWorkerJob(job)) {
     push('تعويض الضرر', rp * 0.25, `25% × ${fmt(rp)}`);
-    push('منحة دعم نشاط الإدارة', rp * 0.10, `10% × ${fmt(rp)}`);
-    push('المنحة الجزافية التعويضية', professionalWorkerLumpSum(category), 'مبلغ ثابت حسب الصنف');
+    // منحة دعم نشاطات الإدارة — المرسوم التنفيذي 13-188: تطبق من 01/01/2012
+    if (year >= 2012) {
+      push('منحة دعم نشاط الإدارة', rp * 0.10, `10% × ${fmt(rp)}`);
+    }
+    if (year >= 2015) {
+      push('المنحة الجزافية التعويضية', professionalWorkerLumpSum(category), 'مبلغ ثابت حسب الصنف');
+    }
     return list;
   }
 
@@ -225,8 +235,9 @@ export function autoAllowancesForJob(
   if (isArticle4or3) {
     const doc = catNum <= 10 ? 2000 : (catNum >= 13 ? 3000 : 2500);
     push('تعويض التوثيق التربوي', doc, 'مبلغ ثابت حسب الصنف');
-    // نسب التأهيل: 40% (صنف ≤ 12) و45% (صنف ≥ 13) من 2025 — قبلها 25% (صنف ≤ 11) و30% (صنف ≥ 12)
-    const qualifRate = year >= 2025 ? (catNum <= 12 ? 0.4 : 0.45) : (catNum <= 11 ? 0.25 : 0.3);
+    // منحة التأهيل — المرسوم التنفيذي 10-78 (نظام تعويضي تنفذ من 01/01/2008): 40%
+    // ومن 2025 (المرسوم 25-55): 45% للأصناف 13 فما فوق
+    const qualifRate = year >= 2025 && catNum >= 13 ? 0.45 : 0.4;
     push('تعويض التأهيل', rp * qualifRate, `${qualifRate * 100}% × ${fmt(rp)}`);
   }
 
@@ -250,8 +261,8 @@ export function autoAllowancesForJob(
     } else if (domain === 'eco' || domain === 'lab') {
       push('تعويض الدعم المدرسي والمعالجة البيداغوجية', rp * 0.15, `15% × ${fmt(rp)}`);
     }
-  } else if (year >= 2011 && (domain === 'teach' || domain === 'edu')) {
-    // المرسوم التنفيذي 11-171 (2011): 15% من الراتب الرئيسي لفائدة الأسلاك التربوية
+  } else if (domain === 'teach' || domain === 'edu') {
+    // منحة الدعم المدرسي والمعالجة البيداغوجية — المرسوم التنفيذي 11-373: 15% تطبيقاً من 01/01/2008
     push('تعويض الدعم المدرسي والمعالجة البيداغوجية', rp * 0.15, `15% × ${fmt(rp)}`);
   }
 
@@ -260,15 +271,19 @@ export function autoAllowancesForJob(
     push('تعويض الخبرة البيداغوجية', basic * 0.04 * echelon, `4% × ${echelon} (الدرجة) × ${fmt(basic)}`);
   }
 
-  if (domain === 'eco') {
+  if (domain === 'eco' && effSep2015) {
     push('تعويض التسيير المالي والمادي', basic * 0.04 * echelon, `4% × ${echelon} (الدرجة) × ${fmt(basic)}`);
   }
 
-  if (job.directorType === 'ابتدائية') push('تعويض تسيير مؤسسة تعليمية', 3000, 'مبلغ ثابت — مدير ابتدائية');
-  else if (job.directorType === 'متوسطة') push('تعويض تسيير مؤسسة تعليمية', 4000, 'مبلغ ثابت — مدير متوسطة');
-  else if (job.directorType === 'ثانوية') push('تعويض تسيير مؤسسة تعليمية', 5000, 'مبلغ ثابت — مدير ثانوية');
+  if (effSep2015) {
+    if (job.directorType === 'ابتدائية') push('تعويض تسيير مؤسسة تعليمية', 3000, 'مبلغ ثابت — مدير ابتدائية');
+    else if (job.directorType === 'متوسطة') push('تعويض تسيير مؤسسة تعليمية', 4000, 'مبلغ ثابت — مدير متوسطة');
+    else if (job.directorType === 'ثانوية') push('تعويض تسيير مؤسسة تعليمية', 5000, 'مبلغ ثابت — مدير ثانوية');
+  }
 
-  push('المنحة الجزافية التعويضية', lumpSumAllowance(category), 'مبلغ ثابت حسب الصنف');
+  if (year >= 2015) {
+    push('المنحة الجزافية التعويضية', lumpSumAllowance(category), 'مبلغ ثابت حسب الصنف');
+  }
 
   if (domain === 'lab') {
     push('تعويض الخدمات التقنية', rp * 0.25, `25% × ${fmt(rp)}`);
@@ -279,8 +294,13 @@ export function autoAllowancesForJob(
     if (isCommonCorpsJob(job)) {
       const adminRate = commonCorpsAdminRate(job);
       push('تعويض الخدمات الإدارية المشتركة', rp * adminRate, `${adminRate * 100}% × ${fmt(rp)}`);
-      push('تعويض دعم نشاطات الإدارة', rp * 0.10, `10% × ${fmt(rp)}`);
-      push('المنحة الجزافية التعويضية', commonCorpsLumpSum(category), 'مبلغ ثابت حسب الصنف');
+      // تعويض دعم نشاطات الإدارة — المرسوم التنفيذي 13-188: تطبق من 01/01/2012
+      if (year >= 2012) {
+        push('تعويض دعم نشاطات الإدارة', rp * 0.10, `10% × ${fmt(rp)}`);
+      }
+      if (year >= 2015) {
+        push('المنحة الجزافية التعويضية', commonCorpsLumpSum(category), 'مبلغ ثابت حسب الصنف');
+      }
       return list;
     }
   }
@@ -292,9 +312,12 @@ export function performanceBonusForJob(
   job: Job | undefined,
   basic: number,
   seniority: number,
-  pct: number
+  pct: number,
+  year: number = new Date().getFullYear()
 ): Allowance | null {
   if (!job || !pct || pct <= 0) return null;
+  // علاوة الأداء التربوي والتسييري والمردودية — تنفذ منذ 01/01/2008
+  if (year < 2008) return null;
   let name = 'علاوة المردودية';
   let max = 30;
   const domain = job.domain || 'other';
@@ -409,8 +432,8 @@ export function computePayslip(emp: Employee, month: number, year: number, setti
   const basic = Math.round(g.base * pointVal * 100) / 100;
   const seniority = seniorityFor(job, g, emp.echelon, pointVal, basic, years, emp.employmentStatus);
 
-  const autoAllow = autoAllowancesForJob(job, basic, seniority, g.cat, emp.echelon, year);
-  const pb = performanceBonusForJob(job, basic, seniority, emp.performancePct || 0);
+  const autoAllow = autoAllowancesForJob(job, basic, seniority, g.cat, emp.echelon, year, month);
+  const pb = performanceBonusForJob(job, basic, seniority, emp.performancePct || 0, year);
   if (pb) autoAllow.push(pb);
 
   const aures = settings.auresEnabled ? auresAllowance(job, emp.echelon, years) : 0;
@@ -431,6 +454,26 @@ export function computePayslip(emp: Employee, month: number, year: number, setti
   }
 
   const manualAllowances = (emp.allowances || []).filter(a => !a.auto);
+
+  // تعويض المنطقة — المرسوم 82-183: يتبع الولاية والبلدية المدخلة في معطيات الموظف
+  // الصيغة: النقاط × الأجر الأساسي الشهري ÷ 1000 (قوائم البلديات: 93-130 وتحديثاتها 95-90 و96-62 و97-246)
+  if (settings.zoneAllowanceEnabled !== false && emp.zoneWilaya && emp.zoneCommune) {
+    const zone = (settings.zoneEntries || []).find(
+      zn => zn.active !== false && zn.wilaya === emp.zoneWilaya && zn.commune === emp.zoneCommune
+    );
+    if (zone && Number(zone.points) > 0) {
+      const amount = Math.round((Number(zone.points) * basic) / 1000 * 100) / 100;
+      if (amount > 0) {
+        autoAllow.push({
+          name: `تعويض المنطقة (${zone.subgroup} — ${zone.points} نقطة × ${fmt(basic)} ÷ 1000)`,
+          amount,
+          cnas: true,
+          irg: true,
+          auto: true
+        });
+      }
+    }
+  }
 
   // تعطيل المنح النظامية من مركز الجداول والمعطيات (بالمطابقة مع بداية الاسم دون الأقواس)
   const disabledBuiltins = settings.disabledBuiltins || [];

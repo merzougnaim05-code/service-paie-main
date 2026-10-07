@@ -86,22 +86,22 @@ export const ATSBack: React.FC<ATSBackProps> = ({
         .ats-back-page .intro-row .fr { font-size: 10.5pt; }
         .ats-back-page .intro-row .ar { font-size: 11pt; }
 
-        .ats-back-page table.grid {
+        .ats-back-page table.ats-grid {
           width: 100%;
           border-collapse: collapse;
           table-layout: fixed;
         }
-        .ats-back-page table.grid, .ats-back-page table.grid th, .ats-back-page table.grid td {
+        .ats-back-page table.ats-grid, .ats-back-page table.ats-grid th, .ats-back-page table.ats-grid td {
           border: 1px solid var(--border);
         }
-        .ats-back-page table.grid th {
+        .ats-back-page table.ats-grid th {
           padding: 1.2mm 1.5mm 2mm;
           vertical-align: top;
           font-weight: 400;
         }
-        .ats-back-page table.grid th .ar { display: block; font-size: 9.3pt; font-weight: 700; line-height: 1.25; margin-bottom: .5mm; white-space: nowrap; }
-        .ats-back-page table.grid th .fr { display: block; font-size: 9pt; text-align: center; white-space: nowrap; }
-        .ats-back-page table.grid td {
+        .ats-back-page table.ats-grid th .ar { display: block; font-size: 9.3pt; font-weight: 700; line-height: 1.25; margin-bottom: .5mm; white-space: nowrap; }
+        .ats-back-page table.ats-grid th .fr { display: block; font-size: 9pt; text-align: center; white-space: nowrap; }
+        .ats-back-page table.ats-grid td {
           height: 6.35mm;
           padding: 0 2mm;
           text-align: center;
@@ -110,7 +110,7 @@ export const ATSBack: React.FC<ATSBackProps> = ({
           font-family: monospace;
           color: #000;
         }
-        .ats-back-page table.grid td[contenteditable]:focus { outline: 1.5px solid #0070C0; background: #eef5ff; outline-offset: -1px; }
+        .ats-back-page table.ats-grid td[contenteditable]:focus { outline: 1.5px solid #0070C0; background: #eef5ff; outline-offset: -1px; }
         .ats-back-page col.c0 { width: 16.1%; }
         .ats-back-page col.c1 { width: 23.91%; }
         .ats-back-page col.c2 { width: 19.29%; }
@@ -151,7 +151,7 @@ export const ATSBack: React.FC<ATSBackProps> = ({
         .ats-back-page .important-row .ar { font-size: 9.6pt; }
         .ats-back-page .important-row .ar b { font-weight: 700; }
 
-        .ats-back-page .db3 { display: inline-flex; direction: rtl; gap: 0.8mm; vertical-align: middle; margin: 0 1mm; }
+        .ats-back-page .db3 { display: inline-flex; direction: ltr; gap: 0.8mm; vertical-align: middle; margin: 0 1mm; }
         .ats-back-page .db3 i { height: 5.2mm; border: 1.2px solid #000; display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-size: 9pt; background: #fff; text-align: center; }
         .ats-back-page .db3 i.day, .ats-back-page .db3 i.month { width: 5.5mm; }
         .ats-back-page .db3 i.year { width: 10.5mm; }
@@ -168,7 +168,7 @@ export const ATSBack: React.FC<ATSBackProps> = ({
           </p>
         </div>
 
-        <table className="grid">
+        <table className="ats-grid">
           <colgroup>
             <col className="c0" />
             <col className="c1" />

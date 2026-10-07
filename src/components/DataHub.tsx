@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { Settings, PointTable, PointChangeRow, PointCell, CustomAllowance, GrilleCategory } from '../types';
-import { BUILTIN_ALLOWANCE_KEYS, buildOfficialCells, getGrilleForYear } from '../data/salaryGrids';
+import { Settings, PointTable, PointChangeRow, PointCell, CustomAllowance, GrilleCategory, ZoneEntry } from '../types';
+import { BUILTIN_ALLOWANCE_KEYS, buildOfficialCells, getGrilleForYear, ZONE_GROUP_POINTS, ALGERIAN_WILAYAS } from '../data/salaryGrids';
 import { resolvePointValue, fmt } from '../utils/salaryCalculator';
 import {
   Database,
@@ -15,7 +15,8 @@ import {
   ChevronDown,
   ChevronUp,
   RotateCcw,
-  Grid3X3
+  Grid3X3,
+  MapPin
 } from 'lucide-react';
 
 interface DataHubProps {
@@ -303,6 +304,51 @@ export const DataHub: React.FC<DataHubProps> = ({ settings, onSaveSettings }) =>
         ? `عُطّلت المنحة "${key}" — استُبعدت من كل الكشوف ✓`
         : `فُعّلت المنحة "${key}" — عادت إلى الحساب ✓`
     );
+  };
+
+  /* ===== تعويض المنطقة — المرسوم 82-183 ===== */
+  const zoneEntries = view.zoneEntries || [];
+
+  const addZone = () => {
+    const zn: ZoneEntry = {
+      id: uid(),
+      wilaya: 'ورقلة',
+      commune: 'بلدية جديدة',
+      group: 'أ',
+      subgroup: 'أ-1',
+      points: 500,
+      note: '',
+      active: true
+    };
+    patch({ zoneEntries: [...zoneEntries, zn] }, 'أُضيفت بلدية لتعويض المنطقة ✓');
+    scrollToId(`zone-${zn.id}`);
+  };
+
+  const updateZone = (id: string, p: Partial<ZoneEntry>) => {
+    patch({ zoneEntries: zoneEntries.map(zn => (zn.id === id ? { ...zn, ...p } : zn)) });
+  };
+
+  const setZoneGroup = (id: string, group: 'أ' | 'ب' | 'ج') => {
+    const first = ZONE_GROUP_POINTS[group][0];
+    patch({
+      zoneEntries: zoneEntries.map(zn =>
+        zn.id === id ? { ...zn, group, subgroup: first.subgroup, points: first.points } : zn
+      )
+    });
+  };
+
+  const setZoneSubgroup = (id: string, group: 'أ' | 'ب' | 'ج', subgroup: string) => {
+    const sub = ZONE_GROUP_POINTS[group].find(s => s.subgroup === subgroup);
+    patch({
+      zoneEntries: zoneEntries.map(zn =>
+        zn.id === id && sub ? { ...zn, subgroup, points: sub.points } : zn
+      )
+    });
+  };
+
+  const deleteZone = (id: string) => {
+    if (!window.confirm('حذف هذه البلدية من قائمة تعويض المنطقة؟')) return;
+    patch({ zoneEntries: zoneEntries.filter(zn => zn.id !== id) }, 'حُذفت البلدية ✓');
   };
 
   return (
@@ -723,6 +769,127 @@ export const DataHub: React.FC<DataHubProps> = ({ settings, onSaveSettings }) =>
                 </div>
               );
             })}
+          </div>
+        </div>
+
+        {/* ==================================================
+            القسم 3: تعويض المنطقة — المرسوم 82-183
+            ================================================== */}
+        <div className="mt-8">
+          <div className="relative rounded-2xl p-1 bg-gradient-to-r from-emerald-600 via-amber-500 to-emerald-600 shadow-lg mb-4">
+            <div className="bg-gradient-to-b from-slate-900 via-emerald-950 to-slate-900 rounded-[14px] p-4 md:p-5 text-white flex flex-col md:flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-3 text-center md:text-right">
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 flex items-center justify-center shrink-0">
+                  <MapPin className="w-6 h-6 text-slate-950" />
+                </div>
+                <div>
+                  <div className="text-base md:text-lg font-black">تعويض المنطقة — المرسوم 82-183</div>
+                  <div className="text-[11px] text-emerald-200/80">
+                    ثلاث مجموعات (أ، ب، ج) وكل مجموعة فروع وكل فرع بلدياتها — القوائم بمراسيم 93-130 و95-90 و96-62 و97-246
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => patch({ zoneAllowanceEnabled: view.zoneAllowanceEnabled === false }, view.zoneAllowanceEnabled === false ? 'فُعّل تعويض المنطقة في كل الوثائق ✓' : 'عُطّل تعويض المنطقة من كل الوثائق ✓')}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black border-2 transition-colors cursor-pointer ${view.zoneAllowanceEnabled === false ? 'bg-slate-800 text-slate-300 border-slate-600 hover:bg-slate-700' : 'bg-emerald-500 text-white border-emerald-400 hover:bg-emerald-400'}`}
+                >
+                  <Power className="w-4 h-4" />
+                  {view.zoneAllowanceEnabled === false ? 'المنحة معطّلة' : 'المنحة مفعّلة'}
+                </button>
+                <button
+                  type="button"
+                  onClick={addZone}
+                  className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2 rounded-xl text-xs shadow-md transition-colors flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  إضافة بلدية
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-[#eef5ff] border border-[#b8d4fe] rounded-xl p-3 text-xs text-[#004e9a] flex items-start gap-2 mb-4">
+            <Info className="w-4 h-4 flex-shrink-0 text-[#0070C0] mt-0.5" />
+            <span>
+              <strong>كيفية الحساب (82-183):</strong> المنحة تتبع <b>الولاية والبلدية المدخلة في معطيات الموظف</b> — التعويض الشهري = النقاط × الأجر الأساسي الشهري ÷ 1000 (مثال: فرع أ-1 بـ500 نقطة = نصف الأجر الأساسي). أضف بلديات قوائم ولاياتك حسب مراسيم التحديث، فالقائمة أدناه تضم ما ورد في النماذج المرفقة وقابلة للتعديل والزيادة.
+            </span>
+          </div>
+
+          <div className={`bg-white rounded-2xl border-2 shadow-sm overflow-hidden ${view.zoneAllowanceEnabled === false ? 'border-slate-300 opacity-70' : 'border-[#a7f3d0]'}`}>
+            <div className="bg-[#f8fafc] border-b border-[#e2e8f0] px-4 py-2.5 text-sm font-black text-[#0f172a] flex items-center justify-between flex-wrap gap-2">
+              <span>قائمة البلديات المؤهلة ({zoneEntries.filter(zn => zn.active !== false).length} مفعلة / {zoneEntries.length})</span>
+              <span className="text-[10px] font-bold text-[#64748b]">تُعرض البلديات في نموذج الموظف حسب الولاية المختارة</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-right text-xs border-collapse">
+                <thead>
+                  <tr className="bg-[#f1f5f9] text-[#1e293b] border-b border-[#e2e8f0]">
+                    <th className="p-2 font-bold w-[150px]">الولاية</th>
+                    <th className="p-2 font-bold">البلدية</th>
+                    <th className="p-2 font-bold w-[100px] text-center">المجموعة</th>
+                    <th className="p-2 font-bold w-[110px] text-center">الفرع</th>
+                    <th className="p-2 font-bold w-[100px] text-center">النقاط</th>
+                    <th className="p-2 font-bold">المرجع</th>
+                    <th className="p-2 font-bold w-[90px] text-center">الحالة</th>
+                    <th className="p-2 w-[40px]"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#e2e8f0]">
+                  {zoneEntries.map(zn => (
+                    <tr key={zn.id} id={`zone-${zn.id}`} className={`scroll-mt-24 ${zn.active === false ? 'opacity-50' : ''}`}>
+                      <td className="p-1.5">
+                        <select className={inputCls} value={zn.wilaya} onChange={e => updateZone(zn.id, { wilaya: e.target.value })}>
+                          {ALGERIAN_WILAYAS.map(w => <option key={w} value={w}>{w}</option>)}
+                        </select>
+                      </td>
+                      <td className="p-1.5">
+                        <input className={inputCls + ' font-bold'} value={zn.commune} onChange={e => updateZone(zn.id, { commune: e.target.value })} />
+                      </td>
+                      <td className="p-1.5 text-center">
+                        <select className={inputCls + ' text-center'} value={zn.group} onChange={e => setZoneGroup(zn.id, e.target.value as 'أ' | 'ب' | 'ج')}>
+                          <option value="أ">أ</option>
+                          <option value="ب">ب</option>
+                          <option value="ج">ج</option>
+                        </select>
+                      </td>
+                      <td className="p-1.5 text-center">
+                        <select className={inputCls + ' text-center'} value={zn.subgroup} onChange={e => setZoneSubgroup(zn.id, zn.group, e.target.value)}>
+                          {ZONE_GROUP_POINTS[zn.group].map(s => <option key={s.subgroup} value={s.subgroup}>{s.subgroup}</option>)}
+                        </select>
+                      </td>
+                      <td className="p-1.5">
+                        <input type="number" className={inputCls + ' font-mono text-center font-bold text-[#047857]'} value={zn.points} onChange={e => updateZone(zn.id, { points: Number(e.target.value) || 0 })} />
+                      </td>
+                      <td className="p-1.5">
+                        <input className={inputCls} value={zn.note || ''} onChange={e => updateZone(zn.id, { note: e.target.value })} placeholder="93-130 / 95-90 ..." />
+                      </td>
+                      <td className="p-1.5 text-center">
+                        <Toggle on={zn.active !== false} onChange={() => updateZone(zn.id, { active: zn.active === false })} />
+                      </td>
+                      <td className="p-1.5 text-center">
+                        <button
+                          type="button"
+                          onClick={() => deleteZone(zn.id)}
+                          className="p-1 rounded-md bg-red-50 hover:bg-red-100 text-red-500 transition-colors cursor-pointer"
+                          title="حذف البلدية"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {zoneEntries.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="p-6 text-center text-[#64748b]">
+                        لا توجد بلديات — اضغط "إضافة بلدية" لبناء قائمة ولاياتك.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 

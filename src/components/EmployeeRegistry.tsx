@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Employee, Allowance, Settings, MaritalStatus, EmploymentStatus } from '../types';
-import { JOBS, GRILLE } from '../data/salaryGrids';
+import { JOBS, GRILLE, ALGERIAN_WILAYAS } from '../data/salaryGrids';
 import {
   isProfessionalWorkerJob,
   computePayslip,
@@ -55,6 +55,9 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
   const [birthDate, setBirthDate] = useState('');
   const [address, setAddress] = useState('');
   const [postalAccount, setPostalAccount] = useState('');
+  // تعويض المنطقة (المرسوم 82-183): الولاية والبلدية المؤهلة
+  const [zoneWilaya, setZoneWilaya] = useState('');
+  const [zoneCommune, setZoneCommune] = useState('');
 
   const [marital, setMarital] = useState<MaritalStatus>('أعزب');
   const [children, setChildren] = useState(0);
@@ -156,6 +159,8 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
       birthDate,
       address,
       postalAccount,
+      zoneWilaya,
+      zoneCommune,
       lastWorkDate,
       resumeDate,
       allowances,
@@ -171,7 +176,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
     name, jobIdx, ssn, category, echelon, employmentStatus, hireDate, yearsOverride,
     marital, children, children10, singleWage, mutuelle, mutuelleNum, performancePct,
     incomeDifference, experienceDifference, birthPlace, birthDate, address, postalAccount,
-    lastWorkDate, resumeDate, allowances, settings, editingId
+    zoneWilaya, zoneCommune, lastWorkDate, resumeDate, allowances, settings, editingId
   ]);
 
   const resetForm = () => {
@@ -200,6 +205,8 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
     setIncomeDifference(0);
     setExperienceDifference(0);
     setAllowances([]);
+    setZoneWilaya('');
+    setZoneCommune('');
   };
 
   const handleEditClick = (emp: Employee) => {
@@ -210,6 +217,8 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
     setBirthDate(emp.birthDate || '');
     setAddress(emp.address || '');
     setPostalAccount(emp.postalAccount || '');
+    setZoneWilaya(emp.zoneWilaya || '');
+    setZoneCommune(emp.zoneCommune || '');
     setMarital(emp.marital);
     setChildren(emp.children);
     setChildren10(emp.children10);
@@ -263,6 +272,8 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
       birthDate,
       address: address.trim(),
       postalAccount: postalAccount.trim(),
+      zoneWilaya: zoneWilaya || undefined,
+      zoneCommune: zoneWilaya ? zoneCommune : undefined,
       lastWorkDate,
       resumeDate,
       allowances: allowances.map(a => ({ ...a })),
@@ -420,6 +431,41 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
                   onChange={e => setAddress(e.target.value)}
                   className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#047857]"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#1e293b] mb-1.5">
+                  ولاية تعويض المنطقة <span className="text-[10px] text-[#64748b]">(المرسوم 82-183)</span>
+                </label>
+                <select
+                  value={zoneWilaya}
+                  onChange={e => { setZoneWilaya(e.target.value); setZoneCommune(''); }}
+                  className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#047857]"
+                >
+                  <option value="">— بدون تعويض منطقة —</option>
+                  {ALGERIAN_WILAYAS.map(w => (
+                    <option key={w} value={w}>{w}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#1e293b] mb-1.5">البلدية المؤهلة</label>
+                <select
+                  value={zoneCommune}
+                  onChange={e => setZoneCommune(e.target.value)}
+                  disabled={!zoneWilaya}
+                  className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#047857] disabled:bg-[#f1f5f9] disabled:text-[#94a3b8]"
+                >
+                  <option value="">{zoneWilaya ? '— اختر البلدية —' : 'اختر الولاية أولاً'}</option>
+                  {(settings.zoneEntries || [])
+                    .filter(zn => zn.active !== false && zn.wilaya === zoneWilaya)
+                    .map(zn => (
+                      <option key={zn.id} value={zn.commune}>
+                        {zn.commune} ({zn.subgroup} — {zn.points} نقطة)
+                      </option>
+                    ))}
+                </select>
               </div>
             </div>
           </div>

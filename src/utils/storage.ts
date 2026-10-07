@@ -1,5 +1,5 @@
 import { Employee, Settings } from '../types';
-import { DEFAULT_POINT_TABLES, buildOfficialCells } from '../data/salaryGrids';
+import { DEFAULT_POINT_TABLES, DEFAULT_ZONE_ENTRIES, buildOfficialCells } from '../data/salaryGrids';
 
 const EMPLOYEES_STORAGE_KEY = 'dz_payroll_employees_v3';
 const SETTINGS_STORAGE_KEY = 'dz_payroll_settings_v3';
@@ -132,7 +132,9 @@ function withDataHubDefaults(s: Settings): Settings {
     ...s,
     pointTables,
     customAllowances: s.customAllowances || [],
-    disabledBuiltins: s.disabledBuiltins || []
+    disabledBuiltins: s.disabledBuiltins || [],
+    zoneEntries: !s.zoneEntries || s.zoneEntries.length === 0 ? DEFAULT_ZONE_ENTRIES : s.zoneEntries,
+    zoneAllowanceEnabled: s.zoneAllowanceEnabled !== false
   };
 }
 

@@ -44,9 +44,15 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Active view states
-  const [activeTab, setActiveTab] = useState<string>('landing');
-  const [activeDoc, setActiveDoc] = useState<string>('ats-front');
+  // Active view states — تُقرأ من hash الرابط للوصول المباشر (مثال: #docs:ats-back أو #pension)
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    const h = window.location.hash.replace('#', '').split(':')[0];
+    return ['landing', 'employees', 'pension', 'payslip', 'payrollTables', 'docs', 'settings', 'datahub'].includes(h) ? h : 'landing';
+  });
+  const [activeDoc, setActiveDoc] = useState<string>(() => {
+    const d = window.location.hash.replace('#', '').split(':')[1];
+    return d || 'ats-front';
+  });
   const [selectedSector, setSelectedSector] = useState<string>('admin');
   const [selectedEmpId, setSelectedEmpId] = useState<string>('');
 

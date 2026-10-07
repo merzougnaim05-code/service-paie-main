@@ -652,18 +652,21 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
 
         {(activeFace === 'both' || activeFace === 'back') && (
           <div className="flex justify-center pb-4">
-            <AutoFitScale docWidth={1123}>
-              <div id="cnr-back-wrapper">
-                <CNRBack
-                  employee={currentEmployee}
-                  settings={settings}
-                  monthsData={monthsData}
-                  blockTotals={blockTotals}
-                  grandTotal={grandTotal}
-                  average={averageMonthlySalary}
-                />
-              </div>
-            </AutoFitScale>
+            {/* قيد عرض الحاوية على نفس عرض الوجه الأمامي (794px) لتتساوى ورقتا الوثيقة المزدوجة وتتمركزان على نفس المحور */}
+            <div className="w-full max-w-[794px]">
+              <AutoFitScale docWidth={1123}>
+                <div id="cnr-back-wrapper">
+                  <CNRBack
+                    employee={currentEmployee}
+                    settings={settings}
+                    monthsData={monthsData}
+                    blockTotals={blockTotals}
+                    grandTotal={grandTotal}
+                    average={averageMonthlySalary}
+                  />
+                </div>
+              </AutoFitScale>
+            </div>
           </div>
         )}
       </div>
@@ -1017,9 +1020,23 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
         .cnrb-page .cnrb-stamp-section { text-align: right; padding-right: 6mm; padding-bottom: 1mm; }
         .cnrb-page .cnrb-stamp-ar { font-size: 11pt; font-weight: bold; margin-bottom: 1mm; }
         .cnrb-page .cnrb-stamp-fr { font-size: 9.5pt; font-weight: bold; }
+
+        /* رمز CNR على الجهة المقابلة (الوجه الخلفي) — أعلى الزاوية */
+        .cnrb-page { position: relative; }
+        .cnrb-page .cnrb-corner-logo {
+          position: absolute;
+          top: 5mm;
+          left: 8mm;
+          width: 20mm;
+          height: 20mm;
+          object-fit: contain;
+        }
       `}</style>
 
       <div className="cnrb-page" id="cnr-back-document">
+
+        {/* رمز CNR — الجهة المقابلة */}
+        <img className="cnrb-corner-logo" src={CNR_LOGO} alt="CNR" />
 
         {/* Header Titles */}
         <div className="cnrb-header">

@@ -50,6 +50,19 @@ export interface PointCell {
   active: boolean;    // تعطيل الخلية يعيد قيمة الشبكة الرسمية المدمجة
 }
 
+// تعويض المنطقة — المرسوم 82-183 (كيفيات الحساب) وقوائم المناطق بمراسيم 93-130 و95-90 و96-62 و97-246
+// ثلاث مجموعات (أ، ب، ج) وكل مجموعة فروع وكل فرع يضم بلديات
+export interface ZoneEntry {
+  id: string;
+  wilaya: string;       // الولاية
+  commune: string;      // البلدية
+  group: 'أ' | 'ب' | 'ج';
+  subgroup: string;     // الفرع (أ-1، ب-2، ج-3 ...)
+  points: number;       // عدد النقاط (500/450/400/350/300/250/200/150/100) — قابلة للتعديل
+  note?: string;
+  active: boolean;
+}
+
 // جدول نقاط استدلالية كامل (كل جدول = قرار/مرسوم مع تغييراته)
 export interface PointTable {
   id: string;
@@ -124,6 +137,8 @@ export interface Employee {
   birthDate: string;
   address: string;
   postalAccount: string;
+  zoneWilaya?: string;   // ولاية تعويض المنطقة (المرسوم 82-183)
+  zoneCommune?: string;  // البلدية المؤهلة للتعويض
   lastWorkDate: string;
   resumeDate: string;
   allowances: Allowance[];
@@ -152,6 +167,8 @@ export interface Settings {
   pointTables?: PointTable[];
   customAllowances?: CustomAllowance[];
   disabledBuiltins?: string[];
+  zoneEntries?: ZoneEntry[];          // بلديات تعويض المنطقة (82-183 ومراسيم التحديث)
+  zoneAllowanceEnabled?: boolean;     // تفعيل/تعطيل المنحة في كل الوثائق
 }
 
 export interface PayslipResult {

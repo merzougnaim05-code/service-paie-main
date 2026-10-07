@@ -59,21 +59,22 @@ export const AutoFitScale: React.FC<AutoFitScaleProps> = ({ docWidth, children }
   return (
     <div
       ref={outerRef}
-      className="afs-outer w-full"
-      style={scale < 1 && contentHeight ? { height: contentHeight * scale } : undefined}
+      className="afs-outer w-full flex justify-center"
+      style={{ overflowX: 'clip', ...(scale < 1 && contentHeight ? { height: contentHeight * scale } : {}) }}
     >
       <style>{`
         @media print {
-          .afs-outer { height: auto !important; }
+          .afs-outer { height: auto !important; overflow: visible !important; display: block !important; }
           .afs-inner { transform: none !important; width: auto !important; }
         }
       `}</style>
       <div
         ref={innerRef}
-        className="afs-inner"
+        className="afs-inner shrink-0"
         style={{
           width: docWidth,
-          margin: '0 auto',
+          // توسيع مرن متمركز (محايد للاتجاه): في الجذر RTL يُحل margin:auto للعنصر
+          // الأعرض من حاويته بهامش سالب يساريًا فينزاح المحتوى — flex يمنع ذلك تمامًا
           transform: scale < 1 ? `scale(${scale})` : undefined,
           transformOrigin: 'top center',
           opacity: ready ? 1 : 0
