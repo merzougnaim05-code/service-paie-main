@@ -100,6 +100,13 @@ export const Navbar: React.FC<NavbarProps> = ({
       desc: 'شهادة الأجور وجهها الاثنان + 60 شهراً'
     },
     {
+      id: 'cnr-annex',
+      label: 'وثائق CNR الملحقة (4 وثائق طبق الأصل)',
+      shortLabel: 'وثائق CNR الملحقة',
+      icon: <FileText className="w-4 h-4 text-amber-300" />,
+      desc: 'استنفاء الاشتراكات + توقيف المنح + المدة المأجورة + شهادة عمل'
+    },
+    {
       id: 'datahub',
       label: 'مركز الجداول والمعطيات (النقاط والمنح)',
       shortLabel: 'الجداول والمعطيات',
@@ -129,7 +136,11 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'form', label: 'استمارة الموظف السنوية' },
     { id: 'req', label: 'طلب وثائق الملف الإداري' },
     { id: 'nr', label: 'شهادة عدم تقاضي المنح العائلية' },
-    { id: 'salary_disclosure', label: 'استمارة كشف المرتبات (منحة دراسية)' }
+    { id: 'salary_disclosure', label: 'استمارة كشف المرتبات (منحة دراسية)' },
+    { id: 'munatec', label: '1 — شهادة استنفاء الاشتراكات', tag: 'MUNATEC', tagColor: 'text-amber-300' },
+    { id: 'af_stop', label: '2 — شهادة توقيف الدفع للمنح العائلية', tag: 'CNR', tagColor: 'text-amber-300' },
+    { id: 'periodes', label: '3 — المدة المأجورة (جدول السنوات)', tag: 'CNR', tagColor: 'text-amber-300' },
+    { id: 'attestation_travail', label: '4 — شهادة عمل Attestation', tag: 'CNR', tagColor: 'text-amber-300' }
   ];
 
   const currentTabObj = tabs.find(t => t.id === activeTab) || tabs[0];

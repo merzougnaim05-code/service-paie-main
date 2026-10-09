@@ -16,6 +16,7 @@ import { PensionDocument } from './components/PensionDocument';
 import { PayslipView } from './components/PayslipView';
 import { PayrollSheets } from './components/PayrollSheets';
 import { AdminDocs } from './components/AdminDocs';
+import { CnrAnnexDocs } from './components/CnrAnnexDocs';
 import { DataHub } from './components/DataHub';
 import { SettingsView } from './components/SettingsView';
 
@@ -47,7 +48,7 @@ export default function App() {
   // Active view states — تُقرأ من hash الرابط للوصول المباشر (مثال: #docs:ats-back أو #pension)
   const [activeTab, setActiveTab] = useState<string>(() => {
     const h = window.location.hash.replace('#', '').split(':')[0];
-    return ['landing', 'employees', 'pension', 'payslip', 'payrollTables', 'docs', 'settings', 'datahub'].includes(h) ? h : 'landing';
+    return ['landing', 'employees', 'pension', 'payslip', 'payrollTables', 'docs', 'cnr-annex', 'settings', 'datahub'].includes(h) ? h : 'landing';
   });
   const [activeDoc, setActiveDoc] = useState<string>(() => {
     const d = window.location.hash.replace('#', '').split(':')[1];
@@ -55,6 +56,7 @@ export default function App() {
   });
   const [selectedSector, setSelectedSector] = useState<string>('admin');
   const [selectedEmpId, setSelectedEmpId] = useState<string>('');
+  const [activeAnnexDoc, setActiveAnnexDoc] = useState<string>('munatec');
 
   // Initial load
   useEffect(() => {
@@ -127,6 +129,21 @@ export default function App() {
       nr: 'family-cert',
       salary_disclosure: 'salary-disclosure'
     };
+    // annex CNR/MUNATEC docs open in their own tab (نسخ طبق الأصل)
+    const annexMapping: Record<string, string> = {
+      munatec: 'munatec',
+      af_stop: 'af-stop',
+      afstop: 'af-stop',
+      periodes: 'periodes',
+      attestation_travail: 'attestation',
+      attestation: 'attestation'
+    };
+    if (annexMapping[doc]) {
+      setActiveAnnexDoc(annexMapping[doc]);
+      setActiveTab('cnr-annex');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     setActiveDoc(mapping[doc] || 'ats-front');
     setActiveTab('docs');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -221,6 +238,15 @@ export default function App() {
             settings={settings}
             selectedEmpId={selectedEmpId}
             initialDocType={activeDoc}
+          />
+        )}
+
+        {activeTab === 'cnr-annex' && (
+          <CnrAnnexDocs
+            employees={employees}
+            settings={settings}
+            selectedEmpId={selectedEmpId}
+            initialDocType={activeAnnexDoc}
           />
         )}
 
