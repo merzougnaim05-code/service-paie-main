@@ -81,7 +81,7 @@ const CSS = `
   .drtx-page .dots { flex: 1; border-bottom: 1.6px dotted #000; min-height: 1.1em; margin: 0 4px; text-align: center; font-weight: 700; padding: 0 6px; }
   .drtx-page .dots[contenteditable]:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }
   .drtx-page .ln { display: flex; align-items: flex-end; gap: 4px; }
-  .drtx-page .cb { display: inline-flex; align-items: center; justify-content: center; width: 4.5mm; height: 4.5mm; border: 1.4px solid #000; font-weight: 900; font-size: 11pt; line-height: 1; cursor: pointer; background: #fff; flex-shrink: 0; }
+  .drtx-page .cb { display: inline-flex; align-items: center; justify-content: center; width: 4mm; height: 4mm; border: 1.4px solid #000; font-weight: 900; font-size: 10pt; line-height: 1; cursor: pointer; background: #fff; flex-shrink: 0; }
   @media print {
     .drtx-page { box-shadow: none !important; margin: 0 !important; }
   }
@@ -168,15 +168,15 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
       </div>
 
       {showPreview && (
-        <div className="drtx-page" style={{ width: '297mm', minHeight: '210mm', padding: '5mm 8mm', direction: 'rtl', fontSize: '11.5pt', lineHeight: 1.7 }}>
-          <style>{`${CSS} @page { size: 297mm 210mm; margin: 0; }`}</style>
+        <div className="drtx-page" style={{ width: '210mm', minHeight: '148mm', padding: '4mm 6mm', direction: 'rtl', fontSize: '10pt', lineHeight: 1.6 }}>
+          <style>{`${CSS} @page { size: A5 landscape; margin: 0; }`}</style>
 
           {/* CNAS banner from the Excel file */}
-          <img src={DRT_BANNER} alt="CNAS" style={{ width: '100%', height: '17mm', objectFit: 'fill', display: 'block' }} />
+          <img src={DRT_BANNER} alt="CNAS" style={{ width: '100%', height: '12mm', objectFit: 'fill', display: 'block' }} />
 
           {/* Title */}
-          <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '17pt', marginTop: '2mm' }}>تصريح بإستئناف</div>
-          <div style={{ textAlign: 'center', fontWeight: 700, fontSize: '13pt' }}>أو عدم إستئناف العمل</div>
+          <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '14pt', marginTop: '1.5mm' }}>تصريح بإستئناف</div>
+          <div style={{ textAlign: 'center', fontWeight: 700, fontSize: '11pt' }}>أو عدم إستئناف العمل</div>
 
           <div style={{ textAlign: 'right', fontWeight: 700, marginTop: '2mm' }}>أنا المستخدم الممضي أسفله أشهد أن المؤمن :</div>
 
@@ -237,7 +237,7 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
                 <span style={{ whiteSpace: 'nowrap' }}>الطبيعة الاجتماعية وختم المستخدم :</span>
                 <span className="dots" contentEditable suppressContentEditableWarning>{f.socialNature}</span>
               </div>
-              <div className="dots" style={{ marginTop: '2mm', minHeight: '8mm' }} contentEditable suppressContentEditableWarning />
+              <div className="dots" style={{ marginTop: '1.5mm', minHeight: '6mm' }} contentEditable suppressContentEditableWarning />
             </div>
             <div style={{ flex: 1 }}>
               <div className="ln">
@@ -249,7 +249,7 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
           </div>
 
           {/* Part 2 : honor declaration */}
-          <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '14pt', marginTop: '3mm' }}>تصريح شرفي</div>
+          <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '12pt', marginTop: '2mm' }}>تصريح شرفي</div>
           <div style={{ textAlign: 'center', fontSize: '9.5pt' }}>( يملأ من طرف المؤمن له في حالة عدم إستئناف العمل )</div>
 
           <div style={{ display: 'flex', gap: '6mm', marginTop: '1mm' }}>
