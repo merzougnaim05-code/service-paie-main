@@ -7,6 +7,7 @@ import { InfoForm } from './InfoForm';
 import { FamilyAllowanceCert } from './FamilyAllowanceCert';
 import { DocsRequest } from './DocsRequest';
 import { SalaryDisclosureForm } from './SalaryDisclosureForm';
+import { DrtExcelDoc } from './DrtExcelDoc';
 import { AutoFitScale } from './DeviceScaler';
 import { exportElementsToPdf } from '../utils/exportPdf';
 import {
@@ -146,7 +147,7 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
               <option value="ats-front">⭐ شهادة العمل والأجر ATS (الوجه الأول - AS.01)</option>
               <option value="ats-back">⭐ شهادة العمل والأجر ATS (الوجه الثاني - جدول 12 شهراً)</option>
               <option value="ats-both">⭐ شهادة العمل والأجر ATS (الوجهان معاً - Recto/Verso)</option>
-              <option value="drt">تصريح مباشرة واستئناف العمل (DRT AS-09)</option>
+              <option value="drt">بيان استئناف العمل (DRT — طبق أصل الإكسل)</option>
               <option value="form">استمارة معلومات الموظف</option>
               <option value="family-cert">شهادة عدم تقاضي المنح العائلية</option>
               <option value="request-docs">طلب وثائق لإتمام ملف</option>
@@ -206,80 +207,11 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
           )}
 
           {/* ======================================================== */}
-          {/* 4. DRT (AS-09) */}
+          {/* 4. DRT — بيان استئناف العمل (طبق أصل ملف الإكسل) */}
           {/* ======================================================== */}
           {docType === 'drt' && (
-            <AutoFitScale docWidth={840}>
-            <div
-              className="bg-white border-2 border-gray-300 shadow-md p-8 sm:p-12 max-w-[800px] w-full text-black font-['Times_New_Roman',serif] text-sm leading-relaxed"
-              style={{ direction: 'rtl' }}
-            >
-              <div className="flex justify-between items-start border-b-2 border-black pb-3 mb-4">
-                <div className="text-right">
-                  <div className="text-xs font-bold">الجمهورية الجزائرية الديمقراطية الشعبية</div>
-                  <div className="text-xs font-bold">الصندوق الوطني للتأمينات الاجتماعية للعمال الأجراء (CNAS)</div>
-                </div>
-                <div className="text-left font-mono font-bold text-xs">
-                  <div>RÉF : AS-09</div>
-                  <div>D.R.T</div>
-                </div>
-              </div>
-
-              <div className="text-center my-6">
-                <h1 className="text-2xl font-black text-black underline tracking-wide">
-                  تــصــريـــح بـمـبـاشــرة / اسـتـئـنــاف الــعــمــل
-                </h1>
-                <div className="text-sm font-bold font-mono tracking-widest text-gray-800 mt-1">
-                  DÉCLARATION DE REPRISE DU TRAVAIL
-                </div>
-              </div>
-
-              <div className="space-y-5 text-justify leading-loose my-6">
-                <p>
-                  نحن الموقعين أسفله، إدارة مؤسسة <strong>{settings.institution}</strong> تحت رقم صاحب العمل المنتسب{' '}
-                  <strong>{settings.cnasNum || '................................'}</strong>:
-                </p>
-
-                <p>
-                  نصرح بأن الموظف(ة): <strong>{currentEmployee.name}</strong>، الحامل لرقم الضمان الاجتماعي{' '}
-                  <strong className="font-mono">{currentEmployee.ssn || '................................'}</strong>، والمولود(ة) بتاريخ{' '}
-                  <strong className="font-mono">{currentEmployee.birthDate || '..../../..'}</strong>.
-                </p>
-
-                <div className="border border-black p-4 space-y-3 bg-gray-50/50">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold">الوظيفة / المنصب:</span>
-                    <span>{currentJob?.name || 'موظف'}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold">تاريخ التوقف عن العمل:</span>
-                    <span className="font-mono">{currentEmployee.lastWorkDate || '..../../..'}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold">تاريخ استئناف العمل الفعلي:</span>
-                    <span className="font-mono font-bold text-[#047857]">
-                      {currentEmployee.resumeDate || today}
-                    </span>
-                  </div>
-                </div>
-
-                <p>
-                  وقد استأنف مهامه بصفة عادية ابتداءً من التاريخ المذكور أعلاه بعد انقضاء فترة الغياب أو العطلة المرضية المبررة قانوناً.
-                </p>
-              </div>
-
-              <div className="flex justify-between items-end mt-12 pt-8">
-                <div>
-                  <div className="text-xs text-gray-600">حرر بـ: {settings.wilaya || 'باتنة'}</div>
-                  <div className="text-xs text-gray-600">بتاريخ: {today}</div>
-                </div>
-
-                <div className="text-center min-w-[200px]">
-                  <div className="font-bold text-sm">ختم وتوقيع رئيس المؤسسة</div>
-                  <div className="h-16" />
-                </div>
-              </div>
-            </div>
+            <AutoFitScale docWidth={1123}>
+              <DrtExcelDoc employee={currentEmployee} settings={settings} />
             </AutoFitScale>
           )}
 
