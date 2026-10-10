@@ -35,6 +35,7 @@ interface AnnexForm {
   dateInBatna: string;
   // AF stop
   employerName: string;
+  employerAddress: string;
   cnasEmployerNum: string;
   birthDate: string;
   address: string;
@@ -74,6 +75,7 @@ const BLANK_FORM: AnnexForm = {
   periodTo: '',
   dateInBatna: '',
   employerName: '',
+  employerAddress: '',
   cnasEmployerNum: '',
   birthDate: '',
   address: '',
@@ -103,6 +105,8 @@ const BLANK_FORM: AnnexForm = {
 function buildAutoForm(emp: Employee | undefined, settings: Settings): AnnexForm {
   const job = emp && emp.jobIdx >= 0 ? JOBS[emp.jobIdx] : undefined;
   const today = new Date().toLocaleDateString('ar-DZ');
+  const endDate = emp?.lastWorkDate || today;
+  const employerAddress = [settings.institution, settings.municipality ? `بلدية ${settings.municipality}` : '', settings.wilaya ? `ولاية ${settings.wilaya}` : ''].filter(Boolean).join(' — ');
   return {
     secteur: 'التربية الوطنية',
     institution: settings.institution || '',
@@ -111,14 +115,15 @@ function buildAutoForm(emp: Employee | undefined, settings: Settings): AnnexForm
     employeeMother: '',
     jobBefore: job?.name || '',
     workPlaceBefore: settings.institution || '',
-    periodFrom: '',
-    periodTo: '',
+    periodFrom: emp?.hireDate || '',
+    periodTo: endDate,
     dateInBatna: today,
     employerName: settings.institution || '',
+    employerAddress,
     cnasEmployerNum: settings.cnasNum || '',
     birthDate: emp?.birthDate || '',
     address: emp?.address || '',
-    afStopFrom: '',
+    afStopFrom: endDate,
     madePlace: settings.wilaya || 'باتنة',
     madeDate: today,
     civilite: 'Mr',
@@ -128,7 +133,7 @@ function buildAutoForm(emp: Employee | undefined, settings: Settings): AnnexForm
     hireTo: emp?.lastWorkDate || '',
     allocFamEmployer: settings.cnasNum || '',
     allocFamAssure: emp?.ssn || '',
-    allocSocEmployer: '',
+    allocSocEmployer: settings.cnasNum || '',
     allocSocAssure: emp?.ssn || '',
     assurNum1: emp?.ssn || '',
     assurNum2: '',
@@ -140,6 +145,31 @@ function buildAutoForm(emp: Employee | undefined, settings: Settings): AnnexForm
     merouanaDate: today,
     employerSignDate: today
   };
+}
+
+/* جدول المدة المأجورة: تعبئة آلية للسنوات + الأجور المحفوظة في سجل الموظف */
+function buildAutoRows(emp: Employee | undefined): PeriodRow[] {
+  const endYear = Number((emp?.lastWorkDate || '').slice(0, 4)) || new Date().getFullYear();
+  const startYear = endYear - 17;
+  const job = emp && emp.jobIdx >= 0 ? JOBS[emp.jobIdx] : undefined;
+  const wageByYear = new Map<string, string>();
+  (emp?.pensionHistory || []).forEach(h => {
+    if (h.key && h.wage !== undefined && h.wage !== null && String(h.wage) !== '') {
+      wageByYear.set(String(h.key).slice(0, 4), String(h.wage));
+    }
+  });
+  return Array.from({ length: 18 }, (_, i) => {
+    const y = String(startYear + i);
+    return {
+      annee: y,
+      du: '',
+      au: '',
+      duree: '',
+      salaire: wageByYear.get(y) || '',
+      emploi: job?.name || '',
+      designation: ''
+    };
+  });
 }
 
 const DOC_TITLES: Record<AnnexDocType, string> = {
@@ -174,12 +204,12 @@ const MunatecDoc: React.FC<{ form: AnnexForm }> = ({ form }) => (
       الجمهورية الجزائرية الديمقراطية الشعبية
     </div>
     <div className="ln" style={{ marginTop: '6mm', fontSize: '13pt' }}>
+      <span style={{ whiteSpace: 'nowrap', fontWeight: 700 }}>القطاع :</span>
       <span className="dots" contentEditable suppressContentEditableWarning>{form.secteur}</span>
-      <span style={{ whiteSpace: 'nowrap', fontWeight: 700 }}>: القطاع</span>
     </div>
     <div className="ln" style={{ marginTop: '4mm', fontSize: '13pt' }}>
+      <span style={{ whiteSpace: 'nowrap', fontWeight: 700 }}>المؤسسة :</span>
       <span className="dots" contentEditable suppressContentEditableWarning>{form.institution}</span>
-      <span style={{ whiteSpace: 'nowrap', fontWeight: 700 }}>: المؤسسة</span>
     </div>
     <div style={{ borderTop: '4px double #000', margin: '8mm 0 0' }} />
     <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '22pt', marginTop: '28mm' }}>
@@ -188,29 +218,29 @@ const MunatecDoc: React.FC<{ form: AnnexForm }> = ({ form }) => (
     <div style={{ marginTop: '22mm', fontSize: '14pt', lineHeight: 2.4, textAlign: 'right' }}>
       <div>نحن السيد المسير المالي للمؤسسة.</div>
       <div className="ln">
-        <span className="dots" contentEditable suppressContentEditableWarning>{form.employeeName}</span>
         <span style={{ whiteSpace: 'nowrap' }}>نشهد بأن السيد (ة) :</span>
+        <span className="dots" contentEditable suppressContentEditableWarning>{form.employeeName}</span>
       </div>
       <div className="ln">
+        <span style={{ whiteSpace: 'nowrap' }}>الوظيفة قبل الإحالة على التقاعد :</span>
         <span className="dots" contentEditable suppressContentEditableWarning>{form.jobBefore}</span>
-        <span style={{ whiteSpace: 'nowrap' }}>الوظيفة قبل الإحالة على التقاعد:</span>
       </div>
       <div className="ln">
-        <span className="dots" contentEditable suppressContentEditableWarning>{form.workPlaceBefore}</span>
         <span style={{ whiteSpace: 'nowrap' }}>مكان العمل قبل الإحالة على التقاعد :</span>
+        <span className="dots" contentEditable suppressContentEditableWarning>{form.workPlaceBefore}</span>
       </div>
       <div>سدد (ت) اشتراكاته (ها) للتعاضدية الوطنية لعمال التربية و الثقافة</div>
       <div className="ln" style={{ flexWrap: 'wrap' }}>
-        <span>بانتظام و دون انقطاع .</span>
-        <span className="dots" style={{ minWidth: '52mm' }} contentEditable suppressContentEditableWarning>{form.periodTo}</span>
-        <span style={{ whiteSpace: 'nowrap' }}>: إلى</span>
-        <span className="dots" style={{ minWidth: '52mm' }} contentEditable suppressContentEditableWarning>{form.periodFrom}</span>
         <span style={{ whiteSpace: 'nowrap' }}>من :</span>
+        <span className="dots" style={{ minWidth: '52mm' }} contentEditable suppressContentEditableWarning>{form.periodFrom}</span>
+        <span style={{ whiteSpace: 'nowrap' }}>إلى :</span>
+        <span className="dots" style={{ minWidth: '52mm' }} contentEditable suppressContentEditableWarning>{form.periodTo}</span>
+        <span>بانتظام و دون انقطاع .</span>
       </div>
     </div>
-    <div className="ln" style={{ marginTop: '26mm', fontSize: '13pt', maxWidth: '90mm' }}>
-      <span className="dots" contentEditable suppressContentEditableWarning>{form.dateInBatna}</span>
+    <div className="ln" style={{ marginTop: '26mm', fontSize: '13pt', maxWidth: '90mm', justifyContent: 'flex-end' }}>
       <span style={{ whiteSpace: 'nowrap' }}>باتنة في :</span>
+      <span className="dots" contentEditable suppressContentEditableWarning>{form.dateInBatna}</span>
     </div>
     <div style={{ marginTop: '18mm', display: 'flex', justifyContent: 'flex-end', fontSize: '12pt', fontWeight: 700 }}>
       <div style={{ textAlign: 'center' }}>
@@ -231,8 +261,8 @@ const AfStopDoc: React.FC<{ form: AnnexForm }> = ({ form }) => (
         <div style={{ fontWeight: 900, fontSize: '21pt' }}>الصندوق الوطني للتقاعد</div>
         <div style={{ fontWeight: 900, fontSize: '13pt', fontFamily: 'Arial' }}>CAISSE NATIONALE DES RETRAITES</div>
         <div style={{ fontSize: '12pt', marginTop: '1mm' }}>
-          <span style={{ fontFamily: 'Arial' }}>AGENCE LOCALE DE BATNA</span>
-          <span style={{ marginRight: '6mm', fontWeight: 700 }}>الوكالة المحلية ـ باتنة</span>
+          <span style={{ fontWeight: 700 }}>الوكالة المحلية ـ باتنة</span>
+          <span style={{ marginLeft: '6mm', fontFamily: 'Arial' }}>AGENCE LOCALE DE BATNA</span>
         </div>
       </div>
     </div>
@@ -243,38 +273,38 @@ const AfStopDoc: React.FC<{ form: AnnexForm }> = ({ form }) => (
       <div>تطبيقا للمنشور الوزاري المشترك الصادر في : 1988/03/20 المعدل و المتمم</div>
       <div>و المتعلق بالتكفل بالمنح العائلية المستحقة للأعوان التابعين للإدارة العمومية</div>
       <div className="ln" style={{ marginTop: '6mm' }}>
-        <span className="dots" contentEditable suppressContentEditableWarning>{form.employerName}</span>
         <span style={{ whiteSpace: 'nowrap' }}>إن صاحب العمل الموقع أدناه :</span>
+        <span className="dots" contentEditable suppressContentEditableWarning>{form.employerName}</span>
       </div>
       <div className="ln">
-        <span className="dots" contentEditable suppressContentEditableWarning>{form.cnasEmployerNum}</span>
         <span style={{ whiteSpace: 'nowrap' }}>رقم الانتماء للضمان الاجتماعي :</span>
+        <span className="dots" contentEditable suppressContentEditableWarning>{form.cnasEmployerNum}</span>
       </div>
       <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '20pt', textDecoration: 'underline', margin: '6mm 0' }}>
         يصرح بأن
       </div>
       <div className="ln">
-        <span className="dots" contentEditable suppressContentEditableWarning>{form.employeeName}</span>
         <span style={{ whiteSpace: 'nowrap' }}>السيد (ة) :</span>
+        <span className="dots" contentEditable suppressContentEditableWarning>{form.employeeName}</span>
       </div>
       <div className="ln">
-        <span className="dots" contentEditable suppressContentEditableWarning>{form.birthDate}</span>
         <span style={{ whiteSpace: 'nowrap' }}>المزداد (ة) بتاريخ :</span>
+        <span className="dots" contentEditable suppressContentEditableWarning>{form.birthDate}</span>
       </div>
       <div className="ln">
-        <span className="dots" contentEditable suppressContentEditableWarning>{form.address}</span>
         <span style={{ whiteSpace: 'nowrap' }}>الساكن (ة) ب :</span>
+        <span className="dots" contentEditable suppressContentEditableWarning>{form.address}</span>
       </div>
       <div className="ln">
-        <span className="dots" contentEditable suppressContentEditableWarning>{form.afStopFrom}</span>
         <span style={{ whiteSpace: 'nowrap' }}>لا يـ(ت)ـستفيد من أية منحة عائلية ابتداء من :</span>
+        <span className="dots" contentEditable suppressContentEditableWarning>{form.afStopFrom}</span>
       </div>
       <div style={{ marginTop: '4mm' }}>سلمت هذه الشهادة للمعني(ة) من أجل إثبات ما هو حق له(ا) .</div>
-      <div className="ln" style={{ marginTop: '8mm', maxWidth: '120mm' }}>
-        <span className="dots" contentEditable suppressContentEditableWarning>{form.madeDate}</span>
-        <span style={{ whiteSpace: 'nowrap' }}>في :</span>
-        <span className="dots" contentEditable suppressContentEditableWarning>{form.madePlace}</span>
+      <div className="ln" style={{ marginTop: '8mm', maxWidth: '120mm', justifyContent: 'flex-end' }}>
         <span style={{ whiteSpace: 'nowrap' }}>حرر بـ :</span>
+        <span className="dots" contentEditable suppressContentEditableWarning>{form.madePlace}</span>
+        <span style={{ whiteSpace: 'nowrap' }}>في :</span>
+        <span className="dots" contentEditable suppressContentEditableWarning>{form.madeDate}</span>
       </div>
       <div style={{ marginTop: '10mm', fontWeight: 700, textDecoration: 'underline', fontSize: '12.5pt' }}>
         ختم و توقيع و تأشيرة صاحب العمل
@@ -303,11 +333,11 @@ const PeriodesDoc: React.FC<{
     `}</style>
     <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '15pt' }}>المدة المأجورة</div>
     <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '14pt', fontFamily: 'Arial', marginBottom: '3mm' }}>PERIODES DE SALARIAT</div>
-    <table className="per-table" style={{ width: '100%', tableLayout: 'fixed' }}>
+    <table className="per-table" style={{ width: '100%', tableLayout: 'fixed', direction: 'ltr' }}>
       <thead>
         <tr>
           <th style={{ width: '9%' }}>ANNEE<br />عام</th>
-          <th style={{ width: '15%' }}>Périodes الفترة<br /><span style={{ display: 'flex' }}><span style={{ flex: 1, borderTop: '1px solid #000' }}>Au من</span><span style={{ flex: 1, borderTop: '1px solid #000', borderRight: '1px solid #000' }}>Du إلى</span></span></th>
+          <th style={{ width: '15%' }}>Périodes الفترة<br /><span style={{ display: 'flex' }}><span style={{ flex: 1, borderTop: '1px solid #000' }}>Du من</span><span style={{ flex: 1, borderTop: '1px solid #000', borderLeft: '1px solid #000' }}>Au إلى</span></span></th>
           <th style={{ width: '16%' }}>Durée du travail وقت العمل<br />Jours-heures-vacations<br />اليوم ـ الساعة ـ الأجرة</th>
           <th style={{ width: '24%' }}>Salaire soumis a retenue sécurité sociale par année civile<br />الأجرة الخاضعة لاشتراكات الضمان الاجتماعي خلال السنة المدنية</th>
           <th style={{ width: '16%' }}>Désignation de l&apos;emploi<br />نوعية الاستخدام</th>
@@ -318,9 +348,9 @@ const PeriodesDoc: React.FC<{
         {rows.map((r, i) => (
           <tr key={i}>
             <td><input value={r.annee} onChange={e => onCell(i, 'annee', e.target.value)} /></td>
-            <td style={{ display: 'flex', height: '7.2mm' }}>
-              <input style={{ flex: 1, borderLeft: '1px solid #000' }} value={r.au} onChange={e => onCell(i, 'au', e.target.value)} />
-              <input style={{ flex: 1 }} value={r.du} onChange={e => onCell(i, 'du', e.target.value)} />
+            <td style={{ display: 'flex', height: '7.2mm', direction: 'ltr' }}>
+              <input style={{ flex: 1, borderRight: '1px solid #000' }} value={r.du} onChange={e => onCell(i, 'du', e.target.value)} />
+              <input style={{ flex: 1 }} value={r.au} onChange={e => onCell(i, 'au', e.target.value)} />
             </td>
             <td><input value={r.duree} onChange={e => onCell(i, 'duree', e.target.value)} /></td>
             <td><input value={r.salaire} onChange={e => onCell(i, 'salaire', e.target.value)} /></td>
@@ -331,10 +361,9 @@ const PeriodesDoc: React.FC<{
       </tbody>
     </table>
     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4mm', fontSize: '9pt', gap: '4mm' }}>
-      <div style={{ flex: 1 }}>
-        <div style={{ fontWeight: 700 }}>Visa de l&apos;APC</div>
-        <div>(En cas d&apos;activité dans le secteur privé) أشهد بأن المعلومات السابقة مطابقة للواقع و أؤكد صحتها</div>
-        <div>تأشيرة البلدية</div>
+      <div style={{ flex: 1, textAlign: 'right' }}>
+        <div style={{ fontWeight: 700 }}>signature de l&apos;employeur</div>
+        <div style={{ fontWeight: 700, marginTop: '6mm' }}>( certifié exacte )<br />مطابق للحقيقة</div>
       </div>
       <div style={{ flex: 1.4, textAlign: 'center' }}>
         <div style={{ fontWeight: 700 }}>Bon pour accord sur les renseignements Ci-dessus</div>
@@ -345,9 +374,10 @@ const PeriodesDoc: React.FC<{
         <div>حرر بمروانة في <span className="dots" style={{ display: 'inline-block', minWidth: '30mm' }} contentEditable suppressContentEditableWarning>{form.merouanaPlace}</span> ( في حالة كون العمل لدى الخواص )</div>
         <div style={{ fontWeight: 700, marginTop: '2mm' }}>(signature du salarié)<br />توقيع الأجير</div>
       </div>
-      <div style={{ flex: 1, textAlign: 'left' }}>
-        <div style={{ fontWeight: 700 }}>signature de l&apos;employeur</div>
-        <div style={{ fontWeight: 700, marginTop: '6mm' }}>( certifié exacte )<br />مطابق للحقيقة</div>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontWeight: 700 }}>Visa de l&apos;APC</div>
+        <div>(En cas d&apos;activité dans le secteur privé) أشهد بأن المعلومات السابقة مطابقة للواقع و أؤكد صحتها</div>
+        <div>تأشيرة البلدية</div>
       </div>
     </div>
   </div>
@@ -384,7 +414,7 @@ const AttestationDoc: React.FC<{ form: AnnexForm }> = ({ form }) => {
         <div>L&apos;employeur soussigné : <span className="dots" style={{ display: 'inline-block', minWidth: '60mm' }} contentEditable suppressContentEditableWarning>{form.employerName}</span> Déclare que Mr {cb(form.civilite === 'Mr')} Mme {cb(form.civilite === 'Mme')} Melle {cb(form.civilite === 'Melle')}</div>
         <div style={{ fontSize: '8.5pt' }}>(Cachet, raison sociale ou nom et adresse)</div>
         <div className="dots" contentEditable suppressContentEditableWarning>{form.institution}</div>
-        <div style={{ marginTop: '2mm' }}>Adresse : <span className="dots" style={{ display: 'inline-block', minWidth: '80mm' }} contentEditable suppressContentEditableWarning>{form.address}</span></div>
+        <div style={{ marginTop: '2mm' }}>Adresse : <span className="dots" style={{ display: 'inline-block', minWidth: '80mm' }} contentEditable suppressContentEditableWarning>{form.employerAddress}</span></div>
         <div style={{ marginTop: '2mm' }}>Né(e) le : <span className="dots" style={{ display: 'inline-block', minWidth: '34mm' }} contentEditable suppressContentEditableWarning>{form.birthDate}</span> à <span className="dots" style={{ display: 'inline-block', minWidth: '40mm' }} contentEditable suppressContentEditableWarning>{form.birthPlace}</span> wilaya <span className="dots" style={{ display: 'inline-block', minWidth: '34mm' }} contentEditable suppressContentEditableWarning>{form.wilaya}</span></div>
         <div style={{ marginTop: '2mm' }}>A fait partie du personnel de l&apos;entreprise du : <span className="dots" style={{ display: 'inline-block', minWidth: '34mm' }} contentEditable suppressContentEditableWarning>{form.hireFrom}</span> au <span className="dots" style={{ display: 'inline-block', minWidth: '34mm' }} contentEditable suppressContentEditableWarning>{form.hireTo}</span></div>
         <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '3mm', fontSize: '9.5pt' }}>
@@ -411,11 +441,11 @@ const AttestationDoc: React.FC<{ form: AnnexForm }> = ({ form }) => {
       </div>
 
       <div style={{ ...box, textAlign: 'right', lineHeight: 2 }}>
-        <div className="ln"><span className="dots" contentEditable suppressContentEditableWarning>{form.employeeMother} و {form.employeeFather}</span><span style={{ whiteSpace: 'nowrap' }}>إبن(ة) : ......{/* keep exact like scan */}</span><span className="dots" contentEditable suppressContentEditableWarning>{form.employeeName}</span><span style={{ whiteSpace: 'nowrap' }}>يصرح بأن السيد(ة) :</span></div>
-        <div className="ln"><span style={{ whiteSpace: 'nowrap' }}>ولاية :</span><span className="dots" contentEditable suppressContentEditableWarning>{form.wilaya}</span><span style={{ whiteSpace: 'nowrap' }}>في :</span><span className="dots" contentEditable suppressContentEditableWarning>{form.birthPlace}</span><span style={{ whiteSpace: 'nowrap' }}>المولود(ة) بتاريخ :</span><span className="dots" contentEditable suppressContentEditableWarning>{form.birthDate}</span></div>
-        <div className="ln"><span style={{ whiteSpace: 'nowrap' }}>المهنة :</span><span className="dots" contentEditable suppressContentEditableWarning>{form.profession}</span><span className="dots" contentEditable suppressContentEditableWarning>{form.assurNum2} / {form.assurNum1}</span><span style={{ whiteSpace: 'nowrap' }}>المؤمن(ة) الاجتماعي(ة) تحت الرقم :</span></div>
+        <div className="ln"><span style={{ whiteSpace: 'nowrap' }}>يصرح بأن السيد(ة) :</span><span className="dots" contentEditable suppressContentEditableWarning>{form.employeeName}</span><span style={{ whiteSpace: 'nowrap' }}>إبن(ة) :</span><span className="dots" contentEditable suppressContentEditableWarning>{form.employeeFather}</span><span style={{ whiteSpace: 'nowrap' }}>و :</span><span className="dots" contentEditable suppressContentEditableWarning>{form.employeeMother}</span></div>
+        <div className="ln"><span style={{ whiteSpace: 'nowrap' }}>المولود(ة) بتاريخ :</span><span className="dots" contentEditable suppressContentEditableWarning>{form.birthDate}</span><span style={{ whiteSpace: 'nowrap' }}>في :</span><span className="dots" contentEditable suppressContentEditableWarning>{form.birthPlace}</span><span style={{ whiteSpace: 'nowrap' }}>ولاية :</span><span className="dots" contentEditable suppressContentEditableWarning>{form.wilaya}</span></div>
+        <div className="ln"><span style={{ whiteSpace: 'nowrap' }}>المؤمن(ة) الاجتماعي(ة) تحت الرقم :</span><span className="dots" contentEditable suppressContentEditableWarning>{form.assurNum1} / {form.assurNum2}</span><span style={{ whiteSpace: 'nowrap' }}>المهنة :</span><span className="dots" contentEditable suppressContentEditableWarning>{form.profession}</span></div>
         <div className="ln"><span style={{ whiteSpace: 'nowrap' }}>العنوان :</span><span className="dots" contentEditable suppressContentEditableWarning>{form.address}</span></div>
-        <div className="ln"><span style={{ whiteSpace: 'nowrap' }}>إلى :</span><span className="dots" contentEditable suppressContentEditableWarning>{form.attestTo}</span><span style={{ whiteSpace: 'nowrap' }}>يعد من مستخدمي المؤسسة ابتداء من :</span><span className="dots" contentEditable suppressContentEditableWarning>{form.attestFrom}</span></div>
+        <div className="ln"><span style={{ whiteSpace: 'nowrap' }}>يعد من مستخدمي المؤسسة ابتداء من :</span><span className="dots" contentEditable suppressContentEditableWarning>{form.attestFrom}</span><span style={{ whiteSpace: 'nowrap' }}>إلى :</span><span className="dots" contentEditable suppressContentEditableWarning>{form.attestTo}</span></div>
       </div>
 
       <div style={{ ...box, textAlign: 'right', fontSize: '9pt', lineHeight: 1.9 }}>
@@ -449,7 +479,7 @@ export const CnrAnnexDocs: React.FC<CnrAnnexDocsProps> = ({
     )
   );
   const [rows, setRows] = useState<PeriodRow[]>(() =>
-    Array.from({ length: 18 }, () => ({ ...EMPTY_ROW }))
+    buildAutoRows(employees.find(e => e.id === (selectedEmpId || employees[0]?.id)))
   );
   const [showPreview, setShowPreview] = useState(true);
   const [blankPrinting, setBlankPrinting] = useState(false);
@@ -475,6 +505,7 @@ export const CnrAnnexDocs: React.FC<CnrAnnexDocsProps> = ({
 
   const autoFill = () => {
     setForm(buildAutoForm(currentEmployee, settings));
+    setRows(buildAutoRows(currentEmployee));
   };
 
   const clearForm = () => {
@@ -632,6 +663,7 @@ export const CnrAnnexDocs: React.FC<CnrAnnexDocsProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <div><label className={labelCls}>وكالة ولاية</label><input value={form.wilayaAgence} onChange={e => set('wilayaAgence', e.target.value)} className={inputCls} /></div>
               <div><label className={labelCls}>المستخدم الموقع أدناه</label><input value={form.employerName} onChange={e => set('employerName', e.target.value)} className={inputCls} /></div>
+              <div><label className={labelCls}>عنوان المستخدم (لخانة Adresse)</label><input value={form.employerAddress} onChange={e => set('employerAddress', e.target.value)} className={inputCls} /></div>
               <div>
                 <label className={labelCls}>الصفة</label>
                 <select value={form.civilite} onChange={e => setForm(p => ({ ...p, civilite: e.target.value as AnnexForm['civilite'] }))} className={inputCls}>
