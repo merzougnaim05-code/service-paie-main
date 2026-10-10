@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Employee, Settings } from '../types';
 import { JOBS } from '../data/salaryGrids';
+import { CNR_LOGO } from '../data/cnrLogo';
 import {
   Printer,
   Download,
@@ -225,9 +226,7 @@ const AfStopDoc: React.FC<{ form: AnnexForm }> = ({ form }) => (
   <div className="annex-page annex-portrait" style={{ width: '210mm', minHeight: '297mm', padding: '10mm 14mm', direction: 'rtl' }}>
     <style>{`${SHARED_CSS} @page { size: 210mm 297mm; margin: 0; }`}</style>
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6mm' }}>
-      <div style={{ width: '26mm', height: '26mm', border: '2px solid #000', clipPath: 'polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%)', background: '#e8e8e8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '15pt', fontFamily: 'Arial' }}>
-        CNR
-      </div>
+      <img src={CNR_LOGO} alt="CNR" style={{ width: '26mm', height: '26mm', objectFit: 'contain' }} />
       <div style={{ flex: 1, textAlign: 'center' }}>
         <div style={{ fontWeight: 900, fontSize: '21pt' }}>الصندوق الوطني للتقاعد</div>
         <div style={{ fontWeight: 900, fontSize: '13pt', fontFamily: 'Arial' }}>CAISSE NATIONALE DES RETRAITES</div>
@@ -365,7 +364,7 @@ const AttestationDoc: React.FC<{ form: AnnexForm }> = ({ form }) => {
       <style>{`${SHARED_CSS} @page { size: 210mm 297mm; margin: 0; }`}</style>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '4mm' }}>
         <div style={{ width: '34mm', textAlign: 'center' }}>
-          <div style={{ width: '20mm', height: '20mm', margin: '0 auto', border: '2px solid #000', clipPath: 'polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%)', background: '#e8e8e8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontFamily: 'Arial' }}>CNR</div>
+          <img src={CNR_LOGO} alt="CNR" style={{ width: '20mm', height: '20mm', objectFit: 'contain', margin: '0 auto' }} />
           <div style={{ fontWeight: 700, fontSize: '9pt' }}>الصندوق الوطني للتقاعد</div>
           <div style={{ fontSize: '7.5pt', fontFamily: 'Arial' }}>Caisse Nationale des Retraites</div>
         </div>
