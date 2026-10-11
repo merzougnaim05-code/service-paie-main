@@ -156,7 +156,13 @@ export const ATSFront: React.FC<ATSFrontProps> = ({ employee, settings }) => {
           font-size: 7.3pt; color: #333; letter-spacing: .3px;
         }
         .ats-front-page .db3 { display: inline-flex; direction: rtl; gap: 0.8mm; vertical-align: middle; margin: 0 1mm; }
-        .ats-front-page .db3 i { height: 5.2mm; border: 1.2px solid #000; display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-size: 9pt; background: #fff; text-align: center; }
+        .ats-front-page .db3 i { height: 5.2mm; border: 1.2px solid #000; border-top: none; position: relative; display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-size: 9pt; background: #fff; text-align: center; }
+        .ats-front-page .db3 i.day::before,
+        .ats-front-page .db3 i.month::before,
+        .ats-front-page .db3 i.month::after,
+        .ats-front-page .db3 i.year::after { content: ''; position: absolute; top: 0; height: 52%; width: 2.5px; background: #fff; }
+        .ats-front-page .db3 i.day::before, .ats-front-page .db3 i.month::before { left: -1.8px; }
+        .ats-front-page .db3 i.month::after, .ats-front-page .db3 i.year::after { right: -1.8px; }
         .ats-front-page .db3 i.day, .ats-front-page .db3 i.month { width: 5.5mm; }
         .ats-front-page .db3 i.year { width: 10.5mm; }
         .ats-front-page .db3 [contenteditable]:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Employee, Settings } from '../types';
 import { computePayslip, fmt } from '../utils/salaryCalculator';
 import { MONTHS_AR } from '../data/salaryGrids';
@@ -26,8 +26,7 @@ export const ATSBack: React.FC<ATSBackProps> = ({
   const todayYear = String(today.getFullYear());
 
   // Build 12 preceding months data
-  const rows = useMemo(() => {
-    const list = [];
+  const rows = useMemo(() => {    const list = [];
     for (let i = 11; i >= 0; i--) {
       const d = new Date(currentYear, currentMonth - 1 - i, 1);
       const m = d.getMonth() + 1;
@@ -49,6 +48,15 @@ export const ATSBack: React.FC<ATSBackProps> = ({
     return list;
   }, [employee, settings, currentMonth, currentYear]);
 
+  // Absence reasons: editing the FIRST row copies its note automatically to all filled rows
+  const [absences, setAbsences] = useState<string[]>(() => Array(12).fill(''));
+  useEffect(() => {
+    setAbsences(Array(12).fill(''));
+  }, [currentMonth, currentYear, employee?.id]);
+
+  const handleAbsence = (idx: number, v: string) => {
+    setAbsences(prev => prev.map((a, i) => (idx === 0 ? v : i === idx ? v : a)));
+  };
   return (
     <div className="ats-back-wrapper">
       <style>{`
@@ -154,7 +162,14 @@ export const ATSBack: React.FC<ATSBackProps> = ({
         .ats-back-page .important-row .ar b { font-weight: 700; }
 
         .ats-back-page .db3 { display: inline-flex; direction: ltr; gap: 0.8mm; vertical-align: middle; margin: 0 1mm; }
-        .ats-back-page .db3 i { height: 5.2mm; border: 1.2px solid #000; display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-size: 9pt; background: #fff; text-align: center; }
+        .ats-back-page .db3 i { height: 5.2mm; border: 1.2px solid #000; border-top: none; position: relative; display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-size: 9pt; background: #fff; text-align: center; }
+        .ats-back-page .db3 i.day::after,
+        .ats-back-page .db3 i.month::before,
+        .ats-back-page .db3 i.month::after,
+        .ats-back-page .db3 i.year::before { content: ''; position: absolute; top: 0; height: 52%; width: 2.5px; background: #fff; }
+        .ats-back-page .db3 i.day::after { right: -1.8px; }
+        .ats-back-page .db3 i.month::before, .ats-back-page .db3 i.year::before { left: -1.8px; }
+        .ats-back-page .db3 i.month::after { right: -1.8px; }
         .ats-back-page .db3 i.day, .ats-back-page .db3 i.month { width: 5.5mm; }
         .ats-back-page .db3 i.year { width: 10.5mm; }
         .ats-back-page .db3 [contenteditable]:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }
@@ -206,13 +221,13 @@ export const ATSBack: React.FC<ATSBackProps> = ({
             {rows.map((row, idx) => (
               <tr key={idx}>
                 <td contentEditable suppressContentEditableWarning data-field={`row${idx}_col0`}>
-                  {row.ref}
+                  {row.refAr}
                 </td>
                 <td contentEditable suppressContentEditableWarning data-field={`row${idx}_col1`}>
                   {row.days}
                 </td>
                 <td data-field={`row${idx}_col2`}>
-                  <input list="ats-absence-motifs" defaultValue={row.absence} aria-label="سبب الغياب" />
+                  <input list="ats-absence-motifs" value={absences[idx] ?? ''} onChange={e => handleAbsence(idx, e.target.value)} aria-label="سبب الغياب" />
                 </td>
                 <td contentEditable suppressContentEditableWarning data-field={`row${idx}_col3`} className="font-bold">
                   {row.cnasBase}
