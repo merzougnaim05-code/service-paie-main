@@ -154,7 +154,7 @@ export const ATSBack: React.FC<ATSBackProps> = ({
         .ats-back-page .important-row .ar b { font-weight: 700; }
 
         .ats-back-page .db3 { display: inline-flex; direction: ltr; gap: 0.8mm; vertical-align: middle; margin: 0 1mm; }
-        .ats-back-page .db3 i { height: 2.8mm; border: 1.2px solid #000; display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-size: 8pt; line-height: 1; background: #fff; text-align: center; }
+        .ats-back-page .db3 i { height: 5.2mm; border: 1.2px solid #000; display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-size: 9pt; background: #fff; text-align: center; }
         .ats-back-page .db3 i.day, .ats-back-page .db3 i.month { width: 5.5mm; }
         .ats-back-page .db3 i.year { width: 10.5mm; }
         .ats-back-page .db3 [contenteditable]:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }
