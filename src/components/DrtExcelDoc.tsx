@@ -83,7 +83,7 @@ const CSS = `
   .drtx-page .ln { display: flex; align-items: flex-end; gap: 4px; }
   .drtx-page .cb { display: inline-flex; align-items: center; justify-content: center; width: 4mm; height: 4mm; border: 1.4px solid #000; font-weight: 900; font-size: 10pt; line-height: 1; cursor: pointer; background: #fff; flex-shrink: 0; }
   @media print {
-    .drtx-page { box-shadow: none !important; margin: 0 !important; }
+    .drtx-page { box-shadow: none !important; margin: 0 !important; page-break-inside: avoid; }
   }
 `;
 
@@ -168,17 +168,17 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
       </div>
 
       {showPreview && (
-        <div className="drtx-page" style={{ width: '210mm', minHeight: '148mm', padding: '4mm 6mm', direction: 'rtl', fontSize: '10pt', lineHeight: 1.6 }}>
+        <div className="drtx-page" style={{ width: '210mm', minHeight: '148mm', padding: '3mm 5mm', direction: 'rtl', fontSize: '10pt', lineHeight: 1.5 }}>
           <style>{`${CSS} @page { size: A5 landscape; margin: 0; }`}</style>
 
           {/* CNAS banner from the Excel file */}
-          <img src={DRT_BANNER} alt="CNAS" style={{ width: '100%', height: '12mm', objectFit: 'fill', display: 'block' }} />
+          <img src={DRT_BANNER} alt="CNAS" style={{ width: '100%', height: '10mm', objectFit: 'fill', display: 'block' }} />
 
           {/* Title */}
-          <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '14pt', marginTop: '1.5mm' }}>تصريح بإستئناف</div>
+          <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '14pt', marginTop: '1mm' }}>تصريح بإستئناف</div>
           <div style={{ textAlign: 'center', fontWeight: 700, fontSize: '11pt' }}>أو عدم إستئناف العمل</div>
 
-          <div style={{ textAlign: 'right', fontWeight: 700, marginTop: '2mm' }}>أنا المستخدم الممضي أسفله أشهد أن المؤمن :</div>
+          <div style={{ textAlign: 'right', fontWeight: 700, marginTop: '1mm' }}>أنا المستخدم الممضي أسفله أشهد أن المؤمن :</div>
 
           {/* Names + registration box */}
           <div style={{ display: 'flex', gap: '6mm', marginTop: '1mm' }}>
@@ -187,7 +187,7 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
                 <span style={{ whiteSpace: 'nowrap' }}>الاسم :</span>
                 <span className="dots" contentEditable suppressContentEditableWarning>{f.firstName}</span>
               </div>
-              <div className="ln" style={{ marginTop: '1.5mm' }}>
+              <div className="ln" style={{ marginTop: '1mm' }}>
                 <span style={{ whiteSpace: 'nowrap' }}>اللقب :</span>
                 <span className="dots" contentEditable suppressContentEditableWarning>{f.lastName}</span>
               </div>
@@ -200,57 +200,57 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
             </div>
           </div>
 
-          <div className="ln" style={{ marginTop: '1.5mm' }}>
+          <div className="ln" style={{ marginTop: '1mm' }}>
             <span style={{ whiteSpace: 'nowrap' }}>تاريخ الازدياد :</span>
             <span className="dots" style={{ maxWidth: '45mm' }} contentEditable suppressContentEditableWarning>{f.birthDate}</span>
             <span style={{ whiteSpace: 'nowrap' }}>بـ :</span>
             <span className="dots" contentEditable suppressContentEditableWarning>{f.birthPlace}</span>
           </div>
 
-          <div className="ln" style={{ marginTop: '1.5mm' }}>
+          <div className="ln" style={{ marginTop: '1mm' }}>
             <span style={{ whiteSpace: 'nowrap' }}>المتوقف عن العمل في :</span>
             <span className="dots" style={{ maxWidth: '60mm' }} contentEditable suppressContentEditableWarning>{f.stopDate}</span>
           </div>
 
-          <div className="ln" style={{ marginTop: '1.5mm' }}>
+          <div className="ln" style={{ marginTop: '1mm' }}>
             <span className="cb" onClick={() => toggleMode('resumed')}>{f.mode === 'resumed' ? 'x' : ''}</span>
             <span style={{ fontSize: '9pt' }}>(1)</span>
             <span style={{ whiteSpace: 'nowrap', fontWeight: 700 }}>قد استأنف عمله في :</span>
             <span className="dots" style={{ maxWidth: '60mm' }} contentEditable suppressContentEditableWarning>{f.resumeDate}</span>
           </div>
 
-          <div className="ln" style={{ marginTop: '1.5mm' }}>
+          <div className="ln" style={{ marginTop: '1mm' }}>
             <span className="cb" onClick={() => toggleMode('notResumed')}>{f.mode === 'notResumed' ? 'x' : ''}</span>
             <span style={{ fontWeight: 700 }}>لم يباشر عمله الى يومنا هذا</span>
           </div>
 
-          <div className="ln" style={{ marginTop: '1.5mm', maxWidth: '130mm' }}>
+          <div className="ln" style={{ marginTop: '1mm', maxWidth: '130mm' }}>
             <span style={{ whiteSpace: 'nowrap' }}>حرر بـ :</span>
             <span className="dots" contentEditable suppressContentEditableWarning>{f.madePlace}</span>
             <span style={{ whiteSpace: 'nowrap' }}>في :</span>
             <span className="dots" contentEditable suppressContentEditableWarning>{f.madeDate}</span>
           </div>
 
-          <div style={{ display: 'flex', gap: '6mm', marginTop: '2mm' }}>
+          <div style={{ display: 'flex', gap: '6mm', marginTop: '1mm' }}>
             <div style={{ flex: 1.4 }}>
               <div className="ln">
                 <span style={{ whiteSpace: 'nowrap' }}>الطبيعة الاجتماعية وختم المستخدم :</span>
                 <span className="dots" contentEditable suppressContentEditableWarning>{f.socialNature}</span>
               </div>
-              <div className="dots" style={{ marginTop: '1.5mm', minHeight: '6mm' }} contentEditable suppressContentEditableWarning />
+              <div className="dots" style={{ marginTop: '1mm', minHeight: '5mm' }} contentEditable suppressContentEditableWarning />
             </div>
             <div style={{ flex: 1 }}>
               <div className="ln">
                 <span style={{ whiteSpace: 'nowrap' }}>اسم وصفة الموقع :</span>
                 <span className="dots" contentEditable suppressContentEditableWarning>{f.signatory}</span>
               </div>
-              <div style={{ textAlign: 'center', fontWeight: 700, marginTop: '2mm' }}>الامضاء</div>
+              <div style={{ textAlign: 'center', fontWeight: 700, marginTop: '1mm' }}>الامضاء</div>
             </div>
           </div>
 
           {/* Part 2 : honor declaration */}
-          <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '12pt', marginTop: '2mm' }}>تصريح شرفي</div>
-          <div style={{ textAlign: 'center', fontSize: '9.5pt' }}>( يملأ من طرف المؤمن له في حالة عدم إستئناف العمل )</div>
+          <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '12pt', marginTop: '1mm' }}>تصريح شرفي</div>
+          <div style={{ textAlign: 'center', fontSize: '8.5pt' }}>( يملأ من طرف المؤمن له في حالة عدم إستئناف العمل )</div>
 
           <div style={{ display: 'flex', gap: '6mm', marginTop: '1mm' }}>
             <div className="ln" style={{ flex: 1 }}>
@@ -277,8 +277,8 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
           </div>
           <div style={{ textAlign: 'left', fontWeight: 700 }}>الإمضاء</div>
 
-          <div style={{ fontSize: '9pt', marginTop: '1mm' }}>(1) ضع علامة (x) في الخانة المناسبة</div>
-          <div style={{ textAlign: 'center', fontSize: '9.5pt', fontWeight: 700 }}>* القانون يعاقب كل من يقوم بتزوير أو يدلي بتصريحات غير صحيحة</div>
+          <div style={{ fontSize: '8.5pt', marginTop: '1mm' }}>(1) ضع علامة (x) في الخانة المناسبة</div>
+          <div style={{ textAlign: 'center', fontSize: '8.5pt', fontWeight: 700 }}>* القانون يعاقب كل من يقوم بتزوير أو يدلي بتصريحات غير صحيحة</div>
         </div>
       )}
     </div>
