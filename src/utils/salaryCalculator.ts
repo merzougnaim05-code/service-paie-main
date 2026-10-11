@@ -536,7 +536,9 @@ export function computePayslip(emp: Employee, month: number, year: number, setti
   const cnasDeduction = Math.round(cnasBase * cnasRate * 100) / 100;
 
   const mutRate = emp.mutuelle ? ((settings.mutuelleRate ?? 1) / 100) : 0;
-  const mutDeduction = Math.round(gross * mutRate * 100) / 100;
+  // التعاضدية: 1% من الخام في حدود 1000 دج شهرياً
+  const MUTUELLE_CAP = 1000;
+  const mutDeduction = Math.min(Math.round(gross * mutRate * 100) / 100, MUTUELLE_CAP);
 
   const irgBase = Math.max(0, Math.round((basic + seniority + irgAllow - cnasDeduction) * 100) / 100);
   const irgTax = Math.round(computeIRGForYear(irgBase, year) * 100) / 100;
