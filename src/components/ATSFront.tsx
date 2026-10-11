@@ -132,9 +132,10 @@ export const ATSFront: React.FC<ATSFrontProps> = ({ employee, settings }) => {
         .ats-front-page .row.flanked .spacer { flex: 1; }
         .ats-front-page .row.flanked .ar-label.right { text-align: right; }
 
-        .ats-front-page .cellgroup { display: inline-flex; border: 1.2px solid #000; margin: 0 2px; }
-        .ats-front-page .cell { width: .195in; height: .22in; border-right: 1px solid #000; text-align: center; line-height: .22in; unicode-bidi: plaintext; font-size: 10pt; font-family: monospace; font-weight: bold; }
+        .ats-front-page .cellgroup { display: inline-flex; border: 1.2px solid #000; border-top: none; margin: 0 2px; }
+        .ats-front-page .cell { width: .195in; height: .22in; border-right: 1px solid #000; text-align: center; line-height: .22in; unicode-bidi: plaintext; font-size: 10pt; font-family: monospace; font-weight: bold; position: relative; }
         .ats-front-page .cell:last-child { border-right: none; }
+        .ats-front-page .cell:not(:last-child)::after { content: ''; position: absolute; top: 0; right: -1px; height: 55%; width: 2.5px; background: #fff; }
 
         .ats-front-page .inline-label { font-size: 10pt; white-space: nowrap; margin: 0 2px; }
 

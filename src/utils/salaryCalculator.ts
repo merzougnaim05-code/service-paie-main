@@ -1,5 +1,5 @@
 import { Employee, Job, GrilleCategory, Allowance, Settings, PayslipResult } from '../types';
-import { GRID1989, JOBS, getGrilleForYear, getGrilleLabelForYear } from '../data/salaryGrids';
+import { GRID1989, JOBS, MAJAZ_AURES_OVERRIDE, getGrilleForYear, getGrilleLabelForYear } from '../data/salaryGrids';
 
 export function fmt(n: number): string {
   const val = isFinite(n) ? n : 0;
@@ -182,6 +182,26 @@ export function auresAllowance(job: Job | undefined, echelon: number, years: num
     }
   }
   return Math.round(val * 100) / 100;
+}
+
+/** الرتبة الفعلية لحساب الأوراس: الأستاذ المجاز يستعمل أكواد جدول الأصناف (-- ) */
+export function auresJobFor(emp: Employee): Job | undefined {
+  const job = JOBS[emp.jobIdx];
+  if (!job) return job;
+  if ((emp.teacherType || 'عادي') === 'مجاز') {
+    const ov = MAJAZ_AURES_OVERRIDE[Number((job as Job).code)];
+    if (ov) return { ...(job as Job), prevcat: ov.prevcat, sect: ov.sect, auresCode: ov.auresCode };
+  }
+  return job;
+}
+
+/** مبلغ منحة الأوراس: يدوي من الموظف أو آلي من الجدول */
+export function auresAmountFor(emp: Employee, settings: Settings, years: number): { amount: number; manual: boolean } {
+  if (!settings.auresEnabled) return { amount: 0, manual: false };
+  if ((emp.auresMode || 'auto') === 'manual') {
+    return { amount: Math.max(0, Number(emp.auresAmount) || 0), manual: true };
+  }
+  return { amount: auresAllowance(auresJobFor(emp), emp.echelon, years), manual: false };
 }
 
 export function autoAllowancesForJob(
@@ -436,9 +456,10 @@ export function computePayslip(emp: Employee, month: number, year: number, setti
   const pb = performanceBonusForJob(job, basic, seniority, emp.performancePct || 0, year);
   if (pb) autoAllow.push(pb);
 
-  const aures = settings.auresEnabled ? auresAllowance(job, emp.echelon, years) : 0;
+  const auresInfo = auresAmountFor(emp, settings, years);
+  const aures = auresInfo.amount;
   if (aures > 0) {
-    autoAllow.push({ name: 'منحة الأوراس', amount: aures, cnas: true, irg: false, auto: true });
+    autoAllow.push({ name: auresInfo.manual ? 'منحة الأوراس (يدوي)' : 'منحة الأوراس', amount: aures, cnas: true, irg: false, auto: !auresInfo.manual });
   }
 
   // منح مخصصة من مركز الجداول والمعطيات — نسبة من الأجر الرئيسي أو مبلغ ثابت

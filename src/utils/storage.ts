@@ -52,6 +52,9 @@ export const INITIAL_EMPLOYEES: Employee[] = [
     lastWorkDate: '',
     resumeDate: '',
     allowances: [],
+    teacherType: 'عادي',
+    auresMode: 'auto',
+    auresAmount: 0,
     pensionHistory: [
       { key: '2021-01', rank: 'أستاذ التعليم الابتدائي', category: 11, echelon: 4, wage: 54200 },
       { key: '2023-01', rank: 'أستاذ التعليم الابتدائي', category: 11, echelon: 5, wage: 58900 },
@@ -84,6 +87,9 @@ export const INITIAL_EMPLOYEES: Employee[] = [
     lastWorkDate: '',
     resumeDate: '',
     allowances: [],
+    teacherType: 'عادي',
+    auresMode: 'auto',
+    auresAmount: 0,
     pensionHistory: []
   },
   {
@@ -112,6 +118,9 @@ export const INITIAL_EMPLOYEES: Employee[] = [
     lastWorkDate: '',
     resumeDate: '',
     allowances: [],
+    teacherType: 'عادي',
+    auresMode: 'auto',
+    auresAmount: 0,
     pensionHistory: []
   }
 ];
@@ -163,12 +172,19 @@ export function saveSettings(settings: Settings): boolean {
 }
 
 export function loadEmployees(): Employee[] {
+  const migrate = (list: Employee[]): Employee[] =>
+    list.map(e => ({
+      teacherType: 'عادي',
+      auresMode: 'auto',
+      auresAmount: 0,
+      ...e
+    } as Employee));
   try {
     const raw = localStorage.getItem(EMPLOYEES_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+        return migrate(parsed);
       }
     }
   } catch (err) {
@@ -176,7 +192,7 @@ export function loadEmployees(): Employee[] {
   }
   // Initialize with realistic initial data
   saveEmployees(INITIAL_EMPLOYEES);
-  return INITIAL_EMPLOYEES;
+  return migrate(INITIAL_EMPLOYEES);
 }
 
 export function saveEmployees(employees: Employee[]): boolean {

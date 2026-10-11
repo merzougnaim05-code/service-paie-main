@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Employee, Allowance, Settings, MaritalStatus, EmploymentStatus } from '../types';
-import { JOBS, GRILLE, ALGERIAN_WILAYAS } from '../data/salaryGrids';
+import { JOBS, GRILLE, ALGERIAN_WILAYAS, MAJAZ_CODES } from '../data/salaryGrids';
 import {
   isProfessionalWorkerJob,
   computePayslip,
   autoAllowancesForJob,
   performanceBonusForJob,
-  auresAllowance,
+  auresAmountFor,
   seniorityFor,
   fmt
 } from '../utils/salaryCalculator';
@@ -78,6 +78,9 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
   const [performancePct, setPerformancePct] = useState(40);
   const [incomeDifference, setIncomeDifference] = useState(0);
   const [experienceDifference, setExperienceDifference] = useState(0);
+  const [teacherType, setTeacherType] = useState<'عادي' | 'مجاز'>('عادي');
+  const [auresMode, setAuresMode] = useState<'auto' | 'manual'>('auto');
+  const [auresAmount, setAuresAmount] = useState(0);
 
   const [allowances, setAllowances] = useState<Allowance[]>([]);
 
@@ -124,15 +127,19 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
     const pb = performanceBonusForJob(currentJob, basic, seniority, performancePct);
     if (pb) autoList.push(pb);
 
-    const aures = settings.auresEnabled ? auresAllowance(currentJob, echelon, yearsNum) : 0;
-    if (aures > 0) {
-      autoList.push({ name: 'منحة الأوراس', amount: aures, cnas: true, irg: false, auto: true });
+    const auresInfo = auresAmountFor(
+      { jobIdx, echelon, teacherType, auresMode, auresAmount } as Employee,
+      settings,
+      yearsNum
+    );
+    if (auresInfo.amount > 0) {
+      autoList.push({ name: auresInfo.manual ? 'منحة الأوراس (يدوي)' : 'منحة الأوراس', amount: auresInfo.amount, cnas: true, irg: false, auto: !auresInfo.manual });
     }
 
     // Keep user's custom manual allowances
     const manualList = allowances.filter(a => !a.auto);
     setAllowances([...autoList, ...manualList]);
-  }, [jobIdx, category, echelon, employmentStatus, performancePct, yearsOverride, settings.auresEnabled]);
+  }, [jobIdx, category, echelon, employmentStatus, performancePct, yearsOverride, settings.auresEnabled, teacherType, auresMode, auresAmount]);
 
   // Form preview calculations
   const previewCalculation = useMemo(() => {
@@ -164,6 +171,9 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
       lastWorkDate,
       resumeDate,
       allowances,
+      teacherType,
+      auresMode,
+      auresAmount: Number(auresAmount) || 0,
       pensionHistory: []
     };
     try {
@@ -176,7 +186,8 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
     name, jobIdx, ssn, category, echelon, employmentStatus, hireDate, yearsOverride,
     marital, children, children10, singleWage, mutuelle, mutuelleNum, performancePct,
     incomeDifference, experienceDifference, birthPlace, birthDate, address, postalAccount,
-    zoneWilaya, zoneCommune, lastWorkDate, resumeDate, allowances, settings, editingId
+    zoneWilaya, zoneCommune, lastWorkDate, resumeDate, allowances, teacherType, auresMode,
+    auresAmount, settings, editingId
   ]);
 
   const resetForm = () => {
@@ -204,6 +215,9 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
     setPerformancePct(40);
     setIncomeDifference(0);
     setExperienceDifference(0);
+    setTeacherType('عادي');
+    setAuresMode('auto');
+    setAuresAmount(0);
     setAllowances([]);
     setZoneWilaya('');
     setZoneCommune('');
@@ -236,6 +250,9 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
     setPerformancePct(emp.performancePct);
     setIncomeDifference(emp.incomeDifference);
     setExperienceDifference(emp.experienceDifference);
+    setTeacherType(emp.teacherType || 'عادي');
+    setAuresMode(emp.auresMode || 'auto');
+    setAuresAmount(Number(emp.auresAmount) || 0);
     setAllowances(emp.allowances || []);
 
     window.scrollTo({ top: 120, behavior: 'smooth' });
@@ -277,6 +294,9 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
       lastWorkDate,
       resumeDate,
       allowances: allowances.map(a => ({ ...a })),
+      teacherType: MAJAZ_CODES.includes(Number(currentJob?.code)) ? teacherType : 'عادي',
+      auresMode,
+      auresAmount: Number(auresAmount) || 0,
       pensionHistory: editingId
         ? (employees.find(x => x.id === editingId)?.pensionHistory || [])
         : []
@@ -713,6 +733,77 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
                   onChange={e => setIncomeDifference(Number(e.target.value) || 0)}
                   className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3 py-2 text-sm"
                 />
+              </div>
+            </div>
+
+            {/* Teacher type + Aures mode sliders (screen only, never printed) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 print:hidden">
+              {MAJAZ_CODES.includes(Number(currentJob?.code)) && (
+                <div>
+                  <label className="block text-xs font-bold text-[#1e293b] mb-1">
+                    صنف الأستاذ (حسب جدول الأصناف الجديدة والقديمة)
+                  </label>
+                  <div className="relative flex bg-[#e2e8f0] rounded-xl p-1" dir="rtl">
+                    <div
+                      className="absolute top-1 bottom-1 rounded-lg bg-[#047857] shadow transition-all duration-200"
+                      style={teacherType === 'عادي' ? { right: '4px', left: '50%' } : { left: '4px', right: '50%' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setTeacherType('عادي')}
+                      className={`relative flex-1 py-1.5 text-xs font-black rounded-lg transition-colors cursor-pointer ${teacherType === 'عادي' ? 'text-white' : 'text-slate-600'}`}
+                    >
+                      أستاذ عادي
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTeacherType('مجاز')}
+                      className={`relative flex-1 py-1.5 text-xs font-black rounded-lg transition-colors cursor-pointer ${teacherType === 'مجاز' ? 'text-white' : 'text-slate-600'}`}
+                    >
+                      أستاذ مجاز (-- )
+                    </button>
+                  </div>
+                  <div className="text-[11px] text-[#64748b] mt-1">
+                    المجاز يستعمل أكواد الأوراس المختلفة من الجدول (A514 / A116).
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold text-[#1e293b] mb-1">
+                  منحة الأوراس
+                </label>
+                <div className="relative flex bg-[#e2e8f0] rounded-xl p-1" dir="rtl">
+                  <div
+                    className="absolute top-1 bottom-1 rounded-lg bg-[#047857] shadow transition-all duration-200"
+                    style={auresMode === 'auto' ? { right: '4px', left: '50%' } : { left: '4px', right: '50%' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setAuresMode('auto')}
+                    className={`relative flex-1 py-1.5 text-xs font-black rounded-lg transition-colors cursor-pointer ${auresMode === 'auto' ? 'text-white' : 'text-slate-600'}`}
+                  >
+                    منحة الأوراس آليا
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAuresMode('manual')}
+                    className={`relative flex-1 py-1.5 text-xs font-black rounded-lg transition-colors cursor-pointer ${auresMode === 'manual' ? 'text-white' : 'text-slate-600'}`}
+                  >
+                    منحة الأوراس يدويا
+                  </button>
+                </div>
+                {auresMode === 'manual' && (
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={auresAmount}
+                    onChange={e => setAuresAmount(Number(e.target.value) || 0)}
+                    placeholder="مبلغ المنحة يدويا (دج)"
+                    className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3 py-2 text-sm mt-2 font-mono"
+                  />
+                )}
               </div>
             </div>
 

@@ -356,7 +356,7 @@ export const GRID1989 = [
 export const JOBS: Job[] = [
   { name: 'معلم مدرسة ابتدائية', cat: 10, domain: 'teach', directorType: null, code: 1010, prevcat: 13, sect: 2, auresCode: 'A213' },
   { name: 'أستاذ التعليم الابتدائي', cat: 12, domain: 'teach', directorType: null, code: 1020, prevcat: 13, sect: 2, auresCode: 'A213' },
-  { name: 'أستاذ التعليم الابتدائي قسم أول', cat: 13, domain: 'teach', directorType: null, code: 1030, prevcat: 14, sect: 2, auresCode: 'A514' },
+  { name: 'أستاذ التعليم الابتدائي قسم أول', cat: 13, domain: 'teach', directorType: null, code: 1030, prevcat: 13, sect: 2, auresCode: 'A213' },
   { name: 'أستاذ التعليم الابتدائي قسم ثان', cat: 14, domain: 'teach', directorType: null, code: 1050, prevcat: 13, sect: 2, auresCode: 'A213' },
   { name: 'أستاذ مميز في التعليم الابتدائي', cat: 15, domain: 'teach', directorType: null, code: 1061, prevcat: 13, sect: 2, auresCode: 'A213' },
   { name: 'أستاذ التعليم الأساسي', cat: 11, domain: 'teach', directorType: null, code: 1070, prevcat: 14, sect: 1, auresCode: 'A114' },
@@ -467,6 +467,29 @@ export const JOBS: Job[] = [
   { name: 'حاجب رئيسي', cat: 2, domain: 'other', directorType: null, code: 'V6070', prevcat: 8, sect: 3 },
   { name: 'أمين عام', cat: 17, domain: 'other', directorType: null, code: null, prevcat: 20, sect: 1 }
 ];
+
+/**
+ * الأستاذ المجاز (-- في جدول «الأصناف الجديدة والقديمة»):
+ * نفس الرتبة (نفس الرمز) لكن الصنف السابق والقسم وكود الأوراس مختلفة.
+ * المفتاح = رمز الرتبة (code)، القيمة = ما يُعتمد عند اختيار «مجاز».
+ */
+export const MAJAZ_AURES_OVERRIDE: Record<number, { prevcat: number; sect: number; auresCode: string }> = {
+  1012: { prevcat: 14, sect: 5, auresCode: 'A514' },
+  1014: { prevcat: 14, sect: 5, auresCode: 'A514' },
+  1030: { prevcat: 14, sect: 5, auresCode: 'A514' },
+  1050: { prevcat: 14, sect: 5, auresCode: 'A514' },
+  1080: { prevcat: 14, sect: 5, auresCode: 'A514' },
+  1090: { prevcat: 14, sect: 5, auresCode: 'A514' },
+  1100: { prevcat: 14, sect: 5, auresCode: 'A514' },
+  1180: { prevcat: 16, sect: 1, auresCode: 'A116' },
+  1190: { prevcat: 16, sect: 1, auresCode: 'A116' },
+  1200: { prevcat: 16, sect: 1, auresCode: 'A116' },
+  1220: { prevcat: 16, sect: 1, auresCode: 'A116' },
+  1210: { prevcat: 16, sect: 1, auresCode: 'A116' }
+};
+
+/** رموز الرتب التي لها صنف «مجاز» في الجدول */
+export const MAJAZ_CODES: number[] = Object.keys(MAJAZ_AURES_OVERRIDE).map(Number);
 
 export const MONTHS_AR: Record<number, string> = {
   1: 'جانفي', 2: 'فيفري', 3: 'مارس', 4: 'أفريل', 5: 'ماي', 6: 'جوان',

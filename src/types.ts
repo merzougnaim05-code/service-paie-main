@@ -143,6 +143,9 @@ export interface Employee {
   resumeDate: string;
   allowances: Allowance[];
   pensionHistory: PensionHistoryRecord[];
+  teacherType?: 'عادي' | 'مجاز'; // صنف الأستاذ حسب جدول الأصناف (-- = مجاز بأكواد أوراس مختلفة)
+  auresMode?: 'auto' | 'manual';  // منحة الأوراس: آلية من البرنامج أو يدوية
+  auresAmount?: number;           // مبلغ الأوراس اليدوي
 }
 
 export interface Settings {
