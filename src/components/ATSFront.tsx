@@ -133,7 +133,7 @@ export const ATSFront: React.FC<ATSFrontProps> = ({ employee, settings }) => {
         .ats-front-page .row.flanked .ar-label.right { text-align: right; }
 
         .ats-front-page .cellgroup { display: inline-flex; border: 1.2px solid #000; margin: 0 2px; }
-        .ats-front-page .cell { width: .195in; height: .22in; border-right: 1px solid #000; text-align: center; line-height: .22in; unicode-bidi: plaintext; font-size: 10pt; font-family: monospace; font-weight: bold; }
+        .ats-front-page .cell { width: .195in; height: .11in; border-right: 1px solid #000; text-align: center; line-height: .11in; unicode-bidi: plaintext; font-size: 8.5pt; font-family: monospace; font-weight: bold; }
         .ats-front-page .cell:last-child { border-right: none; }
 
         .ats-front-page .inline-label { font-size: 10pt; white-space: nowrap; margin: 0 2px; }
@@ -156,7 +156,7 @@ export const ATSFront: React.FC<ATSFrontProps> = ({ employee, settings }) => {
           font-size: 7.3pt; color: #333; letter-spacing: .3px;
         }
         .ats-front-page .db3 { display: inline-flex; direction: rtl; gap: 0.8mm; vertical-align: middle; margin: 0 1mm; }
-        .ats-front-page .db3 i { height: 5.2mm; border: 1.2px solid #000; display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-size: 9pt; background: #fff; text-align: center; }
+        .ats-front-page .db3 i { height: 2.8mm; border: 1.2px solid #000; display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-size: 8pt; line-height: 1; background: #fff; text-align: center; }
         .ats-front-page .db3 i.day, .ats-front-page .db3 i.month { width: 5.5mm; }
         .ats-front-page .db3 i.year { width: 10.5mm; }
         .ats-front-page .db3 [contenteditable]:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }
@@ -572,109 +572,61 @@ export const ATSFront: React.FC<ATSFrontProps> = ({ employee, settings }) => {
             <div className="duree-row">
               <span className="fr-label fr">L'assuré(e) a travaillé pendant :</span>
               <span className="cellgroup" data-cells="3" data-field="inv_jours">
-                <span className="cell" contentEditable suppressContentEditableWarning>
-                  3
-                </span>
-                <span className="cell" contentEditable suppressContentEditableWarning>
-                  6
-                </span>
-                <span className="cell" contentEditable suppressContentEditableWarning>
-                  0
-                </span>
+                <span className="cell" contentEditable suppressContentEditableWarning />
+                <span className="cell" contentEditable suppressContentEditableWarning />
+                <span className="cell" contentEditable suppressContentEditableWarning />
               </span>
               <span className="inline-label fr">jours</span>
               <span className="cellgroup" data-cells="3" data-field="inv_heures">
-                <span className="cell" contentEditable suppressContentEditableWarning>
-                  7
-                </span>
-                <span className="cell" contentEditable suppressContentEditableWarning>
-                  2
-                </span>
-                <span className="cell" contentEditable suppressContentEditableWarning>
-                  0
-                </span>
+                <span className="cell" contentEditable suppressContentEditableWarning />
+                <span className="cell" contentEditable suppressContentEditableWarning />
+                <span className="cell" contentEditable suppressContentEditableWarning />
               </span>
               <span className="inline-label fr">heures</span>
               <span className="mid-spacer"></span>
               <span className="inline-label ar">ساعة</span>
               <span className="cellgroup" data-cells="3" data-field="inv_heures_ar">
-                <span className="cell" contentEditable suppressContentEditableWarning>
-                  7
-                </span>
-                <span className="cell" contentEditable suppressContentEditableWarning>
-                  2
-                </span>
-                <span className="cell" contentEditable suppressContentEditableWarning>
-                  0
-                </span>
+                <span className="cell" contentEditable suppressContentEditableWarning />
+                <span className="cell" contentEditable suppressContentEditableWarning />
+                <span className="cell" contentEditable suppressContentEditableWarning />
               </span>
               <span className="inline-label ar">يوما</span>
               <span className="cellgroup" data-cells="3" data-field="inv_jours_ar">
-                <span className="cell" contentEditable suppressContentEditableWarning>
-                  3
-                </span>
-                <span className="cell" contentEditable suppressContentEditableWarning>
-                  6
-                </span>
-                <span className="cell" contentEditable suppressContentEditableWarning>
-                  0
-                </span>
+                <span className="cell" contentEditable suppressContentEditableWarning />
+                <span className="cell" contentEditable suppressContentEditableWarning />
+                <span className="cell" contentEditable suppressContentEditableWarning />
               </span>
               <span className="ar-label ar">المؤمن له اشتغل لمدة :</span>
             </div>
             <div className="duree-row">
               <span className="fr-label fr">du :</span>
               <span className="db3 font-mono" data-date="inv_du">
-                <i className="day" contentEditable suppressContentEditableWarning>
-                  01
-                </i>
-                <i className="month" contentEditable suppressContentEditableWarning>
-                  09
-                </i>
-                <i className="year" contentEditable suppressContentEditableWarning>
-                  2025
-                </i>
+                <i className="day" contentEditable suppressContentEditableWarning />
+                <i className="month" contentEditable suppressContentEditableWarning />
+                <i className="year" contentEditable suppressContentEditableWarning />
               </span>
               <span className="fr-label fr" style={{ marginInlineStart: '8px' }}>
                 au :
               </span>
               <span className="db3 font-mono" data-date="inv_au">
-                <i className="day" contentEditable suppressContentEditableWarning>
-                  31
-                </i>
-                <i className="month" contentEditable suppressContentEditableWarning>
-                  08
-                </i>
-                <i className="year" contentEditable suppressContentEditableWarning>
-                  2026
-                </i>
+                <i className="day" contentEditable suppressContentEditableWarning />
+                <i className="month" contentEditable suppressContentEditableWarning />
+                <i className="year" contentEditable suppressContentEditableWarning />
               </span>
               <span className="mid-spacer"></span>
               <span className="ar-label ar">إلى :</span>
               <span className="db3 font-mono" data-date="inv_au_ar">
-                <i className="day" contentEditable suppressContentEditableWarning>
-                  31
-                </i>
-                <i className="month" contentEditable suppressContentEditableWarning>
-                  08
-                </i>
-                <i className="year" contentEditable suppressContentEditableWarning>
-                  2026
-                </i>
+                <i className="day" contentEditable suppressContentEditableWarning />
+                <i className="month" contentEditable suppressContentEditableWarning />
+                <i className="year" contentEditable suppressContentEditableWarning />
               </span>
               <span className="ar-label ar" style={{ marginInlineEnd: '8px' }}>
                 من :
               </span>
               <span className="db3 font-mono" data-date="inv_du_ar">
-                <i className="day" contentEditable suppressContentEditableWarning>
-                  01
-                </i>
-                <i className="month" contentEditable suppressContentEditableWarning>
-                  09
-                </i>
-                <i className="year" contentEditable suppressContentEditableWarning>
-                  2025
-                </i>
+                <i className="day" contentEditable suppressContentEditableWarning />
+                <i className="month" contentEditable suppressContentEditableWarning />
+                <i className="year" contentEditable suppressContentEditableWarning />
               </span>
             </div>
             <div className="explain">

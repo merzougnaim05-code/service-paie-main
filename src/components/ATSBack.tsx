@@ -38,7 +38,7 @@ export const ATSBack: React.FC<ATSBackProps> = ({
       list.push({
         ref: `${mPadded}/${y}`,
         refAr: `${MONTHS_AR[m]} ${y}`,
-        days: '22',
+        days: '30 يوما و 8 سا',
         absence: '',
         cnasBase: fmt(payslip.cnasBase),
         cnasCotisation: fmt(payslip.cnasDeduction)
@@ -111,6 +111,8 @@ export const ATSBack: React.FC<ATSBackProps> = ({
           color: #000;
         }
         .ats-back-page table.ats-grid td[contenteditable]:focus { outline: 1.5px solid #0070C0; background: #eef5ff; outline-offset: -1px; }
+        .ats-back-page table.ats-grid td input { width: 100%; height: 100%; border: none; background: transparent; text-align: center; font: inherit; color: inherit; padding: 0; }
+        .ats-back-page table.ats-grid td input:focus { outline: 1.5px solid #0070C0; background: #eef5ff; outline-offset: -1px; }
         .ats-back-page col.c0 { width: 16.1%; }
         .ats-back-page col.c1 { width: 23.91%; }
         .ats-back-page col.c2 { width: 19.29%; }
@@ -152,7 +154,7 @@ export const ATSBack: React.FC<ATSBackProps> = ({
         .ats-back-page .important-row .ar b { font-weight: 700; }
 
         .ats-back-page .db3 { display: inline-flex; direction: ltr; gap: 0.8mm; vertical-align: middle; margin: 0 1mm; }
-        .ats-back-page .db3 i { height: 5.2mm; border: 1.2px solid #000; display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-size: 9pt; background: #fff; text-align: center; }
+        .ats-back-page .db3 i { height: 2.8mm; border: 1.2px solid #000; display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-size: 8pt; line-height: 1; background: #fff; text-align: center; }
         .ats-back-page .db3 i.day, .ats-back-page .db3 i.month { width: 5.5mm; }
         .ats-back-page .db3 i.year { width: 10.5mm; }
         .ats-back-page .db3 [contenteditable]:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }
@@ -209,8 +211,8 @@ export const ATSBack: React.FC<ATSBackProps> = ({
                 <td contentEditable suppressContentEditableWarning data-field={`row${idx}_col1`}>
                   {row.days}
                 </td>
-                <td contentEditable suppressContentEditableWarning data-field={`row${idx}_col2`}>
-                  {row.absence}
+                <td data-field={`row${idx}_col2`}>
+                  <input list="ats-absence-motifs" defaultValue={row.absence} aria-label="سبب الغياب" />
                 </td>
                 <td contentEditable suppressContentEditableWarning data-field={`row${idx}_col3`} className="font-bold">
                   {row.cnasBase}
@@ -222,6 +224,13 @@ export const ATSBack: React.FC<ATSBackProps> = ({
             ))}
           </tbody>
         </table>
+
+        {/* Shared choices for the absence-reason cells (same list in every row, editable) */}
+        <datalist id="ats-absence-motifs">
+          <option value="لاشئ" />
+          <option value="عطلة مرضية" />
+          <option value="غياب غير مبرر" />
+        </datalist>
 
         <div className="volume-row">
           <span className="fr-label fr gray">Volume horaire journalier</span>

@@ -5,7 +5,6 @@ import {
   Printer,
   Eye,
   EyeOff,
-  Sparkles,
   Eraser
 } from 'lucide-react';
 
@@ -89,6 +88,7 @@ const CSS = `
 
 export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) => {
   const [form, setForm] = useState<DrtForm>(() => buildAuto(employee, settings));
+  const [printMode, setPrintMode] = useState<'auto' | 'manual'>('auto');
   const [showPreview, setShowPreview] = useState(true);
   const [blankPrinting, setBlankPrinting] = useState(false);
 
@@ -99,8 +99,12 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
   const set = (k: keyof DrtForm, v: string) =>
     setForm(prev => ({ ...prev, [k]: v }));
 
-  const autoFill = () => setForm(buildAuto(employee, settings));
   const clearForm = () => setForm({ ...BLANK });
+
+  const switchMode = (m: 'auto' | 'manual') => {
+    setPrintMode(m);
+    if (m === 'auto') setForm(buildAuto(employee, settings));
+  };
 
   const handlePrint = () => window.print();
   const handlePrintBlank = () => {
@@ -126,12 +130,30 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
     <div className="w-full">
       {/* Mini toolbar */}
       <div className="flex flex-wrap items-center gap-2 mb-4 print:hidden">
-        <button onClick={autoFill} className="bg-[#1d4ed8] hover:bg-[#1e40af] text-white px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer">
-          <Sparkles className="w-4 h-4" /><span>ملء آلي من البرنامج</span>
-        </button>
-        <button onClick={clearForm} className="bg-white hover:bg-[#f1f5f9] text-[#8c3b2d] border border-[#8c3b2d] px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer">
-          <Eraser className="w-4 h-4" /><span>إفراغ</span>
-        </button>
+        {/* Sliding switch : auto vs manual print */}
+        <div className="relative flex bg-[#e2e8f0] rounded-xl p-1 w-64" dir="rtl" title="وضع الطباعة">
+          <div
+            className="absolute top-1 bottom-1 rounded-lg bg-[#047857] shadow transition-all duration-200"
+            style={printMode === 'auto' ? { right: '4px', left: '50%' } : { left: '4px', right: '50%' }}
+          />
+          <button
+            onClick={() => switchMode('auto')}
+            className={`relative flex-1 py-1.5 text-xs font-black rounded-lg transition-colors cursor-pointer ${printMode === 'auto' ? 'text-white' : 'text-slate-600'}`}
+          >
+            طباعة آلية
+          </button>
+          <button
+            onClick={() => switchMode('manual')}
+            className={`relative flex-1 py-1.5 text-xs font-black rounded-lg transition-colors cursor-pointer ${printMode === 'manual' ? 'text-white' : 'text-slate-600'}`}
+          >
+            طباعة يدوية
+          </button>
+        </div>
+        {printMode === 'manual' && (
+          <button onClick={clearForm} className="bg-white hover:bg-[#f1f5f9] text-[#8c3b2d] border border-[#8c3b2d] px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer">
+            <Eraser className="w-4 h-4" /><span>إفراغ</span>
+          </button>
+        )}
         <button onClick={() => setShowPreview(v => !v)} className="bg-white hover:bg-[#f1f5f9] text-[#047857] border border-[#047857] px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer">
           {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           <span>{showPreview ? 'إخفاء المعاينة' : 'معاينة'}</span>
@@ -144,8 +166,13 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
         </button>
       </div>
 
-      {/* Manual fields */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 mb-4 print:hidden">
+      {/* Manual fields — visible only in manual print mode */}
+      {printMode === 'auto' && (
+        <div className="mb-4 print:hidden text-xs font-bold text-[#047857] bg-[#ecfdf5] border border-[#a7f3d0] rounded-xl px-3 py-2">
+          وضع الطباعة الآلية: حقول المعلومات مخفية — تُملأ الوثيقة تلقائيا من بيانات البرنامج. بدّل إلى «طباعة يدوية» لإظهار الحقول وتعديلها.
+        </div>
+      )}
+      <div className={printMode === 'manual' ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 mb-4 print:hidden' : 'hidden'}>
         <div><label className={labelCls}>الاسم</label><input value={form.firstName} onChange={e => set('firstName', e.target.value)} className={inputCls} /></div>
         <div><label className={labelCls}>اللقب</label><input value={form.lastName} onChange={e => set('lastName', e.target.value)} className={inputCls} /></div>
         <div><label className={labelCls}>رقم التسجيل</label><input value={form.regNum} onChange={e => set('regNum', e.target.value)} className={inputCls} /></div>
@@ -168,8 +195,8 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
       </div>
 
       {showPreview && (
-        <div className="drtx-page" style={{ width: '210mm', minHeight: '148mm', padding: '3mm 5mm', direction: 'rtl', fontSize: '10pt', lineHeight: 1.5 }}>
-          <style>{`${CSS} @page { size: A5 landscape; margin: 0; }`}</style>
+        <div className="drtx-page" style={{ width: '148mm', minHeight: '210mm', padding: '4mm 5mm', direction: 'rtl', fontSize: '10pt', lineHeight: 1.55 }}>
+          <style>{`${CSS} @page { size: 148mm 210mm; margin: 0; }`}</style>
 
           {/* CNAS banner from the Excel file */}
           <img src={DRT_BANNER} alt="CNAS" style={{ width: '100%', height: '10mm', objectFit: 'fill', display: 'block' }} />
@@ -180,9 +207,9 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
 
           <div style={{ textAlign: 'right', fontWeight: 700, marginTop: '1mm' }}>أنا المستخدم الممضي أسفله أشهد أن المؤمن :</div>
 
-          {/* Names + registration box */}
-          <div style={{ display: 'flex', gap: '6mm', marginTop: '1mm' }}>
-            <div style={{ flex: 1.6 }}>
+          {/* Names + registration box (stacked for A5 portrait) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2mm', marginTop: '1mm' }}>
+            <div>
               <div className="ln">
                 <span style={{ whiteSpace: 'nowrap' }}>الاسم :</span>
                 <span className="dots" contentEditable suppressContentEditableWarning>{f.firstName}</span>
@@ -192,7 +219,7 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
                 <span className="dots" contentEditable suppressContentEditableWarning>{f.lastName}</span>
               </div>
             </div>
-            <div style={{ flex: 1, border: '1.5px solid #000', padding: '2mm 3mm', display: 'flex', alignItems: 'flex-end' }}>
+            <div style={{ border: '1.5px solid #000', padding: '1.5mm 3mm' }}>
               <div className="ln" style={{ width: '100%' }}>
                 <span style={{ whiteSpace: 'nowrap' }}>رقم التسجيل :</span>
                 <span className="dots" contentEditable suppressContentEditableWarning>{f.regNum}</span>
@@ -231,15 +258,15 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
             <span className="dots" contentEditable suppressContentEditableWarning>{f.madeDate}</span>
           </div>
 
-          <div style={{ display: 'flex', gap: '6mm', marginTop: '1mm' }}>
-            <div style={{ flex: 1.4 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2mm', marginTop: '1mm' }}>
+            <div>
               <div className="ln">
                 <span style={{ whiteSpace: 'nowrap' }}>الطبيعة الاجتماعية وختم المستخدم :</span>
                 <span className="dots" contentEditable suppressContentEditableWarning>{f.socialNature}</span>
               </div>
               <div className="dots" style={{ marginTop: '1mm', minHeight: '5mm' }} contentEditable suppressContentEditableWarning />
             </div>
-            <div style={{ flex: 1 }}>
+            <div>
               <div className="ln">
                 <span style={{ whiteSpace: 'nowrap' }}>اسم وصفة الموقع :</span>
                 <span className="dots" contentEditable suppressContentEditableWarning>{f.signatory}</span>
@@ -252,12 +279,12 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
           <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '12pt', marginTop: '1mm' }}>تصريح شرفي</div>
           <div style={{ textAlign: 'center', fontSize: '8.5pt' }}>( يملأ من طرف المؤمن له في حالة عدم إستئناف العمل )</div>
 
-          <div style={{ display: 'flex', gap: '6mm', marginTop: '1mm' }}>
-            <div className="ln" style={{ flex: 1 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1mm', marginTop: '1mm' }}>
+            <div className="ln">
               <span style={{ whiteSpace: 'nowrap' }}>الاسم :</span>
               <span className="dots" contentEditable suppressContentEditableWarning>{f.firstName}</span>
             </div>
-            <div className="ln" style={{ flex: 1 }}>
+            <div className="ln">
               <span style={{ whiteSpace: 'nowrap' }}>اللقب :</span>
               <span className="dots" contentEditable suppressContentEditableWarning>{f.lastName}</span>
             </div>
