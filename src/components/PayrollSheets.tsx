@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Employee, Settings } from '../types';
 import { JOBS, MONTHS_AR } from '../data/salaryGrids';
 import { computePayslip, fmt, isProfessionalWorkerJob } from '../utils/salaryCalculator';
+import { OfficialPayrollSheet } from './OfficialPayrollSheet';
 import * as XLSX from 'xlsx';
 import { FileSpreadsheet, Download, RefreshCw, Eye, Search } from 'lucide-react';
 
@@ -22,6 +23,7 @@ export const PayrollSheets: React.FC<PayrollSheetsProps> = ({
   const [month, setMonth] = useState<number>(new Date().getMonth() + 1);
   const [year, setYear] = useState<number>(new Date().getFullYear());
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [view, setView] = useState<'table' | 'official'>('table');
 
   const SECTOR_NAMES: Record<string, string> = {
     admin: 'الإداريون',
@@ -268,8 +270,42 @@ export const PayrollSheets: React.FC<PayrollSheetsProps> = ({
             </div>
           </div>
         </div>
+
+        {/* View toggle: dynamic table vs official sheet */}
+        <div className="flex rounded-xl bg-[#eef2f7] p-1 gap-1 mt-4" dir="rtl">
+          <button
+            type="button"
+            onClick={() => setView('table')}
+            className={`flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all cursor-pointer ${
+              view === 'table' ? 'bg-[#047857] text-white shadow-sm' : 'text-[#475569]'
+            }`}
+          >
+            الجدول التفصيلي
+          </button>
+          <button
+            type="button"
+            onClick={() => setView('official')}
+            className={`flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all cursor-pointer ${
+              view === 'official' ? 'bg-[#047857] text-white shadow-sm' : 'text-[#475569]'
+            }`}
+          >
+            الكشف الرسمي (طبق الورق)
+          </button>
+        </div>
       </div>
 
+      {view === 'official' ? (
+        <div className="bg-[#ffffff] border border-[#a7f3d0] rounded-3xl p-5 sm:p-6 shadow-sm overflow-hidden">
+          <OfficialPayrollSheet
+            employees={sectorEmployees}
+            settings={settings}
+            month={month}
+            year={year}
+            sectorLabel={SECTOR_NAMES[sector]}
+          />
+        </div>
+      ) : (
+      <>
       {/* Spreadsheet Card */}
       <div className="bg-[#ffffff] border border-[#a7f3d0] rounded-3xl p-5 sm:p-6 shadow-sm overflow-hidden">
         <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#e2e8f0]">
@@ -386,6 +422,8 @@ export const PayrollSheets: React.FC<PayrollSheetsProps> = ({
           </div>
         )}
       </div>
+      </>
+      )}
     </div>
   );
 };
