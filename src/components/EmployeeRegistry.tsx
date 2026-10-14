@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Employee, Allowance, Settings, MaritalStatus, EmploymentStatus } from '../types';
-import { JOBS, GRILLE, ALGERIAN_WILAYAS, MAJAZ_CODES } from '../data/salaryGrids';
+import { JOBS, GRILLE, ALGERIAN_WILAYAS, MAJAZ_CODES, MAJAZ_AURES_OVERRIDE } from '../data/salaryGrids';
 import {
   isProfessionalWorkerJob,
   computePayslip,
@@ -132,8 +132,9 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
       settings,
       yearsNum
     );
+    const majazPrev = !auresInfo.manual && teacherType === 'مجاز' && MAJAZ_AURES_OVERRIDE[Number(currentJob?.code)] != null;
     if (auresInfo.amount > 0) {
-      autoList.push({ name: auresInfo.manual ? 'منحة الأوراس (يدوي)' : 'منحة الأوراس', amount: auresInfo.amount, cnas: true, irg: false, auto: !auresInfo.manual });
+      autoList.push({ name: auresInfo.manual ? 'منحة الأوراس (يدوي)' : majazPrev ? 'منحة الأوراس (مجاز)' : 'منحة الأوراس', amount: auresInfo.amount, cnas: true, irg: false, auto: !auresInfo.manual });
     }
 
     // Keep user's custom manual allowances
@@ -294,7 +295,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
       lastWorkDate,
       resumeDate,
       allowances: allowances.map(a => ({ ...a })),
-      teacherType: MAJAZ_CODES.includes(Number(currentJob?.code)) ? teacherType : 'عادي',
+      teacherType: (currentJob?.domain === 'teach' && MAJAZ_CODES.includes(Number(currentJob?.code))) ? teacherType : 'عادي',
       auresMode,
       auresAmount: Number(auresAmount) || 0,
       pensionHistory: editingId
@@ -738,7 +739,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
 
             {/* Teacher type + Aures mode sliders (screen only, never printed) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 print:hidden">
-              {MAJAZ_CODES.includes(Number(currentJob?.code)) && (
+              {currentJob?.domain === 'teach' && MAJAZ_CODES.includes(Number(currentJob?.code)) && (
                 <div>
                   <label className="block text-xs font-bold text-[#1e293b] mb-1">
                     صنف الأستاذ (حسب جدول الأصناف الجديدة والقديمة)

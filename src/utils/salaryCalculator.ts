@@ -188,7 +188,7 @@ export function auresAllowance(job: Job | undefined, echelon: number, years: num
 export function auresJobFor(emp: Employee): Job | undefined {
   const job = JOBS[emp.jobIdx];
   if (!job) return job;
-  if ((emp.teacherType || 'عادي') === 'مجاز') {
+  if (job.domain === 'teach' && (emp.teacherType || 'عادي') === 'مجاز') {
     const ov = MAJAZ_AURES_OVERRIDE[Number((job as Job).code)];
     if (ov) return { ...(job as Job), prevcat: ov.prevcat, sect: ov.sect, auresCode: ov.auresCode };
   }
@@ -458,8 +458,9 @@ export function computePayslip(emp: Employee, month: number, year: number, setti
 
   const auresInfo = auresAmountFor(emp, settings, years);
   const aures = auresInfo.amount;
+  const majazActive = !auresInfo.manual && (emp.teacherType || 'عادي') === 'مجاز' && MAJAZ_AURES_OVERRIDE[Number(job?.code)] != null;
   if (aures > 0) {
-    autoAllow.push({ name: auresInfo.manual ? 'منحة الأوراس (يدوي)' : 'منحة الأوراس', amount: aures, cnas: true, irg: false, auto: !auresInfo.manual });
+    autoAllow.push({ name: auresInfo.manual ? 'منحة الأوراس (يدوي)' : majazActive ? 'منحة الأوراس (مجاز)' : 'منحة الأوراس', amount: aures, cnas: true, irg: false, auto: !auresInfo.manual });
   }
 
   // منح مخصصة من مركز الجداول والمعطيات — نسبة من الأجر الرئيسي أو مبلغ ثابت

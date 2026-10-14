@@ -474,18 +474,26 @@ export const JOBS: Job[] = [
  * المفتاح = رمز الرتبة (code)، القيمة = ما يُعتمد عند اختيار «مجاز».
  */
 export const MAJAZ_AURES_OVERRIDE: Record<number, { prevcat: number; sect: number; auresCode: string }> = {
+  1010: { prevcat: 14, sect: 5, auresCode: 'A514' },
+  1011: { prevcat: 14, sect: 5, auresCode: 'A514' },
   1012: { prevcat: 14, sect: 5, auresCode: 'A514' },
   1014: { prevcat: 14, sect: 5, auresCode: 'A514' },
+  1020: { prevcat: 14, sect: 5, auresCode: 'A514' },
   1030: { prevcat: 14, sect: 5, auresCode: 'A514' },
   1050: { prevcat: 14, sect: 5, auresCode: 'A514' },
+  1060: { prevcat: 14, sect: 5, auresCode: 'A514' },
+  1061: { prevcat: 14, sect: 5, auresCode: 'A514' },
+  1070: { prevcat: 14, sect: 5, auresCode: 'A514' },
   1080: { prevcat: 14, sect: 5, auresCode: 'A514' },
   1090: { prevcat: 14, sect: 5, auresCode: 'A514' },
   1100: { prevcat: 14, sect: 5, auresCode: 'A514' },
+  1110: { prevcat: 14, sect: 5, auresCode: 'A514' },
   1180: { prevcat: 16, sect: 1, auresCode: 'A116' },
   1190: { prevcat: 16, sect: 1, auresCode: 'A116' },
   1200: { prevcat: 16, sect: 1, auresCode: 'A116' },
+  1210: { prevcat: 16, sect: 1, auresCode: 'A116' },
   1220: { prevcat: 16, sect: 1, auresCode: 'A116' },
-  1210: { prevcat: 16, sect: 1, auresCode: 'A116' }
+  1230: { prevcat: 16, sect: 1, auresCode: 'A116' }
 };
 
 /** رموز الرتب التي لها صنف «مجاز» في الجدول */
