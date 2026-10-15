@@ -646,7 +646,7 @@ export const DEFAULT_POINT_TABLES: PointTable[] = [
     active: true,
     cells: buildOfficialCells(2008),
     rows: [
-      { id: 'ptr-2008', label: 'النقطة الأصلية 45 دج', effectiveYear: 2008, bonusPoints: 0, note: 'سارية من جانفي 2008', active: true }
+      { id: 'ptr-2008', label: 'قيمة النقطة الاستدلالية 45 دج', effectiveYear: 2008, bonusPoints: 0, note: 'ثابتة منذ جانفي 2008', active: true }
     ]
   },
   {
@@ -656,11 +656,11 @@ export const DEFAULT_POINT_TABLES: PointTable[] = [
     basePoints: 45,
     fromYear: 2022,
     toYear: 2022,
-    note: '+50 نقطة استدلالية',
+    note: 'قيمة النقطة ثابتة 45 دج — الزيادة كانت في الأرقام الاستدلالية للشبكة',
     active: true,
     cells: buildOfficialCells(2022),
     rows: [
-      { id: 'ptr-2022', label: '+50 نقطة (المجموع 95 دج)', effectiveYear: 2022, bonusPoints: 50, note: 'سارية من مارس 2022', active: true }
+      { id: 'ptr-2022', label: 'قيمة النقطة الاستدلالية 45 دج', effectiveYear: 2022, bonusPoints: 0, note: 'ثابتة منذ جانفي 2008', active: true }
     ]
   },
   {
@@ -670,11 +670,11 @@ export const DEFAULT_POINT_TABLES: PointTable[] = [
     basePoints: 45,
     fromYear: 2023,
     toYear: 2023,
-    note: '+75 نقطة إضافية (مجموع 125)',
+    note: 'قيمة النقطة ثابتة 45 دج — الزيادة كانت في الأرقام الاستدلالية للشبكة',
     active: true,
     cells: buildOfficialCells(2023),
     rows: [
-      { id: 'ptr-2023', label: '+75 نقطة (المجموع 170 دج)', effectiveYear: 2023, bonusPoints: 125, note: 'سارية من جانفي 2023', active: true }
+      { id: 'ptr-2023', label: 'قيمة النقطة الاستدلالية 45 دج', effectiveYear: 2023, bonusPoints: 0, note: 'ثابتة منذ جانفي 2008', active: true }
     ]
   },
   {
@@ -684,11 +684,11 @@ export const DEFAULT_POINT_TABLES: PointTable[] = [
     basePoints: 45,
     fromYear: 2024,
     toYear: 2026,
-    note: '+75 نقطة إضافية (مجموع 200) والنظام التعويضي 2025',
+    note: 'قيمة النقطة ثابتة 45 دج — والنظام التعويضي 25-55 لسنة 2025',
     active: true,
     cells: buildOfficialCells(2024),
     rows: [
-      { id: 'ptr-2024', label: '+75 نقطة (المجموع 245 دج)', effectiveYear: 2024, bonusPoints: 200, note: 'سارية من جانفي 2024 — والنظام التعويضي 25-55 لسنة 2025', active: true }
+      { id: 'ptr-2024', label: 'قيمة النقطة الاستدلالية 45 دج', effectiveYear: 2024, bonusPoints: 0, note: 'ثابتة منذ جانفي 2008', active: true }
     ]
   }
 ];
