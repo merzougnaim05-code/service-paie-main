@@ -571,13 +571,35 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
                 <select
                   value={jobIdx}
                   onChange={e => handleJobChange(parseInt(e.target.value))}
-                  className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#047857]"
+                  className="reg-job-select w-full bg-white border border-[#cbd5e1] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#047857]"
                 >
-                  {JOBS.map((j, i) => (
-                    <option key={i} value={i}>
-                      {j.name} — (صنف {j.cat})
-                    </option>
-                  ))}
+                  <style>{`
+                    .reg-job-select optgroup { color: #047857; font-weight: 900; background: #ecfdf5; font-size: 13px; }
+                    .reg-job-select option { color: #0f172a; font-weight: 400; background: #fff; }
+                  `}</style>
+                  {[
+                    { id: 'teach', label: 'سلك التعليم — الأساتذة' },
+                    { id: 'edu', label: 'سلك التربية والإدارة' },
+                    { id: 'eco', label: 'المصالح الاقتصادية' },
+                    { id: 'lab', label: 'المخابر' },
+                    { id: 'other', label: 'الأسلاك المشتركة' },
+                    { id: 'workers', label: 'العمال المهنيون' }
+                  ].map(g => {
+                    const items = JOBS.map((j, i) => ({ j, i })).filter(({ j }) => {
+                      if (isProfessionalWorkerJob(j)) return g.id === 'workers';
+                      return (j.domain || 'other') === g.id;
+                    });
+                    if (!items.length) return null;
+                    return (
+                      <optgroup key={g.id} label={g.label}>
+                        {items.map(({ j, i }) => (
+                          <option key={i} value={i}>
+                            {j.name} — (صنف {j.cat})
+                          </option>
+                        ))}
+                      </optgroup>
+                    );
+                  })}
                 </select>
               </div>
 
