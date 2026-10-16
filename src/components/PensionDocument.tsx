@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Employee, Settings, Job } from '../types';
-import { JOBS, GRILLE, MONTHS_AR } from '../data/salaryGrids';
-import { computePayslip, fmt, getClassificationCategory } from '../utils/salaryCalculator';
+import { JOBS, GRILLE, MONTHS_AR, MAJAZ_CODES } from '../data/salaryGrids';
+import { computePayslip, fmt, getClassificationCategory, isProfessionalWorkerJob } from '../utils/salaryCalculator';
 import { exportElementsToPdf } from '../utils/exportPdf';
 import { CNR_LOGO } from '../data/cnrLogo';
 import { AutoFitScale } from './DeviceScaler';
@@ -26,13 +26,13 @@ interface MonthItem {
   key: string;       // YYYY-MM
   label: string;     // e.g. "جانفي 2021"
   salary: number;
-  yieldVal: number;  // علاوة المردودية الفصلية (تدفع كل 3 أشهر ابتداء من جانفي)
-}
+  yieldVal: number;  // علاوة المردودية الفصلية (تدفع بعد مارس/جوان/سبتمبر/ديسمبر)
+};
 
-// أشهر دفع المردودية: كل ثلاثة أشهر ابتداء من جانفي (جانفي، أفريل، جويلية، أكتوبر)
+// أشهر دفع المردودية: نهاية كل ثلاثي (مارس، جوان، سبتمبر، ديسمبر)
 const isYieldMonth = (key: string) => {
   const m = Number(key.slice(5, 7));
-  return m === 1 || m === 4 || m === 7 || m === 10;
+  return m === 3 || m === 6 || m === 9 || m === 12;
 };
 
 // Split a full name into { lastName, firstName } — last token is the family name.
@@ -68,23 +68,28 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
   // 60 months data state
   const [monthsData, setMonthsData] = useState<MonthItem[]>([]);
 
-  // 5 Salary evolution rules
-  const [salaryRules, setSalaryRules] = useState<Array<{
+  // 5 Salary evolution rules — الرتبة/الصنف/الدرجة قوائم منسدلة، والأجر والمردودية يُحتسبان آلياً (قابلان للتعديل)
+  interface SalaryRule {
     from: string;
     to: string;
-    rank: string;
-    cat: string;
-    grade: string;
-    wage: string;
-  }>>([
-    { from: '', to: '', rank: '', cat: '', grade: '', wage: '' },
-    { from: '', to: '', rank: '', cat: '', grade: '', wage: '' },
-    { from: '', to: '', rank: '', cat: '', grade: '', wage: '' },
-    { from: '', to: '', rank: '', cat: '', grade: '', wage: '' },
-    { from: '', to: '', rank: '', cat: '', grade: '', wage: '' },
+    jobIdx: string;   // index in JOBS (' ' = اختيار يدوي عبر الأجر)
+    rank: string;     // display name (synced from dropdown)
+    catIdx: string;   // index in GRILLE
+    grade: string;    // echelon 0..12
+    wage: string;     // auto-computed cnasBase, editable
+    teacherType: 'عادي' | 'مجاز';
+    yieldAmt: string; // auto-computed quarterly rendement, editable
+  }
+  const EMPTY_SALARY_RULE: SalaryRule = { from: '', to: '', jobIdx: '', rank: '', catIdx: '', grade: '', wage: '', teacherType: 'عادي', yieldAmt: '' };
+  const [salaryRules, setSalaryRules] = useState<SalaryRule[]>([
+    { ...EMPTY_SALARY_RULE },
+    { ...EMPTY_SALARY_RULE },
+    { ...EMPTY_SALARY_RULE },
+    { ...EMPTY_SALARY_RULE },
+    { ...EMPTY_SALARY_RULE }
   ]);
 
-  // 5 Yield (مردودية) programming rules — تدفع كل 3 أشهر ابتداء من جانفي
+  // 5 Yield (مردودية) programming rules — تدفع بعد مارس/جوان/سبتمبر/ديسمبر (نهاية كل ثلاثي)
   const [yieldRules, setYieldRules] = useState<Array<{
     from: string;
     to: string;
@@ -163,23 +168,27 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
       const firstMonth = initial[0]?.key || '';
       const lastMonth = initial[59]?.key || '';
       const basePayslip = computePayslip(currentEmployee, refMonth, refYear, settings);
+      const initCatIdx = GRILLE.findIndex(g => g.cat === String(currentJob?.cat));
+      const quarterlyYield = Math.round((basePayslip.perfBonusTotal || 0) * 3 * 100) / 100;
       setSalaryRules([
         {
           from: firstMonth,
           to: lastMonth,
+          jobIdx: currentEmployee.jobIdx != null ? String(currentEmployee.jobIdx) : '',
           rank: currentJob?.name || '',
-          cat: String(GRILLE[currentEmployee.category]?.cat || ''),
-          grade: String(currentEmployee.echelon),
-          wage: String(basePayslip.cnasBase)
+          catIdx: initCatIdx >= 0 ? String(initCatIdx) : '',
+          grade: String(currentEmployee.echelon ?? ''),
+          wage: String(basePayslip.cnasBase),
+          teacherType: currentEmployee.teacherType || 'عادي',
+          yieldAmt: quarterlyYield > 0 ? String(quarterlyYield) : ''
         },
-        { from: '', to: '', rank: '', cat: '', grade: '', wage: '' },
-        { from: '', to: '', rank: '', cat: '', grade: '', wage: '' },
-        { from: '', to: '', rank: '', cat: '', grade: '', wage: '' },
-        { from: '', to: '', rank: '', cat: '', grade: '', wage: '' }
+        { ...EMPTY_SALARY_RULE },
+        { ...EMPTY_SALARY_RULE },
+        { ...EMPTY_SALARY_RULE },
+        { ...EMPTY_SALARY_RULE }
       ]);
 
       // Populate initial yield rule 1: مردودية 3 أشهر من كشف الراتب الحالي
-      const quarterlyYield = Math.round((basePayslip.perfBonusTotal || 0) * 3 * 100) / 100;
       setYieldRules([
         {
           from: firstMonth,
@@ -194,6 +203,57 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
     }
   }, [empId, refMonth, refYear]);
 
+  // Build a temp employee from a salary rule + auto-compute wage (cnasBase) & quarterly rendement
+  const autoForRule = (rule: SalaryRule, emp: Employee): { wage: string; yld: string } | null => {
+    const ji = Number(rule.jobIdx);
+    const job = JOBS[ji];
+    if (!job) return null;
+    const ci = Number(rule.catIdx);
+    const tmp: Employee = {
+      ...emp,
+      jobIdx: ji,
+      category: Number.isFinite(ci) && GRILLE[ci] ? ci : emp.category,
+      echelon: Math.max(0, Math.min(12, Number(rule.grade) || 0)),
+      teacherType: rule.teacherType
+    };
+    let m = refMonth;
+    let y = refYear;
+    const mt = String(rule.to || '').match(/^(\d{4})-(\d{2})$/);
+    if (mt) { y = Number(mt[1]); m = Number(mt[2]); }
+    try {
+      const p = computePayslip(tmp, m, y, settings);
+      const w = Math.round((p.cnasBase || 0) * 100) / 100;
+      const q = Math.round((p.perfBonusTotal || 0) * 3 * 100) / 100;
+      return { wage: String(w), yld: String(q) };
+    } catch {
+      return null;
+    }
+  };
+
+  // Update a rule from dropdowns then auto-fill wage + quarterly rendement (still manually editable afterwards)
+  const updateRule = (idx: number, patch: Partial<SalaryRule>, auto = false) => {
+    setSalaryRules(prev => {
+      const copy = [...prev];
+      let next = { ...copy[idx], ...patch };
+      if (patch.jobIdx !== undefined) {
+        const job = JOBS[Number(patch.jobIdx)];
+        next.rank = job?.name || '';
+        next.teacherType = 'عادي';
+        if (job) {
+          const ci = GRILLE.findIndex(g => g.cat === String(job.cat));
+          if (ci >= 0) next.catIdx = String(ci);
+        }
+        if (currentEmployee) next.grade = String(currentEmployee.echelon ?? 0);
+      }
+      if (auto && currentEmployee) {
+        const a = autoForRule(next, currentEmployee);
+        if (a) next = { ...next, wage: a.wage, yieldAmt: a.yld };
+      }
+      copy[idx] = next;
+      return copy;
+    });
+  };
+
   // Apply salary + yield rules to the 60 months
   const applySalaryRules = () => {
     if (!monthsData.length) return;
@@ -207,8 +267,14 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
         }
       }
 
-      // المردودية: تُطبق على أشهر جانفي/أفريل/جويلية/أكتوبر داخل الفترة
+      // المردودية من برمجة الراتب: تُطبق أولاً على أشهر مارس/جوان/سبتمبر/ديسمبر داخل الفترة
       let yieldVal = m.yieldVal;
+      for (const rule of salaryRules) {
+        if (rule.from && rule.to && rule.yieldAmt && isYieldMonth(m.key) && m.key >= rule.from && m.key <= rule.to) {
+          yieldVal = Number(rule.yieldAmt) || 0;
+        }
+      }
+      // سطور المردودية اليدوية تتجاوز القيم الآلية
       for (const rule of yieldRules) {
         if (rule.from && rule.to && rule.amount) {
           if (isYieldMonth(m.key) && m.key >= rule.from && m.key <= rule.to) {
@@ -238,6 +304,11 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
 
     triggerToast('تم تطبيق وحفظ الأجور والمردودية على الـ 60 شهراً بنجاح ✓');
     setShowConfigPanel(false);
+  };
+
+  // Edit a single month's quarterly rendement from the back-face quarter boxes
+  const handleYieldCellChange = (key: string, val: number) => {
+    setMonthsData(prev => prev.map(m => (m.key === key ? { ...m, yieldVal: val } : m)));
   };
 
   // Block Totals (5 Blocks of 12 months each) — تشمل المردودية
@@ -462,14 +533,17 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                   <tr className="bg-[#f1f5f9] text-[#0f172a] border-b border-[#e2e8f0]">
                     <th className="p-2.5">الفترة من (شهر/سنة)</th>
                     <th className="p-2.5">إلى (شهر/سنة)</th>
-                    <th className="p-2.5">الرتبة</th>
-                    <th className="p-2.5">الصنف</th>
+                    <th className="p-2.5">الرتبة (قائمة) + الصنف</th>
                     <th className="p-2.5">الدرجة</th>
-                    <th className="p-2.5">الأجر الخاضع للاشتراك (دج)</th>
+                    <th className="p-2.5">الأجر الخاضع (دج) — آلي/يدوي</th>
+                    <th className="p-2.5">مردودية فصلية (دج) — آلي/يدوي</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#e2e8f0]">
-                  {salaryRules.map((rule, idx) => (
+                  {salaryRules.map((rule, idx) => {
+                    const ruleJob = JOBS[Number(rule.jobIdx)];
+                    const showType = !!ruleJob && ruleJob.domain === 'teach' && MAJAZ_CODES.includes(Number(ruleJob.code));
+                    return (
                     <tr key={idx}>
                       <td className="p-2">
                         <input
@@ -495,44 +569,71 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                           className="w-full bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-2 py-1 font-mono text-center"
                         />
                       </td>
-                      <td className="p-2">
-                        <input
-                          type="text"
-                          placeholder="الرتبة"
-                          value={rule.rank}
-                          onChange={e => {
-                            const copy = [...salaryRules];
-                            copy[idx].rank = e.target.value;
-                            setSalaryRules(copy);
-                          }}
-                          className="w-full bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-2 py-1"
-                        />
+                      <td className="p-2 min-w-[220px]">
+                        <select
+                          value={rule.jobIdx}
+                          onChange={e => updateRule(idx, { jobIdx: e.target.value }, true)}
+                          className="w-full bg-[#f8fafc] border border-[#047857] rounded-lg px-2 py-1 text-xs font-bold text-[#0f172a] focus:outline-none"
+                        >
+                          <option value="">— اختر الرتبة —</option>
+                          {[
+                            { id: 'teach', label: 'سلك التعليم — الأساتذة' },
+                            { id: 'edu', label: 'سلك التربية والإدارة' },
+                            { id: 'eco', label: 'المصالح الاقتصادية' },
+                            { id: 'lab', label: 'المخابر' },
+                            { id: 'other', label: 'الأسلاك المشتركة' },
+                            { id: 'workers', label: 'العمال المهنيون' }
+                          ].map(g => {
+                            const items = JOBS.map((j, i) => ({ j, i })).filter(({ j }) => {
+                              if (isProfessionalWorkerJob(j)) return g.id === 'workers';
+                              return (j.domain || 'other') === g.id;
+                            });
+                            if (!items.length) return null;
+                            return (
+                              <optgroup key={g.id} label={g.label}>
+                                {items.map(({ j, i }) => (
+                                  <option key={i} value={i}>{j.name} — (صنف {j.cat})</option>
+                                ))}
+                              </optgroup>
+                            );
+                          })}
+                        </select>
+                        {showType && (
+                          <select
+                            value={rule.teacherType}
+                            onChange={e => updateRule(idx, { teacherType: e.target.value as 'عادي' | 'مجاز' }, true)}
+                            className="w-full mt-1 bg-amber-50 border border-amber-400 rounded-lg px-2 py-1 text-xs font-bold text-amber-900 focus:outline-none"
+                          >
+                            <option value="عادي">أستاذ عادي</option>
+                            <option value="مجاز">أستاذ مجاز (--)</option>
+                          </select>
+                        )}
                       </td>
                       <td className="p-2">
-                        <input
-                          type="text"
-                          placeholder="الصنف"
-                          value={rule.cat}
-                          onChange={e => {
-                            const copy = [...salaryRules];
-                            copy[idx].cat = e.target.value;
-                            setSalaryRules(copy);
-                          }}
-                          className="w-full bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-2 py-1 text-center"
-                        />
-                      </td>
-                      <td className="p-2">
-                        <input
-                          type="text"
-                          placeholder="الدرجة"
-                          value={rule.grade}
-                          onChange={e => {
-                            const copy = [...salaryRules];
-                            copy[idx].grade = e.target.value;
-                            setSalaryRules(copy);
-                          }}
-                          className="w-full bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-2 py-1 text-center"
-                        />
+                        <div className="flex gap-1">
+                          <select
+                            value={rule.catIdx}
+                            onChange={e => updateRule(idx, { catIdx: e.target.value }, true)}
+                            className="flex-1 bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-1 py-1 text-center text-xs font-bold"
+                            title="الصنف"
+                          >
+                            <option value="">صنف</option>
+                            {GRILLE.map((gc, ci) => (
+                              <option key={ci} value={ci}>{gc.cat}</option>
+                            ))}
+                          </select>
+                          <select
+                            value={rule.grade}
+                            onChange={e => updateRule(idx, { grade: e.target.value }, true)}
+                            className="flex-1 bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-1 py-1 text-center text-xs font-bold"
+                            title="الدرجة"
+                          >
+                            <option value="">درجة</option>
+                            {Array.from({ length: 13 }, (_, d) => (
+                              <option key={d} value={d}>{d}</option>
+                            ))}
+                          </select>
+                        </div>
                       </td>
                       <td className="p-2">
                         <input
@@ -548,8 +649,23 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                           className="w-full bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-2 py-1 font-mono font-bold text-center text-[#047857]"
                         />
                       </td>
+                      <td className="p-2">
+                        <input
+                          type="number"
+                          step="0.01"
+                          placeholder="مردودية فصلية"
+                          value={rule.yieldAmt}
+                          onChange={e => {
+                            const copy = [...salaryRules];
+                            copy[idx].yieldAmt = e.target.value;
+                            setSalaryRules(copy);
+                          }}
+                          className="w-full bg-amber-50/60 border border-amber-300 rounded-lg px-2 py-1 font-mono font-bold text-center text-[#b45309]"
+                        />
+                      </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -558,12 +674,12 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
             <div className="flex items-center justify-between mb-3 mt-6">
               <div className="text-sm font-black text-[#b45309] flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-amber-600" />
-                <span>برمجة علاوة المردودية — تدفع كل ثلاثة (3) أشهر ابتداء من جانفي</span>
+                <span>برمجة علاوة المردودية — تدفع بعد مارس، جوان، سبتمبر وديسمبر (نهاية كل ثلاثي)</span>
               </div>
             </div>
 
             <p className="text-xs text-[#64748b] mb-4">
-              تُضاف المردودية تلقائياً لأشهر <b>جانفي، أفريل، جويلية وأكتوبر</b> من كل سنة داخل الفترة المحددة، ويُعرض المبلغ في خانة الشهر مضافاً إلى الأجر الخاضع للاشتراك، مع احتسابه في المجاميع والمعدل العام.
+              تُضاف المردودية تلقائياً لأشهر <b>مارس، جوان، سبتمبر وديسمبر</b> من كل سنة داخل الفترة المحددة (نهاية كل ثلاثي)، ويُعرض المبلغ في خانة الشهر مضافاً إلى الأجر الخاضع للاشتراك، مع احتسابه في المجاميع والمعدل العام. اترك المبلغ فارغاً ليعتمد القيمة الآلية من برمجة الراتب أعلاه.
             </p>
 
             <div className="overflow-x-auto rounded-xl border border-[#fde68a] bg-white">
@@ -663,6 +779,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                     blockTotals={blockTotals}
                     grandTotal={grandTotal}
                     average={averageMonthlySalary}
+                    onYieldChange={handleYieldCellChange}
                   />
                 </div>
               </AutoFitScale>
@@ -945,9 +1062,10 @@ interface CNRBackProps {
   blockTotals: number[];
   grandTotal: number;
   average: number;
+  onYieldChange: (key: string, val: number) => void;
 }
 
-const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, average }) => {
+const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, average, onYieldChange }) => {
   // Blocks left-to-right: Total(5) = oldest 12 months ... Total(1) = most recent 12 months
   const blockMonths = (b: number) => monthsData.slice(b * 12, b * 12 + 12);
 
@@ -998,6 +1116,11 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
         .cnrb-page .cnrb-total-ar { font-size: 9.5pt; font-weight: bold; display: block; }
         .cnrb-page .cnrb-total-fr { font-size: 8.5pt; font-weight: bold; display: block; }
         .cnrb-page .cnrb-total-val { font-size: 10pt; }
+        .cnrb-page .cnrb-qrow { display: flex; gap: 1.5mm; margin-top: 1.5mm; }
+        .cnrb-page .cnrb-qbox { flex: 1; border: 1px solid #000; text-align: center; padding: 0.8mm 0.5mm; background: #fff; }
+        .cnrb-page .cnrb-qbox .qlabel { font-size: 7pt; display: block; font-weight: bold; }
+        .cnrb-page .cnrb-qbox input { width: 100%; border: none; background: transparent; text-align: center; font-size: 8.5pt; font-weight: bold; padding: 0; }
+        .cnrb-page .cnrb-qbox input:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }
 
         .cnrb-page .cnrb-footer { display: flex; justify-content: space-between; align-items: flex-end; padding: 0 4mm 1mm 4mm; }
         .cnrb-page .cnrb-summary-section { display: flex; flex-direction: column; gap: 2.5mm; }
@@ -1047,7 +1170,8 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
         {/* 5 Column Blocks (Left to Right: Block 5 to Block 1) */}
         <div className="cnrb-tables-container">
           {[0, 1, 2, 3, 4].map(j => (
-            <table key={j} className="cnrb-block-table">
+            <div key={j} style={{ flex: 1, minWidth: 0 }}>
+            <table className="cnrb-block-table">
               <thead>
                 <tr>
                   <th className="cnrb-th-col-ref">
@@ -1081,6 +1205,22 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
                 </tr>
               </tbody>
             </table>
+            {/* Quarterly rendement boxes after Mar / Jun / Sep / Dec */}
+            <div className="cnrb-qrow">
+              {blockMonths(j).filter(m => isYieldMonth(m.key)).map((m, qi) => (
+                <div key={m.key} className="cnrb-qbox">
+                  <span className="qlabel ar">مردودية {m.label}</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={m.yieldVal ? m.yieldVal : ''}
+                    placeholder="0"
+                    onChange={e => onYieldChange(m.key, Number(e.target.value) || 0)}
+                  />
+                </div>
+              ))}
+            </div>
+            </div>
           ))}
         </div>
 
