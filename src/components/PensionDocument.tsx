@@ -306,11 +306,6 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
     setShowConfigPanel(false);
   };
 
-  // Edit a single month's quarterly rendement from the back-face quarter boxes
-  const handleYieldCellChange = (key: string, val: number) => {
-    setMonthsData(prev => prev.map(m => (m.key === key ? { ...m, yieldVal: val } : m)));
-  };
-
   // Block Totals (5 Blocks of 12 months each) — تشمل المردودية
   const blockTotals = useMemo(() => {
     const totals: number[] = [0, 0, 0, 0, 0];
@@ -779,7 +774,6 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                     blockTotals={blockTotals}
                     grandTotal={grandTotal}
                     average={averageMonthlySalary}
-                    onYieldChange={handleYieldCellChange}
                   />
                 </div>
               </AutoFitScale>
@@ -1062,10 +1056,9 @@ interface CNRBackProps {
   blockTotals: number[];
   grandTotal: number;
   average: number;
-  onYieldChange: (key: string, val: number) => void;
 }
 
-const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, average, onYieldChange }) => {
+const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, average }) => {
   // Blocks left-to-right: Total(5) = oldest 12 months ... Total(1) = most recent 12 months
   const blockMonths = (b: number) => monthsData.slice(b * 12, b * 12 + 12);
 
@@ -1116,10 +1109,6 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
         .cnrb-page .cnrb-total-ar { font-size: 9.5pt; font-weight: bold; display: block; }
         .cnrb-page .cnrb-total-fr { font-size: 8.5pt; font-weight: bold; display: block; }
         .cnrb-page .cnrb-total-val { font-size: 10pt; }
-        .cnrb-page td.cnrb-yield-row { background: #fffbeb; font-weight: bold; text-align: center; padding: 1mm; font-size: 8.5pt; }
-        .cnrb-page td.cnrb-yield-row span { margin-left: 3mm; }
-        .cnrb-page td.cnrb-yield-row input { width: 32mm; border: 1px solid #000; background: #fff; text-align: center; font-size: 9pt; font-weight: bold; padding: 0.5mm; }
-        .cnrb-page td.cnrb-yield-row input:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }
 
         .cnrb-page .cnrb-footer { display: flex; justify-content: space-between; align-items: flex-end; padding: 0 4mm 1mm 4mm; }
         .cnrb-page .cnrb-summary-section { display: flex; flex-direction: column; gap: 2.5mm; }
@@ -1183,11 +1172,8 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
                 </tr>
               </thead>
               <tbody>
-                {blockMonths(j).map((m, r) => {
-                  const qNum = Number(m.key.slice(5, 7)) === 3 ? 'الأول' : Number(m.key.slice(5, 7)) === 6 ? 'الثاني' : Number(m.key.slice(5, 7)) === 9 ? 'الثالث' : 'الرابع';
-                  return (
-                  <React.Fragment key={r}>
-                  <tr>
+                {blockMonths(j).map((m, r) => (
+                  <tr key={r}>
                     <td className="cnrb-data-cell cnrb-month-cell" contentEditable suppressContentEditableWarning>{m.label}</td>
                     <td className="cnrb-data-cell" contentEditable suppressContentEditableWarning>
                       <span className="cnrb-sal-val">{fmt(m.salary + (m.yieldVal || 0))}</span>
@@ -1196,23 +1182,7 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
                       )}
                     </td>
                   </tr>
-                  {isYieldMonth(m.key) && (
-                    <tr>
-                      <td colSpan={2} className="cnrb-yield-row">
-                        <span className="ar">مردودية الثلاثي {qNum}</span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={m.yieldVal ? m.yieldVal : ''}
-                          placeholder="0"
-                          onChange={e => onYieldChange(m.key, Number(e.target.value) || 0)}
-                        />
-                      </td>
-                    </tr>
-                  )}
-                  </React.Fragment>
-                  );
-                })}
+                ))}
                 <tr>
                   <td colSpan={2} className="cnrb-total-cell">
                     <span className="cnrb-total-ar ar">المجموع({5 - j})</span>
