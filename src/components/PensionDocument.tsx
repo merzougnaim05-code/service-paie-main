@@ -1116,11 +1116,10 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
         .cnrb-page .cnrb-total-ar { font-size: 9.5pt; font-weight: bold; display: block; }
         .cnrb-page .cnrb-total-fr { font-size: 8.5pt; font-weight: bold; display: block; }
         .cnrb-page .cnrb-total-val { font-size: 10pt; }
-        .cnrb-page .cnrb-qrow { display: flex; gap: 1.5mm; margin-top: 1.5mm; }
-        .cnrb-page .cnrb-qbox { flex: 1; border: 1px solid #000; text-align: center; padding: 0.8mm 0.5mm; background: #fff; }
-        .cnrb-page .cnrb-qbox .qlabel { font-size: 7pt; display: block; font-weight: bold; }
-        .cnrb-page .cnrb-qbox input { width: 100%; border: none; background: transparent; text-align: center; font-size: 8.5pt; font-weight: bold; padding: 0; }
-        .cnrb-page .cnrb-qbox input:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }
+        .cnrb-page td.cnrb-yield-row { background: #fffbeb; font-weight: bold; text-align: center; padding: 1mm; font-size: 8.5pt; }
+        .cnrb-page td.cnrb-yield-row span { margin-left: 3mm; }
+        .cnrb-page td.cnrb-yield-row input { width: 32mm; border: 1px solid #000; background: #fff; text-align: center; font-size: 9pt; font-weight: bold; padding: 0.5mm; }
+        .cnrb-page td.cnrb-yield-row input:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }
 
         .cnrb-page .cnrb-footer { display: flex; justify-content: space-between; align-items: flex-end; padding: 0 4mm 1mm 4mm; }
         .cnrb-page .cnrb-summary-section { display: flex; flex-direction: column; gap: 2.5mm; }
@@ -1170,8 +1169,7 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
         {/* 5 Column Blocks (Left to Right: Block 5 to Block 1) */}
         <div className="cnrb-tables-container">
           {[0, 1, 2, 3, 4].map(j => (
-            <div key={j} style={{ flex: 1, minWidth: 0 }}>
-            <table className="cnrb-block-table">
+            <table key={j} className="cnrb-block-table">
               <thead>
                 <tr>
                   <th className="cnrb-th-col-ref">
@@ -1185,8 +1183,11 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
                 </tr>
               </thead>
               <tbody>
-                {blockMonths(j).map((m, r) => (
-                  <tr key={r}>
+                {blockMonths(j).map((m, r) => {
+                  const qNum = Number(m.key.slice(5, 7)) === 3 ? 'الأول' : Number(m.key.slice(5, 7)) === 6 ? 'الثاني' : Number(m.key.slice(5, 7)) === 9 ? 'الثالث' : 'الرابع';
+                  return (
+                  <React.Fragment key={r}>
+                  <tr>
                     <td className="cnrb-data-cell cnrb-month-cell" contentEditable suppressContentEditableWarning>{m.label}</td>
                     <td className="cnrb-data-cell" contentEditable suppressContentEditableWarning>
                       <span className="cnrb-sal-val">{fmt(m.salary + (m.yieldVal || 0))}</span>
@@ -1195,7 +1196,23 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
                       )}
                     </td>
                   </tr>
-                ))}
+                  {isYieldMonth(m.key) && (
+                    <tr>
+                      <td colSpan={2} className="cnrb-yield-row">
+                        <span className="ar">مردودية الثلاثي {qNum}</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={m.yieldVal ? m.yieldVal : ''}
+                          placeholder="0"
+                          onChange={e => onYieldChange(m.key, Number(e.target.value) || 0)}
+                        />
+                      </td>
+                    </tr>
+                  )}
+                  </React.Fragment>
+                  );
+                })}
                 <tr>
                   <td colSpan={2} className="cnrb-total-cell">
                     <span className="cnrb-total-ar ar">المجموع({5 - j})</span>
@@ -1205,22 +1222,6 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
                 </tr>
               </tbody>
             </table>
-            {/* Quarterly rendement boxes after Mar / Jun / Sep / Dec */}
-            <div className="cnrb-qrow">
-              {blockMonths(j).filter(m => isYieldMonth(m.key)).map((m, qi) => (
-                <div key={m.key} className="cnrb-qbox">
-                  <span className="qlabel ar">مردودية {m.label}</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={m.yieldVal ? m.yieldVal : ''}
-                    placeholder="0"
-                    onChange={e => onYieldChange(m.key, Number(e.target.value) || 0)}
-                  />
-                </div>
-              ))}
-            </div>
-            </div>
           ))}
         </div>
 
