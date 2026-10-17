@@ -1116,10 +1116,8 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
         .cnrb-page .cnrb-total-ar { font-size: 9.5pt; font-weight: bold; display: block; }
         .cnrb-page .cnrb-total-fr { font-size: 8.5pt; font-weight: bold; display: block; }
         .cnrb-page .cnrb-total-val { font-size: 10pt; }
-        .cnrb-page td.cnrb-yield-row { background: #fffbeb; font-weight: bold; text-align: center; padding: 1mm; font-size: 8.5pt; }
-        .cnrb-page td.cnrb-yield-row span { margin-left: 3mm; }
-        .cnrb-page td.cnrb-yield-row input { width: 32mm; border: 1px solid #000; background: #fff; text-align: center; font-size: 9pt; font-weight: bold; padding: 0.5mm; }
-        .cnrb-page td.cnrb-yield-row input:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }
+        .cnrb-page td.cnrb-data-cell input { width: 100%; border: none; background: transparent; text-align: center; font-weight: bold; font-size: 9pt; padding: 0; }
+        .cnrb-page td.cnrb-data-cell input:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }
 
         .cnrb-page .cnrb-footer { display: flex; justify-content: space-between; align-items: flex-end; padding: 0 4mm 1mm 4mm; }
         .cnrb-page .cnrb-summary-section { display: flex; flex-direction: column; gap: 2.5mm; }
@@ -1198,8 +1196,8 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
                   </tr>
                   {isYieldMonth(m.key) && (
                     <tr>
-                      <td colSpan={2} className="cnrb-yield-row">
-                        <span className="ar">مردودية الثلاثي {qNum}</span>
+                      <td className="cnrb-data-cell cnrb-month-cell" contentEditable suppressContentEditableWarning>مردودية الثلاثي {qNum}</td>
+                      <td className="cnrb-data-cell">
                         <input
                           type="number"
                           step="0.01"
