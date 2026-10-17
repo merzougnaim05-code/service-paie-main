@@ -69,12 +69,8 @@ export const AllDocsBundle: React.FC<AllDocsBundleProps> = ({ employees, setting
       <div className="doc-page" data-doc="payslip">
         <DocSep n={1} label="كشف الراتب" />
         <AutoFitScale docWidth={794}>
-          <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-            <div style={{ width: 794 }}>
-              <AutoFitScale docWidth={790}>
-                <PayslipView employees={employees} settings={settings} selectedEmpId={employee.id} />
-              </AutoFitScale>
-            </div>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <PayslipView employees={employees} settings={settings} selectedEmpId={employee.id} />
           </div>
         </AutoFitScale>
       </div>
