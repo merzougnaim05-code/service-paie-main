@@ -117,10 +117,14 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
   // Generate 60 consecutive months going backwards from refMonth / refYear
   const generateInitial60Months = (emp: Employee, rMonth: number, rYear: number) => {
     const list: MonthItem[] = [];
-    const basePayslip = computePayslip(emp, rMonth, rYear, settings);
-    const standardWage = basePayslip.cnasBase || basePayslip.gross || 50000;
-    // المردودية الفصلية الافتراضية = مردودية 3 أشهر من كشف الراتب الحالي
-    const quarterlyYield = Math.round((basePayslip.perfBonusTotal || 0) * 3 * 100) / 100;
+    // قيمة نقطة وأجر استدلالي لكل شهر على حدة حسب سنته (الشبكة ونقطة السنة المعنية)
+    const autoFor = (mm: number, yy: number) => {
+      const ps = computePayslip(emp, mm, yy, settings);
+      return {
+        wage: ps.cnasBase || ps.gross || 50000,
+        yield: Math.round((ps.perfBonusTotal || 0) * 3 * 100) / 100
+      };
+    };
 
     // Check if employee has saved history records
     const histMap = new Map<string, number>();
@@ -139,13 +143,14 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
       const key = `${y}-${String(m).padStart(2, '0')}`;
       const label = `${MONTHS_AR[m]} ${y}`;
 
+      const auto = autoFor(m, y);
       const savedWage = histMap.get(key);
-      const finalSalary = savedWage !== undefined ? savedWage : standardWage;
+      const finalSalary = savedWage !== undefined ? savedWage : auto.wage;
 
       const savedPerf = histPerf.get(key);
       const yieldVal = savedPerf !== undefined
         ? savedPerf
-        : (isYieldMonth(key) ? quarterlyYield : 0);
+        : (isYieldMonth(key) ? auto.yield : 0);
 
       list.push({
         key,
@@ -1209,11 +1214,14 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
                       <td className="cnrb-data-cell cnrb-month-cell" contentEditable suppressContentEditableWarning>مردودية الثلاثي {qNum}</td>
                       <td className="cnrb-data-cell">
                         <input
-                          type="number"
-                          step="0.01"
-                          value={m.yieldVal ? m.yieldVal : ''}
-                          placeholder="0"
-                          onChange={e => onYieldChange(m.key, Number(e.target.value) || 0)}
+                          type="text"
+                          value={m.yieldVal ? fmt(m.yieldVal) : '00.00'}
+                          className="font-mono"
+                          onChange={e => {
+                            const num = parseFloat(e.target.value.replace(/,/g, ''));
+                            onYieldChange(m.key, isNaN(num) ? 0 : num);
+                          }}
+                          onFocus={e => e.currentTarget.select()}
                         />
                       </td>
                     </tr>
