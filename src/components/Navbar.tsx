@@ -14,7 +14,9 @@ import {
   Smartphone,
   DoorOpen,
   LayoutDashboard,
-  Database
+  Database,
+  ShieldCheck,
+  ClipboardList
 } from 'lucide-react';
 
 /** بوابة التطبيقات المدرسية — لوحة التحكم المركزية */
@@ -352,7 +354,51 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       </div>
 
-      {/* Mobile Menu Drawer */}
+      {/* 🟢 شريط الوثائق اليومية للاستعمال */}
+      <div className="border-t-2 border-amber-400/60 bg-gradient-to-l from-emerald-950 via-emerald-900 to-teal-950 print:hidden">
+        <style>{`
+          .dailydoc-btn {
+            position: relative; display: inline-flex; align-items: center; gap: 6px;
+            padding: 7px 14px; border-radius: 999px; cursor: pointer; white-space: nowrap;
+            background: linear-gradient(145deg, #065f46, #059669, #065f46);
+            border: 2px solid rgba(252, 211, 77, .55);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 3px 6px rgba(0,0,0,.4);
+            color: #fefce8; font-weight: 800; font-size: 11px;
+            transition: all .18s ease; flex-shrink: 0;
+          }
+          .dailydoc-btn::before, .dailydoc-btn::after { content: '✦'; font-size: 9px; color: #fcd34d; text-shadow: 0 0 6px rgba(252,211,77,.9); }
+          .dailydoc-btn:hover { background: linear-gradient(145deg, #d97706, #f59e0b, #d97706); color: #0f172a; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,.45), 0 0 14px rgba(252,211,77,.5); }
+          .dailydoc-btn:hover::before, .dailydoc-btn:hover::after { color: #0f172a; }
+          .dailydoc-btn.active { background: linear-gradient(145deg, #fbbf24, #fcd34d, #fbbf24); color: #0f172a; border-color: #fff; }
+          .dailydoc-btn.active::before, .dailydoc-btn.active::after { color: #92400e; }
+          .dailydoc-btn .ic { background: rgba(255,255,255,.18); border-radius: 999px; padding: 3px; line-height: 0; }
+          .dailydoc-btn.active .ic, .dailydoc-btn:hover .ic { background: rgba(15,23,42,.15); }
+        `}</style>
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-1.5 flex items-center gap-2 overflow-x-auto">
+          <span className="text-[11px] sm:text-xs font-black text-amber-300 whitespace-nowrap shrink-0 flex items-center gap-1.5">
+            <span className="text-sm">★</span> وثائق يومية للاستعمال:
+          </span>
+          {[
+            { label: 'سجل الموظفين', icon: <Users className="w-3.5 h-3.5" />, active: activeTab === 'employees', go: () => handleTabClick('employees') },
+            { label: 'كشف الراتب', icon: <FileText className="w-3.5 h-3.5" />, active: activeTab === 'payslip', go: () => handleTabClick('payslip') },
+            { label: 'طلائح الرواتب', icon: <FileSpreadsheet className="w-3.5 h-3.5" />, active: activeTab === 'payrollTables', go: () => handleTabClick('payrollTables') },
+            { label: 'وثائق CNAS — الضمان الاجتماعي', icon: <ShieldCheck className="w-3.5 h-3.5" />, active: activeTab === 'docs', go: () => handleTabClick('docs') },
+            { label: 'وثائق CNR — التقاعد', icon: <Award className="w-3.5 h-3.5" />, active: activeTab === 'pension', go: () => handleTabClick('pension') },
+            { label: 'استمارات', icon: <ClipboardList className="w-3.5 h-3.5" />, active: activeTab === 'docs' && activeDoc === 'form', go: () => handleDocClick('form') }
+          ].map(b => (
+            <button
+              key={b.label}
+              type="button"
+              onClick={b.go}
+              className={`dailydoc-btn ${b.active ? 'active' : ''}`}
+              title={b.label}
+            >
+              <span className="ic">{b.icon}</span>
+              <span>{b.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
       {mobileMenuOpen && (
         <div className="md:hidden border-t-2 border-amber-500/70 bg-slate-900 px-3 pt-2 pb-4 max-h-[70vh] overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-150">
           <div className="text-[11px] font-bold text-amber-400 px-2 py-1.5 border-b border-slate-800 mb-1">
