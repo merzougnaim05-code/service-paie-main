@@ -17,6 +17,7 @@ import { PayslipView } from './components/PayslipView';
 import { PayrollSheets } from './components/PayrollSheets';
 import { AdminDocs } from './components/AdminDocs';
 import { CnrAnnexDocs } from './components/CnrAnnexDocs';
+import { AllDocsBundle } from './components/AllDocsBundle';
 import { DataHub } from './components/DataHub';
 import { SettingsView } from './components/SettingsView';
 
@@ -247,6 +248,14 @@ export default function App() {
             settings={settings}
             selectedEmpId={selectedEmpId}
             initialDocType={activeAnnexDoc}
+          />
+        )}
+
+        {activeTab === 'alldocs' && (
+          <AllDocsBundle
+            employees={employees}
+            settings={settings}
+            selectedEmpId={selectedEmpId}
           />
         )}
 
