@@ -1201,10 +1201,7 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
                   <tr>
                     <td className="cnrb-data-cell cnrb-month-cell" contentEditable suppressContentEditableWarning>{m.label}</td>
                     <td className="cnrb-data-cell" contentEditable suppressContentEditableWarning>
-                      <span className="cnrb-sal-val">{fmt(m.salary + (m.yieldVal || 0))}</span>
-                      {!!m.yieldVal && (
-                        <span className="cnrb-yield-note ar">منها مردودية: {fmt(m.yieldVal)}</span>
-                      )}
+                      <span className="cnrb-sal-val">{fmt(m.salary)}</span>
                     </td>
                   </tr>
                   {isYieldMonth(m.key) && (
