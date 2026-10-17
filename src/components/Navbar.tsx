@@ -382,7 +382,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             { label: 'سجل الموظفين', icon: <Users className="w-3.5 h-3.5" />, active: activeTab === 'employees', go: () => handleTabClick('employees') },
             { label: 'كشف الراتب', icon: <FileText className="w-3.5 h-3.5" />, active: activeTab === 'payslip', go: () => handleTabClick('payslip') },
             { label: 'طلائح الرواتب', icon: <FileSpreadsheet className="w-3.5 h-3.5" />, active: activeTab === 'payrollTables', go: () => handleTabClick('payrollTables') },
-            { label: 'وثائق CNAS — الضمان الاجتماعي', icon: <ShieldCheck className="w-3.5 h-3.5" />, active: activeTab === 'docs', go: () => handleTabClick('docs') },
+            { label: 'ATS — شهادة التوقف عن العمل (CNAS)', icon: <ShieldCheck className="w-3.5 h-3.5" />, active: activeTab === 'docs' && activeDoc === 'ats-front', go: () => handleDocClick('cert_recto') },
+            { label: 'DRT — استئناف العمل (CNAS)', icon: <ShieldCheck className="w-3.5 h-3.5" />, active: activeTab === 'docs' && activeDoc === 'drt', go: () => handleDocClick('res') },
             { label: 'وثائق CNR — التقاعد', icon: <Award className="w-3.5 h-3.5" />, active: activeTab === 'pension', go: () => handleTabClick('pension') },
             { label: 'استمارات', icon: <ClipboardList className="w-3.5 h-3.5" />, active: activeTab === 'docs' && activeDoc === 'form', go: () => handleDocClick('form') }
           ].map(b => (
