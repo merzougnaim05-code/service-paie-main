@@ -385,6 +385,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             { label: 'ATS — شهادة التوقف عن العمل (CNAS)', icon: <ShieldCheck className="w-3.5 h-3.5" />, active: activeTab === 'docs' && activeDoc === 'ats-front', go: () => handleDocClick('cert_recto') },
             { label: 'DRT — استئناف العمل (CNAS)', icon: <ShieldCheck className="w-3.5 h-3.5" />, active: activeTab === 'docs' && activeDoc === 'drt', go: () => handleDocClick('res') },
             { label: 'وثائق CNR — التقاعد', icon: <Award className="w-3.5 h-3.5" />, active: activeTab === 'pension', go: () => handleTabClick('pension') },
+            { label: 'استمارات CNR', icon: <FileText className="w-3.5 h-3.5" />, active: activeTab === 'cnr-annex', go: () => handleTabClick('cnr-annex') },
             { label: 'استمارات', icon: <ClipboardList className="w-3.5 h-3.5" />, active: activeTab === 'docs' && activeDoc === 'form', go: () => handleDocClick('form') }
           ].map(b => (
             <button
