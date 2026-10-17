@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Employee, Settings } from '../types';
-import { DRT_BANNER } from '../data/drtBanner';
+import { CNAS_LOGO } from '../data/cnasLogo';
 import {
   Printer,
   Eye,
@@ -84,6 +84,15 @@ const CSS = `
   @media print {
     .drtx-page { box-shadow: none !important; margin: 0 !important; page-break-inside: avoid; }
   }
+  /* الشريط العلوي الأزرق — منسوخ من شهادة العمل والأجر (ATS) مضبوطا على قياس A5 (148mm = 210 × 0.705) */
+  .drtx-topbar { background: #0070C0; display: flex; align-items: center; gap: 2.9mm; padding: 1.8mm 5mm; height: 16.5mm; direction: ltr; }
+  .drtx-topbar img { height: 14mm; display: block; }
+  .drtx-topbar-text { flex: 1; text-align: center; color: #fff; }
+  .drtx-topbar-text p { margin: 0; line-height: 1.42; }
+  .drtx-topbar-text .l1 { font-size: 8.8pt; }
+  .drtx-topbar-text .l2 { font-size: 9.2pt; font-weight: 700; }
+  .drtx-topbar-text .l3 { font-size: 7.4pt; font-weight: 700; }
+  .drtx-topbar-text .l3 .ar { margin-inline-start: 2px; }
 `;
 
 export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) => {
@@ -198,8 +207,18 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
         <div className="drtx-page" style={{ width: '148mm', minHeight: '210mm', padding: '4mm 5mm', direction: 'rtl', fontSize: '10pt', lineHeight: 1.55 }}>
           <style>{`${CSS} @page { size: 148mm 210mm; margin: 0; }`}</style>
 
-          {/* CNAS banner from the Excel file */}
-          <img src={DRT_BANNER} alt="CNAS" style={{ width: '100%', height: '10mm', objectFit: 'fill', display: 'block' }} />
+          {/* الشريط العلوي الأزرق — منسوخ من شهادة العمل والأجر بالقياس A5 */}
+          <div className="drtx-topbar">
+            <img src={CNAS_LOGO} alt="CNAS" />
+            <div className="drtx-topbar-text">
+              <p className="ar l1">وزارة العمل و التشغيل و الضمان الاجتماعي</p>
+              <p className="ar l2">الصندوق الوطني للتأمينات الاجتماعية للعمال الأجراء</p>
+              <p className="l3">
+                <span>Assurances Sociales</span>
+                <span className="ar">- التأمينات الاجتماعية</span>
+              </p>
+            </div>
+          </div>
 
           {/* Title */}
           <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '14pt', marginTop: '1mm' }}>تصريح بإستئناف</div>
