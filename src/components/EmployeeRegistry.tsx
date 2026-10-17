@@ -81,6 +81,8 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
   const [teacherType, setTeacherType] = useState<'عادي' | 'مجاز'>('عادي');
   const [auresMode, setAuresMode] = useState<'auto' | 'manual'>('auto');
   const [auresAmount, setAuresAmount] = useState(0);
+  const [noPrivilegeBonus, setNoPrivilegeBonus] = useState(false);
+  const [noHousingBonus, setNoHousingBonus] = useState(false);
 
   const [allowances, setAllowances] = useState<Allowance[]>([]);
 
@@ -219,6 +221,8 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
     setTeacherType('عادي');
     setAuresMode('auto');
     setAuresAmount(0);
+    setNoPrivilegeBonus(false);
+    setNoHousingBonus(false);
     setAllowances([]);
     setZoneWilaya('');
     setZoneCommune('');
@@ -254,6 +258,8 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
     setTeacherType(emp.teacherType || 'عادي');
     setAuresMode(emp.auresMode || 'auto');
     setAuresAmount(Number(emp.auresAmount) || 0);
+    setNoPrivilegeBonus(!!emp.noPrivilegeBonus);
+    setNoHousingBonus(!!emp.noHousingBonus);
     setAllowances(emp.allowances || []);
 
     window.scrollTo({ top: 120, behavior: 'smooth' });
@@ -298,6 +304,8 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
       teacherType: (currentJob?.domain === 'teach' && MAJAZ_CODES.includes(Number(currentJob?.code))) ? teacherType : 'عادي',
       auresMode,
       auresAmount: Number(auresAmount) || 0,
+      noPrivilegeBonus,
+      noHousingBonus,
       pensionHistory: editingId
         ? (employees.find(x => x.id === editingId)?.pensionHistory || [])
         : []
@@ -828,6 +836,28 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
                   />
                 )}
               </div>
+            </div>
+
+            {/* إلغاء منح بعينها لهذا الموظف فقط */}
+            <div className="flex flex-wrap gap-x-8 gap-y-2 mb-6 bg-[#fef2f2] border border-[#fecaca] rounded-xl px-4 py-3 print:hidden">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={noPrivilegeBonus}
+                  onChange={e => setNoPrivilegeBonus(e.target.checked)}
+                  className="w-4 h-4 accent-[#b91c1c]"
+                />
+                <span className="text-xs font-bold text-[#b91c1c]">إلغاء منحة الامتياز لهذا الموظف فقط</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={noHousingBonus}
+                  onChange={e => setNoHousingBonus(e.target.checked)}
+                  className="w-4 h-4 accent-[#b91c1c]"
+                />
+                <span className="text-xs font-bold text-[#b91c1c]">إلغاء منحة السكن لهذا الموظف فقط</span>
+              </label>
             </div>
 
             {/* Allowances Table */}

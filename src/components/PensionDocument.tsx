@@ -901,18 +901,31 @@ const CNRFront: React.FC<{ employee: Employee; settings: Settings }> = ({ employ
           background: #fff;
         }
 
-        .cnrf-page .cnrf-db { display: inline-flex; direction: rtl; gap: 1.5mm; vertical-align: middle; margin: 0 1.5mm; }
+        .cnrf-page .cnrf-db { display: inline-flex; direction: rtl; gap: 0.8mm; vertical-align: middle; margin: 0 1.5mm; }
         .cnrf-page .cnrf-db i {
-          height: 6.5mm;
-          border: 1.5px solid #000;
+          height: 6mm;
+          border: 1.2px solid #000;
+          border-top: none;
+          position: relative;
           display: inline-flex;
           align-items: center;
           justify-content: center;
           font-style: normal;
-          font-size: 10pt;
+          font-size: 9.5pt;
           background: #fff;
           text-align: center;
         }
+        .cnrf-page .cnrf-db i::before,
+        .cnrf-page .cnrf-db i::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          height: 52%;
+          width: 2.5px;
+          background: #fff;
+        }
+        .cnrf-page .cnrf-db i::before { left: -1.8px; }
+        .cnrf-page .cnrf-db i::after { right: -1.8px; }
         .cnrf-page .cnrf-db i.day, .cnrf-page .cnrf-db i.month { width: 8mm; }
         .cnrf-page .cnrf-db i.year { width: 16mm; }
 

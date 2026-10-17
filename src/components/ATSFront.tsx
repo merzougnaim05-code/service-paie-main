@@ -447,109 +447,61 @@ export const ATSFront: React.FC<ATSFrontProps> = ({ employee, settings }) => {
             <div className="duree-row">
               <span className="fr-label fr">L'assuré(e) a travaillé pendant :</span>
               <span className="cellgroup" data-cells="3" data-field="mat_jours">
-                <span className="cell" contentEditable suppressContentEditableWarning>
-                  0
-                </span>
-                <span className="cell" contentEditable suppressContentEditableWarning>
-                  9
-                </span>
-                <span className="cell" contentEditable suppressContentEditableWarning>
-                  0
-                </span>
+                <span className="cell" contentEditable suppressContentEditableWarning />
+                <span className="cell" contentEditable suppressContentEditableWarning />
+                <span className="cell" contentEditable suppressContentEditableWarning />
               </span>
               <span className="inline-label fr">jours</span>
               <span className="cellgroup" data-cells="3" data-field="mat_heures">
-                <span className="cell" contentEditable suppressContentEditableWarning>
-                  1
-                </span>
-                <span className="cell" contentEditable suppressContentEditableWarning>
-                  8
-                </span>
-                <span className="cell" contentEditable suppressContentEditableWarning>
-                  0
-                </span>
+                <span className="cell" contentEditable suppressContentEditableWarning />
+                <span className="cell" contentEditable suppressContentEditableWarning />
+                <span className="cell" contentEditable suppressContentEditableWarning />
               </span>
               <span className="inline-label fr">heures</span>
               <span className="mid-spacer"></span>
               <span className="inline-label ar">ساعة</span>
               <span className="cellgroup" data-cells="3" data-field="mat_heures_ar">
-                <span className="cell" contentEditable suppressContentEditableWarning>
-                  1
-                </span>
-                <span className="cell" contentEditable suppressContentEditableWarning>
-                  8
-                </span>
-                <span className="cell" contentEditable suppressContentEditableWarning>
-                  0
-                </span>
+                <span className="cell" contentEditable suppressContentEditableWarning />
+                <span className="cell" contentEditable suppressContentEditableWarning />
+                <span className="cell" contentEditable suppressContentEditableWarning />
               </span>
               <span className="inline-label ar">يوما</span>
               <span className="cellgroup" data-cells="3" data-field="mat_jours_ar">
-                <span className="cell" contentEditable suppressContentEditableWarning>
-                  0
-                </span>
-                <span className="cell" contentEditable suppressContentEditableWarning>
-                  9
-                </span>
-                <span className="cell" contentEditable suppressContentEditableWarning>
-                  0
-                </span>
+                <span className="cell" contentEditable suppressContentEditableWarning />
+                <span className="cell" contentEditable suppressContentEditableWarning />
+                <span className="cell" contentEditable suppressContentEditableWarning />
               </span>
               <span className="ar-label ar">المؤمن له اشتغل لمدة :</span>
             </div>
             <div className="duree-row">
               <span className="fr-label fr">du :</span>
               <span className="db3 font-mono" data-date="mat_du">
-                <i className="day" contentEditable suppressContentEditableWarning>
-                  01
-                </i>
-                <i className="month" contentEditable suppressContentEditableWarning>
-                  06
-                </i>
-                <i className="year" contentEditable suppressContentEditableWarning>
-                  2026
-                </i>
+                <i className="day" contentEditable suppressContentEditableWarning />
+                <i className="month" contentEditable suppressContentEditableWarning />
+                <i className="year" contentEditable suppressContentEditableWarning />
               </span>
               <span className="fr-label fr" style={{ marginInlineStart: '8px' }}>
                 au :
               </span>
               <span className="db3 font-mono" data-date="mat_au">
-                <i className="day" contentEditable suppressContentEditableWarning>
-                  31
-                </i>
-                <i className="month" contentEditable suppressContentEditableWarning>
-                  08
-                </i>
-                <i className="year" contentEditable suppressContentEditableWarning>
-                  2026
-                </i>
+                <i className="day" contentEditable suppressContentEditableWarning />
+                <i className="month" contentEditable suppressContentEditableWarning />
+                <i className="year" contentEditable suppressContentEditableWarning />
               </span>
               <span className="mid-spacer"></span>
               <span className="ar-label ar">إلى :</span>
               <span className="db3 font-mono" data-date="mat_au_ar">
-                <i className="day" contentEditable suppressContentEditableWarning>
-                  31
-                </i>
-                <i className="month" contentEditable suppressContentEditableWarning>
-                  08
-                </i>
-                <i className="year" contentEditable suppressContentEditableWarning>
-                  2026
-                </i>
+                <i className="day" contentEditable suppressContentEditableWarning />
+                <i className="month" contentEditable suppressContentEditableWarning />
+                <i className="year" contentEditable suppressContentEditableWarning />
               </span>
               <span className="ar-label ar" style={{ marginInlineEnd: '8px' }}>
                 من :
               </span>
               <span className="db3 font-mono" data-date="mat_du_ar">
-                <i className="day" contentEditable suppressContentEditableWarning>
-                  01
-                </i>
-                <i className="month" contentEditable suppressContentEditableWarning>
-                  06
-                </i>
-                <i className="year" contentEditable suppressContentEditableWarning>
-                  2026
-                </i>
+                <i className="day" contentEditable suppressContentEditableWarning />
+                <i className="month" contentEditable suppressContentEditableWarning />
+                <i className="year" contentEditable suppressContentEditableWarning />
               </span>
             </div>
             <div className="selon">

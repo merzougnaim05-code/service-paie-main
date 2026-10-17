@@ -504,7 +504,14 @@ export function computePayslip(emp: Employee, month: number, year: number, setti
     const st = stripParens(name);
     return disabledBuiltins.some(k => st === k || st.startsWith(k));
   };
-  const allAllowances = [...autoAllow, ...manualAllowances].filter(a => !isBuiltinDisabled(a.name));
+  // إلغاء منح بعينها لهذا الموظف فقط (من سجل الموظفين)
+  const isExcludedForEmployee = (name: string) => {
+    const st = stripParens(name);
+    if (emp.noPrivilegeBonus && st.startsWith('منحة الامتياز')) return true;
+    if (emp.noHousingBonus && st.startsWith('منحة السكن')) return true;
+    return false;
+  };
+  const allAllowances = [...autoAllow, ...manualAllowances].filter(a => !isBuiltinDisabled(a.name) && !isExcludedForEmployee(a.name));
 
   let allowTotal = 0;
   let cnasAllow = 0;
