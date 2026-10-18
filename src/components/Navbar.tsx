@@ -358,21 +358,18 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="border-t-2 border-amber-400/60 bg-gradient-to-l from-emerald-950 via-emerald-900 to-teal-950 print:hidden">
         <style>{`
           .dailydoc-btn {
-            position: relative; display: inline-flex; align-items: center; gap: 6px;
-            padding: 7px 14px; border-radius: 999px; cursor: pointer; white-space: nowrap;
-            background: linear-gradient(145deg, #065f46, #059669, #065f46);
-            border: 2px solid rgba(252, 211, 77, .55);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 3px 6px rgba(0,0,0,.4);
-            color: #fefce8; font-weight: 800; font-size: 11px;
-            transition: all .18s ease; flex-shrink: 0;
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 7px 14px; border-radius: 10px; cursor: pointer; white-space: nowrap;
+            background: #ffffff; border: 1.5px solid #a7f3d0;
+            box-shadow: 0 1px 2px rgba(0,0,0,.25);
+            color: #064e3b; font-weight: 700; font-size: 11px;
+            transition: all .15s ease; flex-shrink: 0;
           }
-          .dailydoc-btn::before, .dailydoc-btn::after { content: '✦'; font-size: 9px; color: #fcd34d; text-shadow: 0 0 6px rgba(252,211,77,.9); }
-          .dailydoc-btn:hover { background: linear-gradient(145deg, #d97706, #f59e0b, #d97706); color: #0f172a; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,.45), 0 0 14px rgba(252,211,77,.5); }
-          .dailydoc-btn:hover::before, .dailydoc-btn:hover::after { color: #0f172a; }
-          .dailydoc-btn.active { background: linear-gradient(145deg, #fbbf24, #fcd34d, #fbbf24); color: #0f172a; border-color: #fff; }
-          .dailydoc-btn.active::before, .dailydoc-btn.active::after { color: #92400e; }
-          .dailydoc-btn .ic { background: rgba(255,255,255,.18); border-radius: 999px; padding: 3px; line-height: 0; }
-          .dailydoc-btn.active .ic, .dailydoc-btn:hover .ic { background: rgba(15,23,42,.15); }
+          .dailydoc-btn:hover { background: #ecfdf5; border-color: #34d399; color: #065f46; }
+          .dailydoc-btn.active { background: #047857; border-color: #047857; color: #ffffff; }
+          .dailydoc-btn .ic { color: #047857; line-height: 0; }
+          .dailydoc-btn.active .ic { color: #fcd34d; }
+          .dailydoc-btn:hover .ic { color: #059669; }
         `}</style>
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-1.5 flex items-center gap-2 overflow-x-auto">
           <span className="text-[11px] sm:text-xs font-black text-amber-300 whitespace-nowrap shrink-0 flex items-center gap-1.5">
@@ -386,8 +383,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             { label: 'DRT — استئناف العمل (CNAS)', icon: <ShieldCheck className="w-3.5 h-3.5" />, active: activeTab === 'docs' && activeDoc === 'drt', go: () => handleDocClick('res') },
             { label: 'وثائق CNR — التقاعد', icon: <Award className="w-3.5 h-3.5" />, active: activeTab === 'pension', go: () => handleTabClick('pension') },
             { label: 'استمارات CNR', icon: <FileText className="w-3.5 h-3.5" />, active: activeTab === 'cnr-annex', go: () => handleTabClick('cnr-annex') },
-            { label: 'استمارات', icon: <ClipboardList className="w-3.5 h-3.5" />, active: activeTab === 'docs' && activeDoc === 'form', go: () => handleDocClick('form') },
-            { label: '★★ جميع الوثائق في ورقة واحدة (معاينة/طباعة)', icon: <LayoutDashboard className="w-3.5 h-3.5" />, active: activeTab === 'alldocs', go: () => handleTabClick('alldocs') }
+            { label: 'استمارات', icon: <ClipboardList className="w-3.5 h-3.5" />, active: activeTab === 'docs' && activeDoc === 'form', go: () => handleDocClick('form') }
           ].map(b => (
             <button
               key={b.label}
