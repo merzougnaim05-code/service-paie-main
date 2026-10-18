@@ -139,6 +139,11 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'req', label: 'طلب وثائق الملف الإداري' },
     { id: 'nr', label: 'شهادة عدم تقاضي المنح العائلية' },
     { id: 'salary_disclosure', label: 'استمارة كشف المرتبات (منحة دراسية)' },
+    { id: 'fam_withdraw', label: 'جدول سحب المنح العائلية' },
+    { id: 'fam_insert', label: 'جدول التكفل بالمنح العائلية (ادراج)' },
+    { id: 'expl_letter', label: 'رسالة توضيحية (36 شهرا)' },
+    { id: 'univ_cert', label: 'كشف الجامعة (منحة دراسية جامعية)' },
+    { id: 'mut_cert', label: 'التعاضدية الوطنية لعمال التربية والثقافة' },
     { id: 'munatec', label: '1 — شهادة استنفاء الاشتراكات', tag: 'MUNATEC', tagColor: 'text-amber-300' },
     { id: 'af_stop', label: '2 — شهادة توقيف الدفع للمنح العائلية', tag: 'CNR', tagColor: 'text-amber-300' },
     { id: 'periodes', label: '3 — المدة المأجورة (جدول السنوات)', tag: 'CNR', tagColor: 'text-amber-300' },
@@ -383,6 +388,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             { label: 'DRT — استئناف العمل (CNAS)', icon: <ShieldCheck className="w-3.5 h-3.5" />, active: activeTab === 'docs' && activeDoc === 'drt', go: () => handleDocClick('res') },
             { label: 'وثائق CNR — التقاعد', icon: <Award className="w-3.5 h-3.5" />, active: activeTab === 'pension', go: () => handleTabClick('pension') },
             { label: 'استمارات CNR', icon: <FileText className="w-3.5 h-3.5" />, active: activeTab === 'cnr-annex', go: () => handleTabClick('cnr-annex') },
+            { label: 'متابعة المنح العائلية', icon: <Users className="w-3.5 h-3.5" />, active: activeTab === 'familyfollow', go: () => handleTabClick('familyfollow') },
             { label: 'استمارات', icon: <ClipboardList className="w-3.5 h-3.5" />, active: activeTab === 'docs' && activeDoc === 'form', go: () => handleDocClick('form') }
           ].map(b => (
             <button

@@ -142,6 +142,7 @@ export interface Employee {
   lastWorkDate: string;
   resumeDate: string;
   allowances: Allowance[];
+  childrenBirths?: string[];      // تواريخ ميلاد الأطفال (yyyy-mm-dd) — لجدول متابعة المنح العائلية
   pensionHistory: PensionHistoryRecord[];
   teacherType?: 'عادي' | 'مجاز'; // صنف الأستاذ حسب جدول الأصناف (-- = مجاز بأكواد أوراس مختلفة)
   auresMode?: 'auto' | 'manual';  // منحة الأوراس: آلية من البرنامج أو يدوية

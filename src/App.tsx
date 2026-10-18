@@ -18,6 +18,7 @@ import { PayrollSheets } from './components/PayrollSheets';
 import { AdminDocs } from './components/AdminDocs';
 import { CnrAnnexDocs } from './components/CnrAnnexDocs';
 import { AllDocsBundle } from './components/AllDocsBundle';
+import { FamilyFollowTool } from './components/FamilyDocs';
 import { DataHub } from './components/DataHub';
 import { SettingsView } from './components/SettingsView';
 
@@ -49,7 +50,7 @@ export default function App() {
   // Active view states — تُقرأ من hash الرابط للوصول المباشر (مثال: #docs:ats-back أو #pension)
   const [activeTab, setActiveTab] = useState<string>(() => {
     const h = window.location.hash.replace('#', '').split(':')[0];
-    return ['landing', 'employees', 'pension', 'payslip', 'payrollTables', 'docs', 'cnr-annex', 'settings', 'datahub'].includes(h) ? h : 'landing';
+    return ['landing', 'employees', 'pension', 'payslip', 'payrollTables', 'docs', 'cnr-annex', 'familyfollow', 'settings', 'datahub'].includes(h) ? h : 'landing';
   });
   const [activeDoc, setActiveDoc] = useState<string>(() => {
     const d = window.location.hash.replace('#', '').split(':')[1];
@@ -121,14 +122,19 @@ export default function App() {
 
   const handleDocSelect = (doc: string) => {
     // map navbar doc keys to AdminDocs doc types
-    const mapping: Record<string, string> = {
+  const mapping: Record<string, string> = {
       cert_recto: 'ats-front',
       cert_verso: 'ats-back',
       res: 'drt',
       form: 'form',
       req: 'request-docs',
       nr: 'family-cert',
-      salary_disclosure: 'salary-disclosure'
+      salary_disclosure: 'salary-disclosure',
+      fam_withdraw: 'family-withdraw',
+      fam_insert: 'family-insert',
+      expl_letter: 'explanation-letter',
+      univ_cert: 'univ-cert',
+      mut_cert: 'mutuelle-cert'
     };
     // annex CNR/MUNATEC docs open in their own tab (نسخ طبق الأصل)
     const annexMapping: Record<string, string> = {
@@ -248,6 +254,15 @@ export default function App() {
             settings={settings}
             selectedEmpId={selectedEmpId}
             initialDocType={activeAnnexDoc}
+          />
+        )}
+
+        {activeTab === 'familyfollow' && (
+          <FamilyFollowTool
+            employees={employees}
+            settings={settings}
+            selectedEmpId={selectedEmpId}
+            onSaveEmp={handleSaveEmployee}
           />
         )}
 

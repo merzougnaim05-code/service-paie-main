@@ -128,6 +128,7 @@ export async function parseOriginalWorkbook(file: File): Promise<ImportReport> {
 
     // تواريخ ميلاد الأطفال → العدد الفعلي وأكبر من 10 سنوات (كل كتلة: تاريخ serial + سنة/شهر/يوم)
     let realChildren = 0, older10 = 0;
+    const births: string[] = [];
     for (const c of childBlocks) {
       let bd = '';
       const first = Number(cell(row, c));
@@ -138,6 +139,7 @@ export async function parseOriginalWorkbook(file: File): Promise<ImportReport> {
         if (y > 1900 && d > 0 && d <= 31) bd = `${y}-${String(Math.min(mo || 1, 12)).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       }
       if (bd) {
+        births.push(bd);
         realChildren++;
         const ageD = (Date.now() - new Date(bd + 'T00:00:00Z').getTime()) / 31557600000;
         if (ageD >= 10) older10++;
@@ -185,6 +187,7 @@ export async function parseOriginalWorkbook(file: File): Promise<ImportReport> {
       lastWorkDate: '',
       resumeDate: '',
       allowances: [],
+      childrenBirths: births,
       pensionHistory: [],
       teacherType: 'عادي',
       auresMode: 'auto',
@@ -211,6 +214,7 @@ export function mergeEmployees(current: Employee[], drafts: Employee[]): { chang
       e.marital = d.marital;
       e.children = d.children;
       e.children10 = d.children10;
+      if (d.childrenBirths && d.childrenBirths.length) e.childrenBirths = d.childrenBirths;
       if (d.jobIdx > 0) e.jobIdx = d.jobIdx;
       if (d.category > 0) e.category = d.category;
       if (d.echelon > 0) e.echelon = d.echelon;
