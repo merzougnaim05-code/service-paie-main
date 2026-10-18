@@ -661,7 +661,7 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
       { name: 'اقتطاع الضمان الاجتماعي (CNAS)', detail: `${fmt(result.cnasRate)}% من الأجر الخاضع`, amount: result.cnasDeduction },
       { name: 'اقتطاع الضريبة على الدخل (IRG)', detail: 'سلم الضريبة الساري في سنة الكشف', amount: result.irgTax },
       ...(result.mutDeduction > 0
-        ? [{ name: 'اقتطاع التعاضدية', detail: '1% من الأجر الخام في حدود 1000 دج', amount: result.mutDeduction }]
+        ? [{ name: 'اقتطاع التعاضدية', detail: '1% من الأجر الخاضع في حدود 1000 دج', amount: result.mutDeduction }]
         : []),
       ...(result.perfBonusTax > 0
         ? [{ name: 'ضريبة علاوة الأداء (10%)', detail: '10% ثابتة', amount: result.perfBonusTax }]
@@ -713,7 +713,7 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
       { name: 'اقتطاع الضمان الاجتماعي (CNAS)', detail: `${fmt(result.cnasRate)}% من الأجر الخاضع — 12 شهراً`, amount: annual.cnasDeduction },
       { name: 'اقتطاع الضريبة على الدخل (IRG)', detail: 'مجموع ضرائب الأشهر الـ12 وفق سلم سنة الكشف', amount: annual.irgTax },
       ...(annual.mutDeduction > 0
-        ? [{ name: 'اقتطاع التعاضدية', detail: '1% من الأجر الخام في حدود 1000 دج — 12 شهراً', amount: annual.mutDeduction }]
+        ? [{ name: 'اقتطاع التعاضدية', detail: '1% من الأجر الخاضع في حدود 1000 دج — 12 شهراً', amount: annual.mutDeduction }]
         : []),
       ...(annual.perfBonusTax > 0
         ? [{ name: 'ضريبة علاوة الأداء (10%)', detail: '10% ثابتة — 12 شهراً', amount: annual.perfBonusTax }]
@@ -787,7 +787,7 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
       { name: 'اقتطاع الضمان الاجتماعي (CNAS)', detail: `${fmt(result.cnasRate)}% من الأجر الخاضع`, monthly: result.cnasDeduction, annual: annual.cnasDeduction },
       { name: 'اقتطاع الضريبة على الدخل (IRG)', detail: 'سلم الضريبة الساري في سنة الكشف', monthly: result.irgTax, annual: annual.irgTax },
       ...(result.mutDeduction > 0 || annual.mutDeduction > 0
-        ? [{ name: 'اقتطاع التعاضدية', detail: '1% من الأجر الخام في حدود 1000 دج', monthly: result.mutDeduction, annual: annual.mutDeduction }]
+        ? [{ name: 'اقتطاع التعاضدية', detail: '1% من الأجر الخاضع في حدود 1000 دج', monthly: result.mutDeduction, annual: annual.mutDeduction }]
         : []),
       ...(result.perfBonusTax > 0 || annual.perfBonusTax > 0
         ? [{ name: 'ضريبة علاوة الأداء (10%)', detail: '10% ثابتة', monthly: result.perfBonusTax, annual: annual.perfBonusTax }]

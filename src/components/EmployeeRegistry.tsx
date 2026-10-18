@@ -725,7 +725,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
                     className="w-4 h-4 rounded text-[#047857] accent-[#047857]"
                   />
                   <span className="text-xs font-bold text-[#1e293b]">
-                    يستفيد من التعاضدية (1% من الخام في حدود 1000 دج)
+                    يستفيد من التعاضدية (1% من الأجر الخاضع في حدود 1000 دج)
                   </span>
                 </label>
                 {mutuelle && (
