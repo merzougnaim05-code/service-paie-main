@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Employee, Allowance, Settings, MaritalStatus, EmploymentStatus } from '../types';
 import { JOBS, GRILLE, ALGERIAN_WILAYAS, MAJAZ_CODES, MAJAZ_AURES_OVERRIDE } from '../data/salaryGrids';
 import {
@@ -27,6 +27,8 @@ import {
   CheckCircle2,
   AlertCircle
 } from 'lucide-react';
+
+import { ImportReport, parseOriginalWorkbook, mergeEmployees } from '../utils/originalImporter';
 
 interface EmployeeRegistryProps {
   employees: Employee[];
@@ -95,6 +97,42 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
   };
+
+  /* ===== استيراد المعطيات من ملف برنامج الرواتب الأصلي (Excel) ===== */
+  const importInputRef = useRef<HTMLInputElement>(null);
+  const [importBusy, setImportBusy] = useState(false);
+  const handleImportOriginal = async (ev: React.ChangeEvent<HTMLInputElement>) => {
+    const file = ev.target.files?.[0];
+    ev.target.value = '';
+    if (!file) return;
+    setImportBusy(true);
+    try {
+      const rep: ImportReport = await parseOriginalWorkbook(file);
+      if (rep.drafts.length === 0) {
+        showToast('⚠ الملف لا يحتوي أي موظف في ورقة «سحب المنح العائلية»');
+        return;
+      }
+      const merged = mergeEmployees(employees, rep.drafts);
+      let n = 0;
+      for (const e of merged.changed) {
+        n++;
+        const fresh: Employee = { ...e };
+        if (fresh.id.startsWith('imp_')) fresh.id = 'imp' + Date.now().toString(36) + '_' + String(n).padStart(2, '0');
+        onSaveEmployee(fresh);
+      }
+      let msg = `✓ تم الاستيراد: ${merged.added} موظف جديد، ${merged.updated} محديث`;
+      if (Object.keys(rep.unmatchedJobs).length) {
+        const list = Object.keys(rep.unmatchedJobs).slice(0, 3).join('، ');
+        msg += ` — مهنات لم تُطابَق آلياً (${list})` + (Object.keys(rep.unmatchedJobs).length > 3 ? ' وغيرها' : '');
+      }
+      showToast(msg);
+    } catch (err) {
+      showToast('⚠ خطأ في الاستيراد: ' + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setImportBusy(false);
+    }
+  };
+
 
   // Sync category and status when job changes
   const handleJobChange = (newIdx: number) => {
@@ -1011,6 +1049,18 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
 
           {/* Filter & Search Bar */}
           <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            {/* استيراد من ملف البرنامج الأصلي */}
+            <input ref={importInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleImportOriginal} />
+            <button
+              type="button"
+              disabled={importBusy}
+              onClick={() => importInputRef.current?.click()}
+              className="bg-[#1d4ed8] hover:bg-[#1e40af] disabled:opacity-60 text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm"
+              title="استيراد المعطيات من ملف برنامج الرواتب الأصلي (Excel) — ورقة سحب المنح العائلية"
+            >
+              {importBusy ? '⏲ جارٍ الاستيراد...' : '⬆ استيراد من ملف البرنامج الأصلي'}
+            </button>
+
             <div className="relative flex-1 sm:flex-initial">
               <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-[#8b816d]" />
               <input
