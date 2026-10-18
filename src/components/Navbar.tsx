@@ -357,19 +357,19 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* 🟢 شريط الوثائق اليومية للاستعمال */}
       <div className="border-t-2 border-amber-400/60 bg-gradient-to-l from-emerald-950 via-emerald-900 to-teal-950 print:hidden">
         <style>{`
+          /* بتصميم أزرار خدمة التغذية (service-consommation): لوحات داكنة وإطار رمادي أخضر — النشط فاتح بذهبي */
           .dailydoc-btn {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 7px 14px; border-radius: 10px; cursor: pointer; white-space: nowrap;
-            background: #ffffff; border: 1.5px solid #a7f3d0;
-            box-shadow: 0 1px 2px rgba(0,0,0,.25);
-            color: #064e3b; font-weight: 700; font-size: 11px;
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 9px 13px; border-radius: 12px; cursor: pointer; white-space: nowrap;
+            background: #0f231d; border: 1px solid #2c4a40;
+            color: #cfe9df; font-size: 12px; font-weight: 600;
             transition: all .15s ease; flex-shrink: 0;
           }
-          .dailydoc-btn:hover { background: #ecfdf5; border-color: #34d399; color: #065f46; }
-          .dailydoc-btn.active { background: #047857; border-color: #047857; color: #ffffff; }
-          .dailydoc-btn .ic { color: #047857; line-height: 0; }
-          .dailydoc-btn.active .ic { color: #fcd34d; }
-          .dailydoc-btn:hover .ic { color: #059669; }
+          .dailydoc-btn .ic { color: #f2d488; line-height: 0; }
+          .dailydoc-btn:hover { background: #153028; border-color: rgba(212,165,55,.55); color: #e8f5f0; }
+          .dailydoc-btn:hover .ic { color: #ffd76a; }
+          .dailydoc-btn.active { background: #eaf6f1; color: #0a4a36; border-color: var(--dd-gold, #d4a537); font-weight: 800; }
+          .dailydoc-btn.active .ic { color: #0a4a36; }
         `}</style>
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-1.5 flex items-center gap-2 overflow-x-auto">
           <span className="text-[11px] sm:text-xs font-black text-amber-300 whitespace-nowrap shrink-0 flex items-center gap-1.5">
