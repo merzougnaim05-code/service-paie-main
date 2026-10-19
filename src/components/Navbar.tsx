@@ -42,7 +42,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   deviceMode = 'desktop',
   onSelectDeviceMode,
   onSelectTab,
-  onSelectDoc
+  onSelectDoc,
+  institutionName
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -219,23 +220,23 @@ export const Navbar: React.FC<NavbarProps> = ({
         }
         @media (prefers-reduced-motion: reduce) { .dz-sphere { animation: none; } }
 
-        /* بتصميم أزرار خدمة التغذية (service-consommation): لوحات داكنة وإطار رمادي أخضر — النشط فاتح بذهبي */
+        /* بتصميم أزرار مفتوحة قليلاً — تتحول ذهبية عند التحويم أو الاختيار */
         .dailydoc-btn {
-          display: inline-flex; align-items: center; gap: 8px;
-          padding: 5px 12px; border-radius: 12px; cursor: pointer; white-space: nowrap;
+          display: inline-flex; align-items: center; gap: 9px;
+          padding: 8px 15px; border-radius: 12px; cursor: pointer; white-space: nowrap;
           background: #0f231d; border: 1px solid #2c4a40;
           color: #cfe9df; transition: all .15s ease; flex-shrink: 0;
         }
-        .dailydoc-btn .ic { color: #f2d488; line-height: 0; }
-        .dailydoc-btn .ar { display: block; font-size: 12px; font-weight: 700; line-height: 1.35; }
-        .dailydoc-btn .fr { display: block; font-size: 9.5px; font-weight: 500; line-height: 1.25; color: rgba(207,233,223,.55); }
-        .dailydoc-btn:hover { background: #153028; border-color: rgba(212,165,55,.55); color: #e8f5f0; }
-        .dailydoc-btn:hover .ic { color: #ffd76a; }
-        .dailydoc-btn:hover .fr { color: rgba(232,245,240,.75); }
-        .dailydoc-btn.active { background: #eaf6f1; color: #0a4a36; border-color: var(--dd-gold, #d4a537); }
-        .dailydoc-btn.active .ic { color: #0a4a36; }
+        .dailydoc-btn .ic { color: #f2d488; line-height: 0; transition: color .15s ease; }
+        .dailydoc-btn .ar { display: block; font-size: 12.5px; font-weight: 700; line-height: 1.4; }
+        .dailydoc-btn .fr { display: block; font-size: 10px; font-weight: 500; line-height: 1.3; color: rgba(207,233,223,.55); }
+        .dailydoc-btn:hover { background: #d4a537; border-color: #e7c05a; color: #1c1505; }
+        .dailydoc-btn:hover .ic { color: #1c1505; }
+        .dailydoc-btn:hover .fr { color: rgba(28,21,5,.75); }
+        .dailydoc-btn.active { background: #d4a537; color: #1c1505; border-color: #e7c05a; }
+        .dailydoc-btn.active .ic { color: #1c1505; }
         .dailydoc-btn.active .ar { font-weight: 800; }
-        .dailydoc-btn.active .fr { color: rgba(10,74,54,.65); }
+        .dailydoc-btn.active .fr { color: rgba(28,21,5,.75); }
 
         .minibtn {
           display: inline-flex; align-items: center; justify-content: center; gap: 4px;
@@ -245,31 +246,18 @@ export const Navbar: React.FC<NavbarProps> = ({
         .minibtn:hover { background: #153028; border-color: rgba(212,165,55,.55); color: #e8f5f0; }
       `}</style>
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-1.5 flex items-center gap-2">
-        {/* شريط الوثائق اليومية — قابل للتمرير */}
-        <div className="flex-1 min-w-0 flex items-center gap-2 overflow-x-auto">
-          <span className="text-[11px] sm:text-xs font-black text-amber-300 whitespace-nowrap shrink-0 flex items-center gap-1.5">
-            <span className="text-sm">★</span> وثائق يومية:
-          </span>
-          {dayButtons.map(b => (
-            <button
-              key={b.fr}
-              type="button"
-              onClick={b.go}
-              className={`dailydoc-btn ${b.active ? 'active' : ''}`}
-              title={b.fr}
-            >
-              <span className="ic">{b.icon}</span>
-              <span>
-                <span className="ar">{b.ar}</span>
-                <span className="fr">{b.fr}</span>
-              </span>
-            </button>
-          ))}
-        </div>
-
-        {/* أدوات ثابتة في نهاية الشريط */}
-        <div className="shrink-0 flex items-center gap-1.5">
+      {/* ===== 1) شريط الجمهورية ===== */}
+      <div className="bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-950 border-b border-amber-500/40">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-1.5 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0 text-[11px] sm:text-xs text-emerald-100">
+            <span className="whitespace-nowrap font-bold text-amber-300">الجمهورية الجزائرية الديمقراطية الشعبية</span>
+            <span className="text-emerald-500 shrink-0">•</span>
+            <span className="whitespace-nowrap hidden sm:inline">وزارة التربية الوطنية</span>
+            <span className="text-emerald-500 shrink-0 hidden sm:inline">•</span>
+            <span className="truncate opacity-80 hidden md:inline">{institutionName}</span>
+          </div>
+          {/* أدوات ثابتة في نهاية شريط الجمهورية */}
+          <div className="shrink-0 flex items-center gap-1.5">
           <button
             type="button"
             onClick={handleExportData}
@@ -338,8 +326,33 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
       </div>
+      </div>
 
-      {/* القائمة الكاملة — تفتح من زر القائمة أعلى يسار الشريط */}
+      {/* ===== 2) شريط الأزرار — تحت شريط الجمهورية ===== */}
+      <div className="bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-950">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2 flex items-center gap-2 overflow-x-auto">
+          <span className="text-[11px] sm:text-xs font-black text-amber-300 whitespace-nowrap shrink-0 flex items-center gap-1.5">
+            <span className="text-sm">★</span> وثائق يومية:
+          </span>
+          {dayButtons.map(b => (
+            <button
+              key={b.fr}
+              type="button"
+              onClick={b.go}
+              className={`dailydoc-btn ${b.active ? 'active' : ''}`}
+              title={b.fr}
+            >
+              <span className="ic">{b.icon}</span>
+              <span>
+                <span className="ar">{b.ar}</span>
+                <span className="fr">{b.fr}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* القائمة الكاملة — تفتح من زر القائمة في شريط الجمهورية */}
       {dropdownOpen && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setDropdownOpen(false)} />
