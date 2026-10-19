@@ -195,17 +195,23 @@ export const ExplanationLetter: React.FC<{ employee: Employee; settings: Setting
         <div style={{ margin: '6px 0' }}>
           <span className="inp" contentEditable suppressContentEditableWarning style={{ width: 640 }}>طيلة 36 شهرا الأخيرة من نشاط المعني تتمثل فيما يلي :</span>
         </div>
-        <table style={{ marginTop: 10 }}>
+        <table className="ftab" style={{ marginTop: 10 }}>
+          <colgroup>
+            <col style={{ width: '6%' }} />
+            <col style={{ width: '17%' }} />
+            <col style={{ width: '47%' }} />
+            <col style={{ width: '30%' }} />
+          </colgroup>
           <thead>
-            <tr><th style={{ width: 40 }}>الرقم</th><th style={{ width: 120 }}>الشهر / السنة</th><th>سبب التغير</th><th style={{ width: 170 }}>ملاحظات</th></tr>
+            <tr><th>الرقم</th><th>الشهر/ السنة</th><th>سبب التغير</th><th>ملاحظات</th></tr>
           </thead>
           <tbody>
             {Array.from({ length: 14 }, (_, i) => (
               <tr key={i}>
                 <td>{String(i + 1).padStart(2, '0')}</td>
-                <td className="inp" contentEditable suppressContentEditableWarning>&nbsp;</td>
-                <td className="inp" contentEditable suppressContentEditableWarning>&nbsp;</td>
-                <td className="inp" contentEditable suppressContentEditableWarning>&nbsp;</td>
+                <td contentEditable suppressContentEditableWarning>&nbsp;</td>
+                <td contentEditable suppressContentEditableWarning>&nbsp;</td>
+                <td contentEditable suppressContentEditableWarning>&nbsp;</td>
               </tr>
             ))}
           </tbody>
