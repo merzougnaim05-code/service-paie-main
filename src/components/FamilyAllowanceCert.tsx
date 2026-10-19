@@ -153,11 +153,22 @@ export const FamilyAllowanceCert: React.FC<FamilyAllowanceCertProps> = ({ employ
             <span className="fac-input" contentEditable suppressContentEditableWarning style={{ width: 380 }}>{employee.postalAccount || ''}</span>
           </div>
 
-          <div className="field-row" style={{ marginTop: 10 }}>
-            <span style={{ fontWeight: 'bold', marginLeft: 15 }}>لا يتقاضى أي</span>
-            <span style={{ fontWeight: 'bold', marginLeft: 15 }}>منح عائلية</span>
-            <span>و هذا وفقا لكشوفات الراتب الشهرية التابعة للمؤسسة .</span>
-          </div>
+          {/* حسب سجل الموظفين: لديه أطفال → يتقاضى المنح العائلية منذ تاريخ التوظيف، وإلا العبارة الحالية */}
+          {employee.children > 0 ? (
+            <div className="field-row" style={{ marginTop: 10 }}>
+              <span style={{ fontWeight: 'bold', marginLeft: 15 }}>يتقاضى المنح العائلية منذ :</span>
+              <span className="fac-input" contentEditable suppressContentEditableWarning style={{ width: 160, textAlign: 'center' }}>
+                {employee.hireDate ? employee.hireDate.replace(/-/g, '/') : ''}
+              </span>
+              <span style={{ marginRight: 12 }}>({employee.children} أطفال)</span>
+            </div>
+          ) : (
+            <div className="field-row" style={{ marginTop: 10 }}>
+              <span style={{ fontWeight: 'bold', marginLeft: 15 }}>لا يتقاضى أي</span>
+              <span style={{ fontWeight: 'bold', marginLeft: 15 }}>منح عائلية</span>
+              <span>و هذا وفقا لكشوفات الراتب الشهرية التابعة للمؤسسة .</span>
+            </div>
+          )}
         </div>
 
         {/* Legal Attestation Statement */}

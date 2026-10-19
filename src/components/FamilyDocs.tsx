@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Employee, Settings } from '../types';
 import { JOBS } from '../data/salaryGrids';
-import { computePayslip, fmt } from '../utils/salaryCalculator';
+import { fmt } from '../utils/salaryCalculator';
 import { Printer, Download, Sparkles, Info } from 'lucide-react';
 
 /* ==========================================================================
@@ -85,39 +85,47 @@ export const FamilyTableDoc: React.FC<{ employee: Employee; settings: Settings; 
   const currentYear = new Date().getFullYear();
   const name = employee.name || '';
   const job = JOBS[employee.jobIdx];
-  const maritalNow = employee.marital === 'متزوج';
-  const married = isWithdraw ? 'نعم' : maritalNow ? 'نعم' : 'لا';
   const nChildren = employee.children || 0;
   const nOld10 = employee.children10 || 0;
-  const single = employee.singleWage;
   const today = iso(new Date()).replace(/-/g, '/');
-  const rows = [{ id: 1, name, cat: job ? String(job.cat) : '', oldM: married ? 'نعم' : 'لا', oldCh: nChildren, old10: nOld10, oldSw: single ? 1 : 0, newM: married ? 'نعم' : 'لا', newCh: nChildren, new10: nOld10, newSw: single ? 1 : 0 }];
+  // الصف الأول معبأ آلياً من سجل الموظف (قابل للتعديل) والبقية فارغة للملء اليدوي
+  const rows = [{
+    id: 1,
+    code: '',
+    name,
+    cat: job ? String(job.cat) : '',
+    oldM: employee.marital === 'متزوج' ? 'نعم' : 'لا',
+    oldCh: nChildren,
+    old10: nOld10,
+    oldSw: employee.singleWage ? 'نعم' : 'لا',
+    newM: employee.marital === 'متزوج' ? 'نعم' : 'لا',
+    newCh: nChildren,
+    new10: nOld10,
+    newSw: employee.singleWage ? 'نعم' : 'لا',
+    date: today
+  }];
   return (
     <div className="sdoc-wrap"><style>{OFF_HEADER}</style>
       <div className="sdoc">
         <Header settings={settings} extra={
           <span>السنة الدراسية : <span className="inp" contentEditable suppressContentEditableWarning style={{ width: 54, textAlign: 'center' }}>{currentYear}</span> / <span className="inp" contentEditable suppressContentEditableWarning style={{ width: 54, textAlign: 'center' }}>{currentYear + 1}</span></span>
         } />
-        <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 15.5, margin: '14px 0' , textDecoration: 'underline' }}>{isWithdraw ? 'جدول سحب المنح العائلية' : 'جدول التكفل بالمنح العائلية'}</div>
+        <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 15.5, margin: '14px 0', textDecoration: 'underline' }}>{isWithdraw ? 'جدول سحب المنح العائلية' : 'جدول التكفل بالمنح العائلية'}</div>
         <div style={{ fontWeight: 'bold', margin: '8px 0' }}>الإدارة الأولى : <span className="inp" contentEditable suppressContentEditableWarning style={{ width: 260 }}>{sq(JOBS[employee.jobIdx] && (JOBS[employee.jobIdx].domain === 'teach' ? 'التعليم' : JOBS[employee.jobIdx].domain === 'edu' ? 'مستخدمو الهيئة والتربية' : 'العمال المهنيين الإداريين') || 'العمال المهنيين')}</span></div>
         <table>
           <thead>
             <tr>
-              <th rowSpan={3}>الرقم ت</th>
-              <th rowSpan={3}>رقم تعريف الموظف</th>
-              <th rowSpan={3}>الاسم واللقب</th>
-              <th rowSpan={3}>الصنف والقسم</th>
+              <th rowSpan={2}>الرقم ت</th>
+              <th rowSpan={2}>رقم تعريف الموظف</th>
+              <th rowSpan={2}>الاسم واللقب</th>
+              <th rowSpan={2}>الصنف والقسم</th>
               <th colSpan={4}>الوضعية القديمة</th>
               <th colSpan={4}>الوضعية الجديدة</th>
-              <th rowSpan={3}>{isWithdraw ? 'تاريخ السحب' : 'تاريخ التكفل'}</th>
+              <th rowSpan={2}>{isWithdraw ? 'تاريخ السحب' : 'تاريخ التكفل'}</th>
             </tr>
             <tr>
-              <th colSpan={2}>متزوج/ة</th><th colSpan={2}>الأجر الوحيد</th>
-              <th colSpan={2}>متزوج/ة</th><th colSpan={2}>الأجر الوحيد</th>
-            </tr>
-            <tr>
-              <th>عدد الأطفال</th><th>عدد اطفال اكبر من 10س</th>
-              <th>عدد الأطفال</th><th>عدد اطفال اكبر من 10س</th>
+              <th>متزوج/ة</th><th>عدد الأطفال</th><th>عدد اطفال اكبر من 10س</th><th>الأجر الوحيد</th>
+              <th>متزوج/ة</th><th>عدد الأطفال</th><th>عدد اطفال اكبر من 10س</th><th>الأجر الوحيد</th>
             </tr>
           </thead>
           <tbody>
@@ -127,19 +135,22 @@ export const FamilyTableDoc: React.FC<{ employee: Employee; settings: Settings; 
                 <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 70 }}></td>
                 <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 130, fontWeight: 'bold' }}>{sq(r.name)}</td>
                 <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 40 }}>{sq(r.cat)}</td>
-                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 24 }}>{sq(String(r.oldM))}</td>
-                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 24 }}>{r.oldCh}</td>
-                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 24 }}>{r.old10}</td>
-                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 24 }}>{r.oldSw}</td>
-                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 24 }}>{sq(String(r.newM))}</td>
-                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 24 }}>{r.newCh}</td>
-                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 24 }}>{r.new10}</td>
-                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 24 }}>{r.newSw}</td>
-                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 80 }}>{today}</td>
+                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 30 }}>{sq(r.oldM)}</td>
+                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 30 }}>{r.oldCh}</td>
+                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 30 }}>{r.old10}</td>
+                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 30 }}>{sq(r.oldSw)}</td>
+                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 30 }}>{sq(r.newM)}</td>
+                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 30 }}>{r.newCh}</td>
+                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 30 }}>{r.new10}</td>
+                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 30 }}>{sq(r.newSw)}</td>
+                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 80 }}>{r.date}</td>
               </tr>
             ))}
-            {Array.from({ length: 12 }, (_, i) => (
-              <tr key={'e' + i}>{Array.from({ length: 13 }, (_, c) => <td key={c}>&nbsp;</td>)}</tr>
+            {Array.from({ length: 16 }, (_, i) => (
+              <tr key={'e' + i}>
+                <td className="inp" contentEditable suppressContentEditableWarning>{i + 2}</td>
+                {Array.from({ length: 12 }, (_, c) => <td key={c} className="inp" contentEditable suppressContentEditableWarning>&nbsp;</td>)}
+              </tr>
             ))}
           </tbody>
         </table>
@@ -190,74 +201,6 @@ export const ExplanationLetter: React.FC<{ employee: Employee; settings: Setting
           <span className="inp" contentEditable suppressContentEditableWarning style={{ width: 110, textAlign: 'center' }}>{today}</span>
         </div>
         <div style={{ textAlign: 'center', fontWeight: 'bold', marginTop: 20 }}>المقتصـــــــــــــد</div>
-      </div>
-    </div>
-  );
-};
-
-/* ============ 4) كشف الجامعة ============ */
-export const UniversityCert: React.FC<{ employee: Employee; settings: Settings }> = ({ employee, settings }) => {
-  const { nom, prenom } = splitName(employee.name || '');
-  const jobName = JOBS[employee.jobIdx]?.name || '';
-  const today = new Date();
-  const result = computePayslip(employee, today.getMonth() + 1, today.getFullYear(), settings);
-  const gross12 = Math.round(result.gross * 12);
-  const ded12 = Math.round((result.cnasDeduction + result.mutDeduction + result.irgTax + result.perfBonusTax) * 12);
-  const amountWords = (n: number) => {
-    try { return ''; } catch (e) { return ''; }
-  };
-  return (
-    <div className="sdoc-wrap"><style>{OFF_HEADER}</style>
-      <div className="sdoc">
-        <Header settings={settings} extra={
-          <span>رمز التعيين : <span className="inp" contentEditable suppressContentEditableWarning style={{ width: 70, textAlign: 'center' }}>{'05/418'}</span></span>
-        } />
-        <div style={{ margin: '22px 0 10px' }}>
-          يرفق هذا الكشف بطلب المنحة الدراسية الجامعية
-        </div>
-        <div style={{ display: 'flex', gap: 12, margin: '8px 0' }}>
-          <span className="inp" contentEditable suppressContentEditableWarning style={{ width: 470 }}>أنا الممضي أسفله ( 1 ) : المسير المالي لـ : {sq(settings.institution || '')}</span>
-        </div>
-        <div style={{ display: 'flex', gap: 8, margin: '8px 0' }}>
-          <span className="inp" contentEditable suppressContentEditableWarning style={{ width: 470 }}>أشهـــد أن السيــــــــــــــد :</span>
-        </div>
-        <div style={{ display: 'flex', gap: 8, margin: '8px 0' }}>
-          <span style={{ width: 120 }}>اللقب :</span>
-          <span className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 150 }}>{sq(prenom ? '' : '')}{sq(nom)}</span>
-          <span style={{ width: 80 }}>الإسم :</span>
-          <span className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 150 }}>{sq(prenom)}</span>
-        </div>
-        <div style={{ margin: '8px 0' }}>
-          <span className="inp" contentEditable suppressContentEditableWarning style={{ width: 470 }}>يمارس بمؤسســـتنا ( 2 ) : {sq(settings.institution || '')}</span>
-        </div>
-        <div style={{ margin: '8px 0' }}>
-          <span>وظيفــــــــــــــــــــــته : <span className="inp" contentEditable suppressContentEditableWarning style={{ width: 320, textAlign: 'center' }}>{sq(jobName)}</span></span>
-        </div>
-        <div style={{ margin: '16px 0 6px' }}>
-          <span className="inp" contentEditable suppressContentEditableWarning style={{ width: 640 }}>وأنه يتقاضى مرتبا سنويا صافيا خاليا من كل التعويضات والمنح العائلية</span>
-        </div>
-        <div style={{ margin: '6px 0' }}>
-          <span>والمقتطع في إطار الضمان الإجتماعي ( 3 ) : </span>
-        </div>
-        <div style={{ margin: '6px 0', fontWeight: 'bold' }}>
-          <span style={{ fontSize: 14 }}>المبعغ : </span>
-          <span className="inp" contentEditable suppressContentEditableWarning style={{ width: 150, textAlign: 'center' }}>{ded12}</span>
-          <span style={{ marginRight: 10 }}>دج</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 32 }}>
-          <div>
-            <span>حرر بـ <span className="inp" contentEditable suppressContentEditableWarning style={{ width: 120, textAlign: 'center' }}>{sq(settings.municipality || '')}</span></span>
-            <span style={{ margin: '0 10px' }}>في :</span>
-            <span className="inp" contentEditable suppressContentEditableWarning style={{ width: 110, textAlign: 'center' }}>{today.toISOString().slice(0, 10).replace(/-/g, '/')}</span>
-          </div>
-          <div style={{ fontWeight: 'bold' }}>الإمضاء والختم</div>
-        </div>
-        <div style={{ marginTop: 40, fontSize: 10.5, lineHeight: 1.7, borderTop: '1px solid #000', paddingTop: 10 }}>
-          <div>(1) — اللقب</div>
-          <div>(2) — طبيعة المؤسسة</div>
-          <div>(3) — التحرير بالأحرف</div>
-          <div>(4) — التحرير يكون بالأرقام</div>
-        </div>
       </div>
     </div>
   );
@@ -421,7 +364,7 @@ export const FamilyFollowTool: React.FC<{ employees: Employee[]; settings: Setti
           <table className="fut-table w-full">
             <tbody>
               <tr><td>المنحة العائلية للطفل (دج)</td><td className="font-bold">{fmt(childRate * 12)}</td></tr>
-              <tr><td>منحة الزوج(ة) غير العامل/ة (دج/شهر)</td><td className="font-bold">{singleWage ? fmt(singleRate) : snprintf(marNoChild ? (settings.maritalNoChildRate || 5.5) : 0)}</td></tr>
+              <tr><td>منحة الزوج(ة) غير العامل/ة (دج/شهر)</td><td className="font-bold">{singleWage ? fmt(singleRate) : fmt(marNoChild ? (settings.maritalNoChildRate || 5.5) : 0)}</td></tr>
               <tr><td>عدد الأطفال</td><td className="font-bold">{nChildren}</td></tr>
               <tr><td>عدد الأطفال الأكبر من 10 سنوات</td><td className="font-bold">{old10}</td></tr>
               <tr><td>عدد الأطفال الممنوحين</td><td className="font-bold">{granted}</td></tr>
@@ -482,5 +425,3 @@ export const FamilyFollowTool: React.FC<{ employees: Employee[]; settings: Setti
     </div>
   );
 };
-
-function snprintf(v: number) { return fmt(v); }

@@ -8,7 +8,7 @@ import { FamilyAllowanceCert } from './FamilyAllowanceCert';
 import { DocsRequest } from './DocsRequest';
 import { SalaryDisclosureForm } from './SalaryDisclosureForm';
 import { DrtExcelDoc } from './DrtExcelDoc';
-import { FamilyTableDoc, ExplanationLetter, UniversityCert, MutuelleCert } from './FamilyDocs';
+import { FamilyTableDoc, ExplanationLetter, MutuelleCert } from './FamilyDocs';
 import { AutoFitScale } from './DeviceScaler';
 import { exportElementsToPdf } from '../utils/exportPdf';
 import {
@@ -159,7 +159,6 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
               <option value="family-withdraw">جدول سحب المنح العائلية (طبق الأصل)</option>
               <option value="family-insert">جدول التكفل بالمنح العائلية — ادراج (طبق الأصل)</option>
               <option value="explanation-letter">رسالة توضيحية (تغيرات 36 شهرا)</option>
-              <option value="univ-cert">كشف الجامعة (منحة دراسية جامعية)</option>
               <option value="mutuelle-cert">التعاضدية الوطنية لعمال التربية والثقافة</option>
             </select>
           </div>
@@ -288,10 +287,6 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
 
           {docType === 'explanation-letter' && (
             <AutoFitScale docWidth={794}><ExplanationLetter employee={currentEmployee} settings={settings} /></AutoFitScale>
-          )}
-
-          {docType === 'univ-cert' && (
-            <AutoFitScale docWidth={794}><UniversityCert employee={currentEmployee} settings={settings} /></AutoFitScale>
           )}
 
           {docType === 'mutuelle-cert' && (

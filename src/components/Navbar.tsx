@@ -142,7 +142,6 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'fam_withdraw', label: 'جدول سحب المنح العائلية' },
     { id: 'fam_insert', label: 'جدول التكفل بالمنح العائلية (ادراج)' },
     { id: 'expl_letter', label: 'رسالة توضيحية (36 شهرا)' },
-    { id: 'univ_cert', label: 'كشف الجامعة (منحة دراسية جامعية)' },
     { id: 'mut_cert', label: 'التعاضدية الوطنية لعمال التربية والثقافة' },
     { id: 'munatec', label: '1 — شهادة استنفاء الاشتراكات', tag: 'MUNATEC', tagColor: 'text-amber-300' },
     { id: 'af_stop', label: '2 — شهادة توقيف الدفع للمنح العائلية', tag: 'CNR', tagColor: 'text-amber-300' },

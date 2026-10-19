@@ -133,7 +133,6 @@ export default function App() {
       fam_withdraw: 'family-withdraw',
       fam_insert: 'family-insert',
       expl_letter: 'explanation-letter',
-      univ_cert: 'univ-cert',
       mut_cert: 'mutuelle-cert'
     };
     // annex CNR/MUNATEC docs open in their own tab (نسخ طبق الأصل)

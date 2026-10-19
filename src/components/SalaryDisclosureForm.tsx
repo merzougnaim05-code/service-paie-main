@@ -20,9 +20,12 @@ export const SalaryDisclosureForm: React.FC<SalaryDisclosureFormProps> = ({ empl
   const { lastName } = splitName(employee.name);
 
   const today = new Date();
-  const payslip = computePayslip(employee, today.getMonth() + 1, today.getFullYear(), settings);
-  // المرتب الصافي السنوي = الصافي الشهري × 12
-  const annualNet = Math.round((payslip.net * 12) * 100) / 100;
+  // المبلغ السنوي مطابق لكشف الراتب السنوي: مجموع الأشهر الـ12 لسنة الكشف شهراً بشهر
+  // (الخبرة المهنية والضرائب والمردودية الفصلية تتبع سنة كل شهر — وليست ضرب الشهر الواحد في 12)
+  const annualResults = Array.from({ length: 12 }, (_, i) => computePayslip(employee, i + 1, today.getFullYear(), settings));
+  const annualNet = Math.round(
+    (annualResults.reduce((s, r) => s + r.net, 0) - annualResults.reduce((s, r) => s + r.familyTotal, 0)) * 100
+  ) / 100;
 
   return (
     <div className="sdf-wrapper">
