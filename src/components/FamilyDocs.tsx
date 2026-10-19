@@ -31,6 +31,11 @@ const OFF_HEADER = `
   .sdoc table { width: 100%; border-collapse: collapse; font-size: 10.5pt; }
   .sdoc th, .sdoc td { border: 1px solid #000; padding: 3px 4px; text-align: center; }
   .sdoc th { font-weight: bold; background: #f2f2f2; }
+  /* جدول السحب/التكفل: تخطيط ثابت بلا تداخل */
+  .sdoc .ftab { table-layout: fixed; width: 100%; font-size: 9.5pt; }
+  .sdoc .ftab th { font-size: 8.5pt; padding: 2px 2px; line-height: 1.3; }
+  .sdoc .ftab td { padding: 2px 2px; overflow: hidden; word-break: break-word; }
+  .sdoc .ftab td[contenteditable]:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }
 `;
 
 /** تاريخ serial إكسل أو نص إلى yyyy-mm-dd (للاستعمال الذاتي هنا) */
@@ -112,7 +117,16 @@ export const FamilyTableDoc: React.FC<{ employee: Employee; settings: Settings; 
         } />
         <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 15.5, margin: '14px 0', textDecoration: 'underline' }}>{isWithdraw ? 'جدول سحب المنح العائلية' : 'جدول التكفل بالمنح العائلية'}</div>
         <div style={{ fontWeight: 'bold', margin: '8px 0' }}>الإدارة الأولى : <span className="inp" contentEditable suppressContentEditableWarning style={{ width: 260 }}>{sq(JOBS[employee.jobIdx] && (JOBS[employee.jobIdx].domain === 'teach' ? 'التعليم' : JOBS[employee.jobIdx].domain === 'edu' ? 'مستخدمو الهيئة والتربية' : 'العمال المهنيين الإداريين') || 'العمال المهنيين')}</span></div>
-        <table>
+        <table className="ftab">
+          <colgroup>
+            <col style={{ width: '4%' }} />
+            <col style={{ width: '9%' }} />
+            <col style={{ width: '14%' }} />
+            <col style={{ width: '6%' }} />
+            <col style={{ width: '7.25%' }} /><col style={{ width: '7.25%' }} /><col style={{ width: '7.25%' }} /><col style={{ width: '7.25%' }} />
+            <col style={{ width: '7.25%' }} /><col style={{ width: '7.25%' }} /><col style={{ width: '7.25%' }} /><col style={{ width: '7.25%' }} />
+            <col style={{ width: '9%' }} />
+          </colgroup>
           <thead>
             <tr>
               <th rowSpan={2}>الرقم ت</th>
@@ -124,32 +138,32 @@ export const FamilyTableDoc: React.FC<{ employee: Employee; settings: Settings; 
               <th rowSpan={2}>{isWithdraw ? 'تاريخ السحب' : 'تاريخ التكفل'}</th>
             </tr>
             <tr>
-              <th>متزوج/ة</th><th>عدد الأطفال</th><th>عدد اطفال اكبر من 10س</th><th>الأجر الوحيد</th>
-              <th>متزوج/ة</th><th>عدد الأطفال</th><th>عدد اطفال اكبر من 10س</th><th>الأجر الوحيد</th>
+              <th>متزوج/ة</th><th>عدد<br />الأطفال</th><th>أكبر من<br />10 س</th><th>الأجر<br />الوحيد</th>
+              <th>متزوج/ة</th><th>عدد<br />الأطفال</th><th>أكبر من<br />10 س</th><th>الأجر<br />الوحيد</th>
             </tr>
           </thead>
           <tbody>
             {rows.map(r => (
               <tr key={r.id}>
-                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 20 }}>{r.id}</td>
-                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 70 }}></td>
-                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 130, fontWeight: 'bold' }}>{sq(r.name)}</td>
-                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 40 }}>{sq(r.cat)}</td>
-                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 30 }}>{sq(r.oldM)}</td>
-                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 30 }}>{r.oldCh}</td>
-                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 30 }}>{r.old10}</td>
-                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 30 }}>{sq(r.oldSw)}</td>
-                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 30 }}>{sq(r.newM)}</td>
-                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 30 }}>{r.newCh}</td>
-                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 30 }}>{r.new10}</td>
-                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 30 }}>{sq(r.newSw)}</td>
-                <td className="inp" contentEditable suppressContentEditableWarning style={{ minWidth: 80 }}>{r.date}</td>
+                <td contentEditable suppressContentEditableWarning>{r.id}</td>
+                <td contentEditable suppressContentEditableWarning></td>
+                <td contentEditable suppressContentEditableWarning style={{ fontWeight: 'bold' }}>{sq(r.name)}</td>
+                <td contentEditable suppressContentEditableWarning>{sq(r.cat)}</td>
+                <td contentEditable suppressContentEditableWarning>{sq(r.oldM)}</td>
+                <td contentEditable suppressContentEditableWarning>{r.oldCh}</td>
+                <td contentEditable suppressContentEditableWarning>{r.old10}</td>
+                <td contentEditable suppressContentEditableWarning>{sq(r.oldSw)}</td>
+                <td contentEditable suppressContentEditableWarning>{sq(r.newM)}</td>
+                <td contentEditable suppressContentEditableWarning>{r.newCh}</td>
+                <td contentEditable suppressContentEditableWarning>{r.new10}</td>
+                <td contentEditable suppressContentEditableWarning>{sq(r.newSw)}</td>
+                <td contentEditable suppressContentEditableWarning>{r.date}</td>
               </tr>
             ))}
             {Array.from({ length: 16 }, (_, i) => (
               <tr key={'e' + i}>
-                <td className="inp" contentEditable suppressContentEditableWarning>{i + 2}</td>
-                {Array.from({ length: 12 }, (_, c) => <td key={c} className="inp" contentEditable suppressContentEditableWarning>&nbsp;</td>)}
+                <td contentEditable suppressContentEditableWarning>{i + 2}</td>
+                {Array.from({ length: 12 }, (_, c) => <td key={c} contentEditable suppressContentEditableWarning>&nbsp;</td>)}
               </tr>
             ))}
           </tbody>
