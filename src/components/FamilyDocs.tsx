@@ -188,6 +188,7 @@ export const ExplanationLetter: React.FC<{ employee: Employee; settings: Setting
           <span className="inp" contentEditable suppressContentEditableWarning style={{ width: 640 }}>انا الممضي أسفله مقتصد {sq(settings.institution || '')} أشهد ان التغيرات الطارئة على مرتب</span>
         </div>
         <div style={{ margin: '6px 0' }}>
+          <span style={{ fontWeight: 'bold' }}>السيد : </span>
           <span className="inp" contentEditable suppressContentEditableWarning style={{ width: 240 }}>{sq(`${nom} ${prenom}`.trim())}</span>
           <span style={{ fontWeight: 'bold' }}> . </span> الوظيفة : <span className="inp" contentEditable suppressContentEditableWarning style={{ width: 240 }}>{sq(jobName)}</span>
         </div>
