@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Users,
   FileSpreadsheet,
@@ -15,11 +15,16 @@ import {
   LayoutDashboard,
   Database,
   ShieldCheck,
-  ClipboardList
+  ClipboardList,
+  Download,
+  Upload
 } from 'lucide-react';
 
 /** بوابة التطبيقات المدرسية — لوحة التحكم المركزية */
 const PORTAL_URL = 'https://service-intendance.pages.dev';
+
+/** مفاتيح بيانات النظام في التخزين المحلي (الموظفون + الإعدادات) */
+const DATA_KEYS = ['dz_payroll_employees_v3', 'dz_payroll_settings_v3', 'dz_payroll_last_modified_v3'];
 
 interface NavbarProps {
   activeTab: string;
@@ -55,6 +60,53 @@ export const Navbar: React.FC<NavbarProps> = ({
     if (onSelectDeviceMode) {
       onSelectDeviceMode(deviceMode === 'mobile' ? 'desktop' : 'mobile');
     }
+  };
+
+  const importInputRef = useRef<HTMLInputElement>(null);
+
+  /** تصدير كل بيانات النظام (الموظفون + الإعدادات) إلى ملف JSON */
+  const handleExportData = () => {
+    const data: Record<string, unknown> = {
+      _app: 'service-paie',
+      _exported: new Date().toISOString()
+    };
+    DATA_KEYS.forEach(k => {
+      const v = localStorage.getItem(k);
+      if (v !== null) data[k] = v;
+    });
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `service-paie-donnees-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  /** استيراد ملف بيانات: استبدال المحتوى الحالي وإعادة التحميل */
+  const handleImportData = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const obj = JSON.parse(String(reader.result));
+        if (!obj['dz_payroll_employees_v3']) {
+          throw new Error('missing employees');
+        }
+        DATA_KEYS.forEach(k => {
+          if (k in obj) {
+            const v = typeof obj[k] === 'string' ? obj[k] : JSON.stringify(obj[k]);
+            localStorage.setItem(k, v);
+          }
+        });
+        window.location.reload();
+      } catch (err) {
+        alert('الملف غير صالح — تأكد أنه ملف تصدير صادر من هذا التطبيق (service-paie).');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
   };
 
   const tabs: { id: string; label: string; icon: React.ReactNode; desc: string }[] = [
@@ -218,6 +270,31 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* أدوات ثابتة في نهاية الشريط */}
         <div className="shrink-0 flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={handleExportData}
+            className="minibtn"
+            title="تصدير البيانات — نسخة احتياطية (Sauvegarde des données)"
+          >
+            <Download className="w-4 h-4" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => importInputRef.current && importInputRef.current.click()}
+            className="minibtn"
+            title="استيراد البيانات من ملف نسخة احتياطية (Restauration des données)"
+          >
+            <Upload className="w-4 h-4" />
+          </button>
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".json,application/json"
+            onChange={handleImportData}
+            style={{ display: 'none' }}
+          />
+
           <button
             type="button"
             onClick={handleDeviceToggle}
