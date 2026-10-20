@@ -185,16 +185,16 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'attestation_travail', label: '4 — شهادة عمل Attestation', tag: 'CNR', tagColor: 'text-amber-300' }
   ];
 
-  const dayButtons: { ar: string; fr: string; icon: React.ReactNode; active: boolean; go: () => void }[] = [
-    { ar: 'سجل الموظفين', fr: 'Registre du personnel', icon: <FileText className="w-3.5 h-3.5" />, active: activeTab === 'employees', go: () => handleTabClick('employees') },
-    { ar: 'كشف الراتب', fr: 'Bulletin de paie', icon: <FileText className="w-3.5 h-3.5" />, active: activeTab === 'payslip', go: () => handleTabClick('payslip') },
-    { ar: 'طلائح الرواتب', fr: 'États de paie', icon: <FileSpreadsheet className="w-3.5 h-3.5" />, active: activeTab === 'payrollTables', go: () => handleTabClick('payrollTables') },
-    { ar: 'ATS — التوقف عن العمل', fr: 'Arrêt de travail (CNAS)', icon: <ShieldCheck className="w-3.5 h-3.5" />, active: activeTab === 'docs' && activeDoc === 'ats-front', go: () => handleDocClick('cert_recto') },
-    { ar: 'DRT — استئناف العمل', fr: 'Reprise du travail (CNAS)', icon: <ShieldCheck className="w-3.5 h-3.5" />, active: activeTab === 'docs' && activeDoc === 'drt', go: () => handleDocClick('res') },
-    { ar: 'وثائق CNR — التقاعد', fr: 'Documents CNR — Retraite', icon: <Award className="w-3.5 h-3.5" />, active: activeTab === 'pension', go: () => handleTabClick('pension') },
-    { ar: 'استمارات CNR', fr: 'Formulaires CNR', icon: <FileText className="w-3.5 h-3.5" />, active: activeTab === 'cnr-annex', go: () => handleTabClick('cnr-annex') },
-    { ar: 'متابعة المنح العائلية', fr: 'Suivi des prestations familiales', icon: <Users className="w-3.5 h-3.5" />, active: activeTab === 'familyfollow', go: () => handleTabClick('familyfollow') },
-    { ar: 'استمارات', fr: 'Formulaires administratifs', icon: <ClipboardList className="w-3.5 h-3.5" />, active: activeTab === 'docs' && activeDoc === 'form', go: () => handleDocClick('form') }
+  const dayButtons: { ar: string; tag: string; icon: React.ReactNode; active: boolean; go: () => void }[] = [
+    { ar: 'سجل الموظفين', tag: 'سجل', icon: <FileText className="w-3.5 h-3.5" />, active: activeTab === 'employees', go: () => handleTabClick('employees') },
+    { ar: 'كشف الراتب', tag: 'كشف', icon: <FileText className="w-3.5 h-3.5" />, active: activeTab === 'payslip', go: () => handleTabClick('payslip') },
+    { ar: 'طلائح الرواتب', tag: 'طلائح', icon: <FileSpreadsheet className="w-3.5 h-3.5" />, active: activeTab === 'payrollTables', go: () => handleTabClick('payrollTables') },
+    { ar: 'التوقف عن العمل', tag: 'ATS', icon: <ShieldCheck className="w-3.5 h-3.5" />, active: activeTab === 'docs' && activeDoc === 'ats-front', go: () => handleDocClick('cert_recto') },
+    { ar: 'استئناف العمل', tag: 'DRT', icon: <ShieldCheck className="w-3.5 h-3.5" />, active: activeTab === 'docs' && activeDoc === 'drt', go: () => handleDocClick('res') },
+    { ar: 'وثائق التقاعد', tag: 'CNR', icon: <Award className="w-3.5 h-3.5" />, active: activeTab === 'pension', go: () => handleTabClick('pension') },
+    { ar: 'استمارات CNR', tag: 'فرم', icon: <FileText className="w-3.5 h-3.5" />, active: activeTab === 'cnr-annex', go: () => handleTabClick('cnr-annex') },
+    { ar: 'متابعة المنح العائلية', tag: 'المنح', icon: <Users className="w-3.5 h-3.5" />, active: activeTab === 'familyfollow', go: () => handleTabClick('familyfollow') },
+    { ar: 'استمارات', tag: 'سنوية', icon: <ClipboardList className="w-3.5 h-3.5" />, active: activeTab === 'docs' && activeDoc === 'form', go: () => handleDocClick('form') }
   ];
 
   return (
@@ -220,23 +220,26 @@ export const Navbar: React.FC<NavbarProps> = ({
         }
         @media (prefers-reduced-motion: reduce) { .dz-sphere { animation: none; } }
 
-        /* بتصميم أزرار مفتوحة قليلاً — تتحول ذهبية عند التحويم أو الاختيار */
+        /* بتصميم أزرار مفتوحة قليلاً — عربية فوق واختصار الوثيقة تحت — ذهبية عند التحويم أو الاختيار */
         .dailydoc-btn {
-          display: inline-flex; align-items: center; gap: 9px;
-          padding: 8px 15px; border-radius: 12px; cursor: pointer; white-space: nowrap;
+          display: inline-flex; align-items: center; gap: 7px;
+          padding: 6px 11px; border-radius: 12px; cursor: pointer; white-space: nowrap;
           background: #0f231d; border: 1px solid #2c4a40;
           color: #cfe9df; transition: all .15s ease; flex-shrink: 0;
         }
         .dailydoc-btn .ic { color: #f2d488; line-height: 0; transition: color .15s ease; }
-        .dailydoc-btn .ar { display: block; font-size: 12.5px; font-weight: 700; line-height: 1.4; }
-        .dailydoc-btn .fr { display: block; font-size: 10px; font-weight: 500; line-height: 1.3; color: rgba(207,233,223,.55); }
+        .dailydoc-btn .ar { display: block; font-size: 12px; font-weight: 700; line-height: 1.4; }
+        .dailydoc-btn .tag {
+          display: block; font-size: 10px; font-weight: 700; line-height: 1.3;
+          letter-spacing: .05em; color: rgba(242,212,136,.85);
+        }
         .dailydoc-btn:hover { background: #d4a537; border-color: #e7c05a; color: #1c1505; }
         .dailydoc-btn:hover .ic { color: #1c1505; }
-        .dailydoc-btn:hover .fr { color: rgba(28,21,5,.75); }
+        .dailydoc-btn:hover .tag { color: rgba(28,21,5,.8); }
         .dailydoc-btn.active { background: #d4a537; color: #1c1505; border-color: #e7c05a; }
         .dailydoc-btn.active .ic { color: #1c1505; }
         .dailydoc-btn.active .ar { font-weight: 800; }
-        .dailydoc-btn.active .fr { color: rgba(28,21,5,.75); }
+        .dailydoc-btn.active .tag { color: rgba(28,21,5,.8); }
 
         .minibtn {
           display: inline-flex; align-items: center; justify-content: center; gap: 4px;
@@ -330,22 +333,22 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* ===== 2) شريط الأزرار — تحت شريط الجمهورية ===== */}
       <div className="bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-950">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2 flex items-center gap-2 overflow-x-auto">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2 flex items-center justify-center gap-1.5 flex-wrap">
           <span className="text-[11px] sm:text-xs font-black text-amber-300 whitespace-nowrap shrink-0 flex items-center gap-1.5">
             <span className="text-sm">★</span> وثائق يومية:
           </span>
           {dayButtons.map(b => (
             <button
-              key={b.fr}
+              key={b.tag + b.ar}
               type="button"
               onClick={b.go}
               className={`dailydoc-btn ${b.active ? 'active' : ''}`}
-              title={b.fr}
+              title={b.ar}
             >
               <span className="ic">{b.icon}</span>
               <span>
                 <span className="ar">{b.ar}</span>
-                <span className="fr">{b.fr}</span>
+                <span className="tag">{b.tag}</span>
               </span>
             </button>
           ))}
