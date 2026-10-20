@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Employee, Settings, Job } from '../types';
 import { JOBS, GRILLE, MONTHS_AR, MAJAZ_CODES } from '../data/salaryGrids';
-import { computePayslip, fmt, getClassificationCategory, isProfessionalWorkerJob } from '../utils/salaryCalculator';
+import { computePayslip, fmt, getClassificationCategory, isProfessionalWorkerJob, yearsOfService } from '../utils/salaryCalculator';
 import { exportElementsToPdf } from '../utils/exportPdf';
 import { CNR_LOGO } from '../data/cnrLogo';
 import { AutoFitScale } from './DeviceScaler';
@@ -76,11 +76,12 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
     rank: string;     // display name (synced from dropdown)
     catIdx: string;   // index in GRILLE
     grade: string;    // echelon 0..12
+    years: string;    // سنوات الخدمة — تعمل للعمال المهنيين غير المرسمين (1.4% سنوياً)
     wage: string;     // auto-computed cnasBase, editable
     teacherType: 'عادي' | 'مجاز';
     yieldAmt: string; // auto-computed quarterly rendement, editable
   }
-  const EMPTY_SALARY_RULE: SalaryRule = { from: '', to: '', jobIdx: '', rank: '', catIdx: '', grade: '', wage: '', teacherType: 'عادي', yieldAmt: '' };
+  const EMPTY_SALARY_RULE: SalaryRule = { from: '', to: '', jobIdx: '', rank: '', catIdx: '', grade: '', years: '', wage: '', teacherType: 'عادي', yieldAmt: '' };
   const [salaryRules, setSalaryRules] = useState<SalaryRule[]>([
     { ...EMPTY_SALARY_RULE },
     { ...EMPTY_SALARY_RULE },
@@ -183,6 +184,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
           rank: currentJob?.name || '',
           catIdx: initCatIdx >= 0 ? String(initCatIdx) : '',
           grade: String(currentEmployee.echelon ?? ''),
+          years: String(currentEmployee.yearsOverride ?? (currentEmployee.hireDate ? yearsOfService(currentEmployee.hireDate) : '')),
           wage: String(basePayslip.cnasBase),
           teacherType: currentEmployee.teacherType || 'عادي',
           yieldAmt: quarterlyYield > 0 ? String(quarterlyYield) : ''
@@ -219,6 +221,10 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
       jobIdx: ji,
       category: Number.isFinite(ci) && GRILLE[ci] ? ci : emp.category,
       echelon: Math.max(0, Math.min(12, Number(rule.grade) || 0)),
+      // سنوات الخدمة المبرمجة: تحكم حساب العامل المهني غير المرسم (خبرة 1.4% سنوياً)
+      yearsOverride: isProfessionalWorkerJob(job) && String(rule.years).trim() !== ''
+        ? Number(rule.years)
+        : emp.yearsOverride,
       teacherType: rule.teacherType
     };
     let m = refMonth;
@@ -249,6 +255,10 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
           if (ci >= 0) next.catIdx = String(ci);
         }
         if (currentEmployee) next.grade = String(currentEmployee.echelon ?? 0);
+        // عند اختيار عامل مهني: تُملأ سنوات الخدمة آلياً من المعطيات الحالية للموظف
+        if (job && isProfessionalWorkerJob(job) && currentEmployee) {
+          next.years = String(currentEmployee.yearsOverride ?? (currentEmployee.hireDate ? yearsOfService(currentEmployee.hireDate) : ''));
+        }
       }
       if (auto && currentEmployee) {
         const a = autoForRule(next, currentEmployee);
@@ -529,7 +539,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
             </div>
 
             <p className="text-xs text-[#64748b] mb-4">
-              حدد فترات الترقية أو تغير الراتب (من شهر/سنة إلى شهر/سنة) ومبلغ الراتب الخاضع للاشتراك لكل فترة، وسيتم تطبيقها فوراً على جدول الـ 60 شهراً وحساب المجاميع.
+              حدد فترات الترقية أو تغير الراتب (من شهر/سنة إلى شهر/سنة) ومبلغ الراتب الخاضع للاشتراك لكل فترة، وسيتم تطبيقها فوراً على جدول الـ 60 شهراً وحساب المجاميع. حقل <b>سنوات الخدمة</b> مخصص <b>للعمال المهنيين غير المرسمين</b>: يُملأَ آلياً عند اختيار الرتبة، وكل تغيير فيه يعيد حساب الأجر الخاضع والمردودية آلياً (خبرة 1.4% من الأجر عن كل سنة خدمة) بدل الدرجة.
             </p>
 
             <div className="overflow-x-auto rounded-xl border border-[#e2e8f0] bg-white">
@@ -540,6 +550,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                     <th className="p-2.5">إلى (شهر/سنة)</th>
                     <th className="p-2.5">الرتبة (قائمة) + الصنف</th>
                     <th className="p-2.5">الدرجة</th>
+                    <th className="p-2.5">سنوات الخدمة</th>
                     <th className="p-2.5">الأجر الخاضع (دج) — آلي/يدوي</th>
                     <th className="p-2.5">مردودية فصلية (دج) — آلي/يدوي</th>
                   </tr>
@@ -639,6 +650,18 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                             ))}
                           </select>
                         </div>
+                      </td>
+                      <td className="p-2">
+                        <input
+                          type="number"
+                          min={0}
+                          max={45}
+                          placeholder="سنوات"
+                          value={rule.years}
+                          onChange={e => updateRule(idx, { years: e.target.value }, true)}
+                          className="w-full bg-[#f8fafc] border border-[#cbd5e1] rounded-lg px-2 py-1 text-center text-xs font-bold"
+                          title="سنوات الخدمة — تعمل للعمال المهنيين غير المرسمين (خبرة 1.4% من الأجر سنوياً)"
+                        />
                       </td>
                       <td className="p-2">
                         <input
