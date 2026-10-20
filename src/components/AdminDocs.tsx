@@ -236,7 +236,7 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
           {/* 4. DRT — بيان استئناف العمل (طبق أصل ملف الإكسل) */}
           {/* ======================================================== */}
           {docType === 'drt' && (
-            <AutoFitScale docWidth={559}>
+            <AutoFitScale docWidth={794}>
               <DrtExcelDoc employee={currentEmployee} settings={settings} />
             </AutoFitScale>
           )}

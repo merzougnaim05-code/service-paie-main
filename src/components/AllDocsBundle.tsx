@@ -93,7 +93,7 @@ export const AllDocsBundle: React.FC<AllDocsBundleProps> = ({ employees, setting
 
       {/* 4. استئناف العمل DRT */}
       <div className="doc-page" data-doc="drt">
-        <DocSep n={4} label="استئناف العمل DRT (A5)" />
+        <DocSep n={4} label="استئناف العمل DRT (A4)" />
         <AutoFitScale docWidth={794}>
           <DrtExcelDoc employee={employee} settings={settings} />
         </AutoFitScale>

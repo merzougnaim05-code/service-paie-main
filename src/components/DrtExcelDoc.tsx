@@ -70,29 +70,107 @@ function buildAuto(emp: Employee | undefined, settings: Settings): DrtForm {
 }
 
 const CSS = `
-  .drtx-page * { box-sizing: border-box; }
+  .drtx-page * { box-sizing: border-box; font-family:'Traditional Arabic','Times New Roman',serif; }
   .drtx-page {
-    background: #fff; color: #000; margin: 0 auto; position: relative;
-    box-shadow: 0 0 10px rgba(0,0,0,.30);
-    font-family: 'Traditional Arabic','Arabic Typesetting','Noto Naskh Arabic','Cairo',Tahoma,serif;
-    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    background:#fff; color:#000; margin:0 auto; position:relative;
+    box-shadow:0 0 10px rgba(0,0,0,.30);
+    font-family:'Traditional Arabic','Times New Roman',serif;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
-  .drtx-page .dots { flex: 1; border-bottom: 1.6px dotted #000; min-height: 1.1em; margin: 0 4px; text-align: center; font-weight: 700; padding: 0 6px; }
-  .drtx-page .dots[contenteditable]:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }
-  .drtx-page .ln { display: flex; align-items: flex-end; gap: 4px; }
-  .drtx-page .cb { display: inline-flex; align-items: center; justify-content: center; width: 4mm; height: 4mm; border: 1.4px solid #000; font-weight: 900; font-size: 10pt; line-height: 1; cursor: pointer; background: #fff; flex-shrink: 0; }
+  .drtx-col { width:428px; margin:0 auto; }
+
+  /* ===== الترويسة (شريط CNAS الأسود) ===== */
+  .drtx-banner {
+    height:72px; margin:0 21px 0 16px; background:#000;
+    display:flex; align-items:center; gap:8px; padding:0 10px; direction:ltr;
+  }
+  .drtx-banner img { height:58px; width:auto; background:#fff; border-radius:50%; padding:1px; flex-shrink:0; }
+  .drtx-banner .btext { flex:1; text-align:center; color:#fff; line-height:1.4; }
+  .drtx-banner .b1 { font-size:12px; }
+  .drtx-banner .b2 { font-size:15.5px; font-weight:700; }
+  .drtx-banner .b3 { font-size:11.5px; font-weight:700; }
+
+  /* ===== صف العنوان + المربع المستدير ===== */
+  .drtx-head { display:flex; align-items:flex-start; margin-top:14px; }
+  .drtx-stamp { width:142px; height:77px; border:1.4px solid #4a4a4a; border-radius:12px; margin-right:16px; flex-shrink:0; }
+  .drtx-titles { flex:1; text-align:center; padding-top:12px; color:#0000FF; }
+  .drtx-titles .t1 { font-size:24px; line-height:1.1; }
+  .drtx-titles .t2 { font-size:24px; line-height:1.1; }
+  .drtx-titles .ul { border-bottom:3px solid #2f6fb2; padding-bottom:1px; }
+
+  /* ===== الصندوق الأول ===== */
+  .drtx-box1 { border:1.4px solid #000; margin-top:44px; height:580px; padding:0 3px; position:relative; }
+  .drtx-ahd { font-size:15px; color:#0000FF; text-align:right; height:29px; line-height:29px; padding-right:4px; }
+  .drtx-names { position:relative; height:87px; }
+  .drtx-nrow { display:flex; align-items:flex-end; height:29px; margin-left:172px; }
+  .drtx-nrow .lb { font-size:15px; font-weight:700; color:#0000FF; white-space:nowrap; }
+  .drtx-dots {
+    flex:1; border-bottom:2px dotted #0000FF; height:20px; margin:0 4px;
+    font-size:15px; font-weight:700; color:#0000FF; line-height:17px; text-align:center; outline:none; padding:0 3px;
+  }
+  .drtx-reg { position:absolute; left:3px; top:0; width:162px; height:82px; border:1.4px solid #000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; }
+  .drtx-reg .rl { font-size:12px; color:#0000FF; }
+  .drtx-reg .rv { font-size:15px; font-weight:700; }
+
+  .drtx-dateRow { display:flex; justify-content:flex-end; align-items:center; height:22px; margin-top:23px; }
+  .drtx-dateRow .lb { font-size:15px; font-weight:700; color:#0000FF; white-space:nowrap; }
+  .drtx-dateBox { border:1.4px solid #000; width:104px; height:22px; text-align:center; font-weight:700; font-size:16px; line-height:19px; outline:none; }
+
+  .drtx-bRow { display:flex; align-items:center; height:22px; margin-top:8px; padding-right:168px; padding-left:35px; }
+  .drtx-bRow .lb { font-size:15px; font-weight:700; color:#0000FF; white-space:nowrap; }
+  .drtx-dotsB { flex:1; border-bottom:2px dotted #000; height:18px; margin:0 4px; outline:none; font-size:14px; text-align:center; }
+
+  .drtx-stopRow { display:flex; justify-content:flex-end; align-items:center; height:22px; margin-top:27px; padding-right:27px; }
+  .drtx-stopRow .lb { font-size:15px; font-weight:700; color:#0000FF; white-space:nowrap; }
+  .drtx-stopBox { border:1.4px solid #000; width:85px; height:22px; text-align:center; font-weight:700; font-size:15px; line-height:19px; outline:none; }
+
+  .drtx-cRow { display:flex; align-items:center; height:22px; }
+  .drtx-cRow.first { margin-top:38px; padding-right:87px; }
+  .drtx-cRow.second { margin-top:41px; padding-right:125px; }
+  .drtx-cRow .one { width:17px; font-size:13px; font-weight:700; color:#0000FF; text-align:center; }
+  .drtx-cRow .gap { width:21px; }
+  .drtx-cb { width:20px; height:23px; border:1.4px solid #000; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px; line-height:1; flex-shrink:0; }
+  .drtx-cRow .clb { width:109px; text-align:right; font-size:15px; font-weight:700; color:#0000FF; white-space:nowrap; padding:0 2px; }
+  .drtx-fBox { width:88px; height:22px; border-right:1.4px solid #000; border-left:1.4px solid #000; border-bottom:1.4px solid #000; text-align:center; font-size:14px; font-weight:700; outline:none; line-height:19px; }
+  .drtx-cRow .fill { flex:1; }
+
+  .drtx-harrar { margin-top:20px; height:31px; font-size:15px; font-weight:700; color:#0000FF; display:flex; align-items:center; width:270px; }
+  .drtx-dotsS { display:inline-block; border-bottom:2px dotted #0000FF; height:17px; margin:0 4px; outline:none; min-width:40px; text-align:center; font-size:14px; }
+
+  .drtx-labels { display:flex; align-items:center; height:27px; font-size:15px; font-weight:700; color:#0000FF; }
+  .drtx-labels .right { width:159px; text-align:right; }
+  .drtx-labels .sp { flex:1; }
+  .drtx-labels .left { width:85px; text-align:right; }
+
+  .drtx-line { border-bottom:2.4px dotted #000; height:21px; width:264px; }
+  .drtx-sign1 { font-size:15px; font-weight:700; height:24px; line-height:24px; padding-left:88px; }
+
+  /* ===== صندوق التصريح الشرفي ===== */
+  .drtx-box2 { border:1.4px solid #000; margin-top:28px; height:246px; padding:4px 3px 0; }
+  .drtx-h1 { text-align:center; font-size:19px; font-weight:700; color:#0000FF; }
+  .drtx-h1 span { border-bottom:2px solid #0000FF; padding:0 6px; }
+  .drtx-h2 { text-align:center; font-size:13px; color:#0000FF; margin-top:1px; }
+  .drtx-honorNames { position:relative; margin-top:12px; height:58px; }
+  .drtx-hrow { display:flex; align-items:flex-end; height:29px; margin-left:190px; padding-right:4px; }
+  .drtx-hrow .lb { font-size:15px; font-weight:700; color:#0000FF; white-space:nowrap; }
+  .drtx-reg2 { position:absolute; left:2px; top:0; width:185px; height:40px; border:1.4px solid #7f9db9; display:flex; align-items:center; justify-content:center; gap:6px; color:#4a6b8a; font-size:12.5px; }
+  .drtx-reg2 .num { color:#000; font-weight:700; font-size:13.5px; }
+
+  .drtx-decl { display:flex; align-items:center; margin-top:12px; padding-right:27px; }
+  .drtx-decl .txt { font-size:13.5px; font-weight:700; color:#0000FF; white-space:nowrap; }
+  .drtx-decl .dBox { width:116px; height:23px; border-right:1.4px solid #000; border-left:1.4px solid #000; border-bottom:1.4px solid #000; margin-right:6px; text-align:center; font-size:14px; font-weight:700; outline:none; line-height:20px; }
+  .drtx-decl2 { font-size:13.5px; font-weight:700; color:#0000FF; text-align:right; padding-right:31px; margin-top:2px; }
+  .drtx-harrar2 { display:flex; align-items:center; font-size:14.5px; color:#000; margin-top:6px; padding-right:174px; }
+  .drtx-harrar2 .lb { white-space:nowrap; }
+  .drtx-dotsH { flex:1; border-bottom:2px dotted #000; height:17px; margin:0 4px; outline:none; font-size:13px; text-align:center; }
+  .drtx-imda2 { font-size:13.5px; color:#0000FF; padding-right:88px; margin-top:2px; }
+  .drtx-legend { text-align:right; font-size:13px; color:#0000FF; margin-top:10px; padding-right:2px; }
+  .drtx-legend b { font-size:15px; }
+  .drtx-note { text-align:center; font-size:12.5px; color:#0000FF; margin-top:14px; }
+
   @media print {
-    .drtx-page { box-shadow: none !important; margin: 0 !important; page-break-inside: avoid; }
+    .drtx-page { box-shadow:none !important; margin:0 !important; }
   }
-  /* الشريط العلوي الأزرق — منسوخ من شهادة العمل والأجر (ATS) مضبوطا على قياس A5 (148mm = 210 × 0.705) */
-  .drtx-topbar { background: #0070C0; display: flex; align-items: center; gap: 2.9mm; padding: 1.8mm 5mm; height: 16.5mm; direction: ltr; }
-  .drtx-topbar img { height: 14mm; display: block; }
-  .drtx-topbar-text { flex: 1; text-align: center; color: #fff; }
-  .drtx-topbar-text p { margin: 0; line-height: 1.42; }
-  .drtx-topbar-text .l1 { font-size: 8.8pt; }
-  .drtx-topbar-text .l2 { font-size: 9.2pt; font-weight: 700; }
-  .drtx-topbar-text .l3 { font-size: 7.4pt; font-weight: 700; }
-  .drtx-topbar-text .l3 .ar { margin-inline-start: 2px; }
 `;
 
 export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) => {
@@ -124,9 +202,7 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
     }, 250);
   };
 
-  const f: DrtForm = blankPrinting
-    ? { ...BLANK }
-    : form;
+  const f: DrtForm = blankPrinting ? { ...BLANK } : form;
 
   const inputCls =
     'w-full bg-white border border-[#cbd5e1] rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-[#0f172a] focus:outline-none focus:border-[#047857]';
@@ -139,7 +215,6 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
     <div className="w-full">
       {/* Mini toolbar */}
       <div className="flex flex-wrap items-center gap-2 mb-4 print:hidden">
-        {/* Sliding switch : auto vs manual print */}
         <div className="relative flex bg-[#e2e8f0] rounded-xl p-1 w-64" dir="rtl" title="وضع الطباعة">
           <div
             className="absolute top-1 bottom-1 rounded-lg bg-[#047857] shadow transition-all duration-200"
@@ -175,10 +250,9 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
         </button>
       </div>
 
-      {/* Manual fields — visible only in manual print mode */}
       {printMode === 'auto' && (
         <div className="mb-4 print:hidden text-xs font-bold text-[#047857] bg-[#ecfdf5] border border-[#a7f3d0] rounded-xl px-3 py-2">
-          وضع الطباعة الآلية: حقول المعلومات مخفية — تُملأ الوثيقة تلقائيا من بيانات البرنامج. بدّل إلى «طباعة يدوية» لإظهار الحقول وتعديلها.
+          وضع الطباعة الآلية: الحقول مخفية — تُملأ الوثيقة تلقائيا من بيانات البرنامج. بدّل إلى «طباعة يدوية» لإظهار الحقول وتعديلها.
         </div>
       )}
       <div className={printMode === 'manual' ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 mb-4 print:hidden' : 'hidden'}>
@@ -204,127 +278,136 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
       </div>
 
       {showPreview && (
-        <div className="drtx-page" style={{ width: '148mm', minHeight: '210mm', padding: '4mm 5mm', direction: 'rtl', fontSize: '10pt', lineHeight: 1.55 }}>
-          <style>{`${CSS} @page { size: 148mm 210mm; margin: 0; }`}</style>
+        <div className="drtx-page" style={{ width: '210mm', minHeight: '297mm', padding: '8px 0' }} dir="rtl">
+          <style>{`${CSS} @page { size: 210mm 297mm; margin: 0; }`}</style>
 
-          {/* الشريط العلوي الأزرق — منسوخ من شهادة العمل والأجر بالقياس A5 */}
-          <div className="drtx-topbar">
-            <img src={CNAS_LOGO} alt="CNAS" />
-            <div className="drtx-topbar-text">
-              <p className="ar l1">وزارة العمل و التشغيل و الضمان الاجتماعي</p>
-              <p className="ar l2">الصندوق الوطني للتأمينات الاجتماعية للعمال الأجراء</p>
-              <p className="l3">
-                <span>Assurances Sociales</span>
-                <span className="ar">- التأمينات الاجتماعية</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Title */}
-          <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '14pt', marginTop: '1mm' }}>تصريح بإستئناف</div>
-          <div style={{ textAlign: 'center', fontWeight: 700, fontSize: '11pt' }}>أو عدم إستئناف العمل</div>
-
-          <div style={{ textAlign: 'right', fontWeight: 700, marginTop: '1mm' }}>أنا المستخدم الممضي أسفله أشهد أن المؤمن :</div>
-
-          {/* Names + registration box (stacked for A5 portrait) */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2mm', marginTop: '1mm' }}>
-            <div>
-              <div className="ln">
-                <span style={{ whiteSpace: 'nowrap' }}>الاسم :</span>
-                <span className="dots" contentEditable suppressContentEditableWarning>{f.firstName}</span>
-              </div>
-              <div className="ln" style={{ marginTop: '1mm' }}>
-                <span style={{ whiteSpace: 'nowrap' }}>اللقب :</span>
-                <span className="dots" contentEditable suppressContentEditableWarning>{f.lastName}</span>
+          <div className="drtx-col">
+            {/* الترويسة */}
+            <div className="drtx-banner">
+              <img src={CNAS_LOGO} alt="CNAS" />
+              <div className="btext ar">
+                <div className="b1">وزارة العمل و التشغيل و الضمان الاجتماعي</div>
+                <div className="b2">الصندوق الوطني للتأمينات الاجتماعية للعمال الأجراء</div>
+                <div className="b3">– التأمينات الاجتماعية –</div>
               </div>
             </div>
-            <div style={{ border: '1.5px solid #000', padding: '1.5mm 3mm' }}>
-              <div className="ln" style={{ width: '100%' }}>
-                <span style={{ whiteSpace: 'nowrap' }}>رقم التسجيل :</span>
-                <span className="dots" contentEditable suppressContentEditableWarning>{f.regNum}</span>
+
+            {/* العنوان + المربع المستدير */}
+            <div className="drtx-head">
+              <div className="drtx-stamp" />
+              <div className="drtx-titles ar">
+                <div className="t1">تصريح بإستئناف</div>
+                <div className="t2">أو عدم <span className="ul">إستئناف</span> العمل</div>
               </div>
             </div>
-          </div>
 
-          <div className="ln" style={{ marginTop: '1mm' }}>
-            <span style={{ whiteSpace: 'nowrap' }}>تاريخ الازدياد :</span>
-            <span className="dots" style={{ maxWidth: '45mm' }} contentEditable suppressContentEditableWarning>{f.birthDate}</span>
-            <span style={{ whiteSpace: 'nowrap' }}>بـ :</span>
-            <span className="dots" contentEditable suppressContentEditableWarning>{f.birthPlace}</span>
-          </div>
+            {/* ===== الصندوق الأول ===== */}
+            <div className="drtx-box1 ar">
+              <div className="drtx-ahd">أنا المستخدم الممضي أسفله أشهد أن المؤمن :</div>
 
-          <div className="ln" style={{ marginTop: '1mm' }}>
-            <span style={{ whiteSpace: 'nowrap' }}>المتوقف عن العمل في :</span>
-            <span className="dots" style={{ maxWidth: '60mm' }} contentEditable suppressContentEditableWarning>{f.stopDate}</span>
-          </div>
-
-          <div className="ln" style={{ marginTop: '1mm' }}>
-            <span className="cb" onClick={() => toggleMode('resumed')}>{f.mode === 'resumed' ? 'x' : ''}</span>
-            <span style={{ fontSize: '9pt' }}>(1)</span>
-            <span style={{ whiteSpace: 'nowrap', fontWeight: 700 }}>قد استأنف عمله في :</span>
-            <span className="dots" style={{ maxWidth: '60mm' }} contentEditable suppressContentEditableWarning>{f.resumeDate}</span>
-          </div>
-
-          <div className="ln" style={{ marginTop: '1mm' }}>
-            <span className="cb" onClick={() => toggleMode('notResumed')}>{f.mode === 'notResumed' ? 'x' : ''}</span>
-            <span style={{ fontWeight: 700 }}>لم يباشر عمله الى يومنا هذا</span>
-          </div>
-
-          <div className="ln" style={{ marginTop: '1mm', maxWidth: '130mm' }}>
-            <span style={{ whiteSpace: 'nowrap' }}>حرر بـ :</span>
-            <span className="dots" contentEditable suppressContentEditableWarning>{f.madePlace}</span>
-            <span style={{ whiteSpace: 'nowrap' }}>في :</span>
-            <span className="dots" contentEditable suppressContentEditableWarning>{f.madeDate}</span>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2mm', marginTop: '1mm' }}>
-            <div>
-              <div className="ln">
-                <span style={{ whiteSpace: 'nowrap' }}>الطبيعة الاجتماعية وختم المستخدم :</span>
-                <span className="dots" contentEditable suppressContentEditableWarning>{f.socialNature}</span>
+              <div className="drtx-names">
+                <div className="drtx-reg">
+                  <div className="rl">رقم التسجيل</div>
+                  <div className="rv">{f.regNum || '\u00a0'}</div>
+                </div>
+                <div className="drtx-nrow">
+                  <span className="lb">الاسم :</span>
+                  <span className="drtx-dots" contentEditable suppressContentEditableWarning>{f.firstName}</span>
+                </div>
+                <div className="drtx-nrow">
+                  <span className="lb">اللقب :</span>
+                  <span className="drtx-dots" contentEditable suppressContentEditableWarning>{f.lastName}</span>
+                </div>
               </div>
-              <div className="dots" style={{ marginTop: '1mm', minHeight: '5mm' }} contentEditable suppressContentEditableWarning />
-            </div>
-            <div>
-              <div className="ln">
-                <span style={{ whiteSpace: 'nowrap' }}>اسم وصفة الموقع :</span>
-                <span className="dots" contentEditable suppressContentEditableWarning>{f.signatory}</span>
+
+              <div className="drtx-dateRow">
+                <span className="lb">تاريخ الازدياد:</span>
+                <span className="drtx-dateBox" contentEditable suppressContentEditableWarning>{f.birthDate}</span>
               </div>
-              <div style={{ textAlign: 'center', fontWeight: 700, marginTop: '1mm' }}>الامضاء</div>
+
+              <div className="drtx-bRow">
+                <span className="lb">بــــــ:ـ</span>
+                <span className="drtx-dotsB" contentEditable suppressContentEditableWarning>{f.birthPlace}</span>
+              </div>
+
+              <div className="drtx-stopRow">
+                <span className="lb">المتوقف عن العمل في :</span>
+                <span className="drtx-stopBox" contentEditable suppressContentEditableWarning>{f.stopDate}</span>
+              </div>
+
+              <div className="drtx-cRow first">
+                <span className="one">(1)</span>
+                <span className="gap" />
+                <span className="drtx-cb" onClick={() => toggleMode('resumed')}>{f.mode === 'resumed' ? 'x' : ''}</span>
+                <span className="clb">قـــــد استأنـــف عملـــــه في:</span>
+                <span className="drtx-fBox" contentEditable suppressContentEditableWarning>{f.resumeDate}</span>
+                <span className="fill" />
+              </div>
+
+              <div className="drtx-cRow second">
+                <span className="drtx-cb" onClick={() => toggleMode('notResumed')}>{f.mode === 'notResumed' ? 'x' : ''}</span>
+                <span className="clb">لم يباشر عمله الى يومنا هذا</span>
+                <span className="drtx-fBox" contentEditable suppressContentEditableWarning />
+                <span className="fill" />
+              </div>
+
+              <div className="drtx-harrar">
+                <span>حرر بــ:</span>
+                <span className="drtx-dotsS" style={{ width: 118 }} contentEditable suppressContentEditableWarning>{f.madePlace}</span>
+                <span>في:</span>
+                <span className="drtx-dotsS" style={{ width: 82 }} contentEditable suppressContentEditableWarning>{f.madeDate}</span>
+              </div>
+
+              <div className="drtx-labels">
+                <span className="right">الطبيعة الاجتماعية وختم المستخدم:</span>
+                <span className="sp" />
+                <span className="left">اسم وصفة الموقع:</span>
+              </div>
+
+              <div className="drtx-line" />
+
+              <div className="drtx-sign1">الامضاء،</div>
             </div>
-          </div>
 
-          {/* Part 2 : honor declaration */}
-          <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '12pt', marginTop: '1mm' }}>تصريح شرفي</div>
-          <div style={{ textAlign: 'center', fontSize: '8.5pt' }}>( يملأ من طرف المؤمن له في حالة عدم إستئناف العمل )</div>
+            {/* ===== صندوق التصريح الشرفي ===== */}
+            <div className="drtx-box2 ar">
+              <div className="drtx-h1"><span>تصريح شرفي</span></div>
+              <div className="drtx-h2">( يملأ من طرف المؤمن له في حالة عدم إستئناف العمل )</div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1mm', marginTop: '1mm' }}>
-            <div className="ln">
-              <span style={{ whiteSpace: 'nowrap' }}>الاسم :</span>
-              <span className="dots" contentEditable suppressContentEditableWarning>{f.firstName}</span>
+              <div className="drtx-honorNames">
+                <div className="drtx-reg2">
+                  <span>رقم التسجيل</span>
+                  <span className="num">{f.regNum || '................'}</span>
+                </div>
+                <div className="drtx-hrow">
+                  <span className="lb">الأسم :</span>
+                  <span className="drtx-dots" contentEditable suppressContentEditableWarning>{f.firstName}</span>
+                </div>
+                <div className="drtx-hrow">
+                  <span className="lb">اللقب :</span>
+                  <span className="drtx-dots" contentEditable suppressContentEditableWarning>{f.lastName}</span>
+                </div>
+              </div>
+
+              <div className="drtx-decl">
+                <span className="txt">أصرح بشرفــي، أنني في حالة توقــف عن العمـل منذ تاريخ:</span>
+                <span className="dBox" contentEditable suppressContentEditableWarning>{f.stopDate}</span>
+              </div>
+              <div className="drtx-decl2">وأنني لا أمارس أي نشــاط مهنــي:</div>
+
+              <div className="drtx-harrar2">
+                <span className="lb">حرر بـ:</span>
+                <span className="drtx-dotsH" style={{ maxWidth: 80 }} contentEditable suppressContentEditableWarning>{f.madePlace}</span>
+                <span className="drtx-dotsH" style={{ maxWidth: 88 }} contentEditable suppressContentEditableWarning>{f.madeDate}</span>
+              </div>
+
+              <div className="drtx-imda2">الإمضاء</div>
+
+              <div className="drtx-legend"><b>(1)</b> ضع علامة <b>(x)</b> في الخانة المناسبة</div>
             </div>
-            <div className="ln">
-              <span style={{ whiteSpace: 'nowrap' }}>اللقب :</span>
-              <span className="dots" contentEditable suppressContentEditableWarning>{f.lastName}</span>
-            </div>
-          </div>
 
-          <div className="ln" style={{ marginTop: '1mm' }}>
-            <span style={{ whiteSpace: 'nowrap' }}>أصرح بشرفي، أنني في حالة توقف عن العمل منذ تاريخ :</span>
-            <span className="dots" style={{ maxWidth: '55mm' }} contentEditable suppressContentEditableWarning>{f.stopDate}</span>
+            <div className="drtx-note ar">* القاانون يعاقب كل من يقوم بتزوير أو يدلي بتصريحات غير صحيحة</div>
           </div>
-          <div style={{ fontWeight: 700 }}>وأنني لا أمارس أي نشاط مهني :</div>
-
-          <div className="ln" style={{ marginTop: '1mm', maxWidth: '130mm' }}>
-            <span style={{ whiteSpace: 'nowrap' }}>حرر بـ :</span>
-            <span className="dots" contentEditable suppressContentEditableWarning>{f.madePlace}</span>
-            <span style={{ whiteSpace: 'nowrap' }}>في :</span>
-            <span className="dots" contentEditable suppressContentEditableWarning>{f.madeDate}</span>
-          </div>
-          <div style={{ textAlign: 'left', fontWeight: 700 }}>الإمضاء</div>
-
-          <div style={{ fontSize: '8.5pt', marginTop: '1mm' }}>(1) ضع علامة (x) في الخانة المناسبة</div>
-          <div style={{ textAlign: 'center', fontSize: '8.5pt', fontWeight: 700 }}>* القانون يعاقب كل من يقوم بتزوير أو يدلي بتصريحات غير صحيحة</div>
         </div>
       )}
     </div>
