@@ -124,25 +124,32 @@ const CSS = `
   .drtx-stopRow .lb { font-size:15px; font-weight:700; color:#0000FF; white-space:nowrap; }
   .drtx-stopBox { border:1.4px solid #000; width:85px; height:22px; text-align:center; font-weight:700; font-size:15px; line-height:19px; outline:none; }
 
+  .drtx-cRows { position:relative; }
   .drtx-cRow { display:flex; align-items:center; height:22px; }
-  .drtx-cRow.first { margin-top:38px; padding-right:87px; }
-  .drtx-cRow.second { margin-top:41px; padding-right:125px; }
-  .drtx-cRow .one { width:17px; font-size:13px; font-weight:700; color:#0000FF; text-align:center; }
+  .drtx-cRow.first { margin-top:38px; padding-right:92px; }
+  .drtx-cRow.second { margin-top:41px; padding-right:92px; }
+  .drtx-one { position:absolute; right:55px; top:50%; transform:translateY(-38%); width:17px; font-size:13px; font-weight:700; color:#0000FF; text-align:center; }
   .drtx-cRow .gap { width:21px; }
   .drtx-cb { width:20px; height:23px; border:1.4px solid #000; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px; line-height:1; flex-shrink:0; }
   .drtx-cRow .clb { width:109px; text-align:right; font-size:15px; font-weight:700; color:#0000FF; white-space:nowrap; padding:0 2px; }
-  .drtx-fBox { width:88px; height:22px; border-right:1.4px solid #000; border-left:1.4px solid #000; border-bottom:1.4px solid #000; text-align:center; font-size:14px; font-weight:700; outline:none; line-height:19px; }
-  .drtx-cRow .fill { flex:1; }
+  .drtx-fBox { width:77px; height:22px; border-right:1.4px solid #000; border-left:1.4px solid #000; border-bottom:1.4px solid #000; text-align:center; font-size:14px; font-weight:700; outline:none; line-height:19px; flex-shrink:0; }
+  .drtx-cRow .fill { flex:0.35; }
+  .drtx-cRow .fill2 { flex:2; }
 
   .drtx-harrar { margin-top:20px; height:31px; font-size:15px; font-weight:700; color:#0000FF; display:flex; align-items:center; width:270px; }
   .drtx-dotsS { display:inline-block; border-bottom:2px dotted #0000FF; height:17px; margin:0 4px; outline:none; min-width:40px; text-align:center; font-size:14px; }
 
-  .drtx-labels { display:flex; align-items:center; height:27px; font-size:15px; font-weight:700; color:#0000FF; }
-  .drtx-labels .right { width:159px; text-align:right; }
+  .drtx-labels { display:flex; align-items:flex-end; height:27px; font-size:15px; font-weight:700; color:#0000FF; }
+  .drtx-labels .right { width:200px; text-align:right; }
   .drtx-labels .sp { flex:1; }
-  .drtx-labels .left { width:85px; text-align:right; }
+  .drtx-labels .left { width:150px; text-align:right; }
 
-  .drtx-line { border-bottom:2.4px dotted #000; height:21px; width:264px; }
+  .drtx-natures { display:flex; align-items:flex-end; height:21px; }
+  .drtx-natures .natR { width:164px; text-align:right; font-size:14px; font-weight:700; outline:none; padding:0 2px; overflow:hidden; white-space:nowrap; }
+  .drtx-natures .sp { flex:1; }
+  .drtx-natLWrap { width:264px; height:21px; border-bottom:2.4px dotted #000; display:flex; align-items:flex-end; justify-content:flex-end; }
+  .drtx-natLWrap .natL { width:150px; text-align:right; font-size:14px; font-weight:700; outline:none; padding:0 2px; overflow:hidden; white-space:nowrap; }
+
   .drtx-sign1 { font-size:15px; font-weight:700; height:24px; line-height:24px; padding-left:88px; }
 
   /* ===== صندوق التصريح الشرفي ===== */
@@ -335,20 +342,23 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
                 <span className="drtx-stopBox" contentEditable suppressContentEditableWarning>{f.stopDate}</span>
               </div>
 
-              <div className="drtx-cRow first">
-                <span className="one">(1)</span>
-                <span className="gap" />
-                <span className="drtx-cb" onClick={() => toggleMode('resumed')}>{f.mode === 'resumed' ? 'x' : ''}</span>
-                <span className="clb">قـــــد استأنـــف عملـــــه في:</span>
-                <span className="drtx-fBox" contentEditable suppressContentEditableWarning>{f.resumeDate}</span>
-                <span className="fill" />
-              </div>
+              <div className="drtx-cRows">
+                <span className="drtx-one">(1)</span>
+                <div className="drtx-cRow first">
+                  <span className="drtx-cb" onClick={() => toggleMode('resumed')}>{f.mode === 'resumed' ? 'x' : ''}</span>
+                  <span className="clb">قـــــد استأنـــف عملـــــه في:</span>
+                  <span className="fill" />
+                  <span className="drtx-fBox" contentEditable suppressContentEditableWarning>{f.resumeDate}</span>
+                  <span className="fill2" />
+                </div>
 
-              <div className="drtx-cRow second">
-                <span className="drtx-cb" onClick={() => toggleMode('notResumed')}>{f.mode === 'notResumed' ? 'x' : ''}</span>
-                <span className="clb">لم يباشر عمله الى يومنا هذا</span>
-                <span className="drtx-fBox" contentEditable suppressContentEditableWarning />
-                <span className="fill" />
+                <div className="drtx-cRow second">
+                  <span className="drtx-cb" onClick={() => toggleMode('notResumed')}>{f.mode === 'notResumed' ? 'x' : ''}</span>
+                  <span className="clb">لم يباشر عمله الى يومنا هذا</span>
+                  <span className="fill" />
+                  <span className="drtx-fBox" contentEditable suppressContentEditableWarning />
+                  <span className="fill2" />
+                </div>
               </div>
 
               <div className="drtx-harrar">
@@ -364,7 +374,13 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
                 <span className="left">اسم وصفة الموقع:</span>
               </div>
 
-              <div className="drtx-line" />
+              <div className="drtx-natures">
+                <span className="natR" contentEditable suppressContentEditableWarning>{f.socialNature}</span>
+                <span className="sp" />
+                <div className="drtx-natLWrap">
+                  <span className="natL" contentEditable suppressContentEditableWarning>{f.signatory}</span>
+                </div>
+              </div>
 
               <div className="drtx-sign1">الامضاء،</div>
             </div>
