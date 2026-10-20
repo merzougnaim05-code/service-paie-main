@@ -278,7 +278,7 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
       </div>
 
       {showPreview && (
-        <div className="drtx-page" style={{ width: '210mm', minHeight: '297mm', padding: '8px 0' }} dir="rtl">
+        <div className="drtx-page" style={{ width: '117mm', minHeight: '297mm', padding: '10px 0 6px' }} dir="rtl">
           <style>{`${CSS} @page { size: 210mm 297mm; margin: 0; }`}</style>
 
           <div className="drtx-col">
