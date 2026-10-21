@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Employee, Settings } from '../types';
 import { JOBS } from '../data/salaryGrids';
 import { ATSFront } from './ATSFront';
@@ -65,17 +65,17 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
   const handleDownload = async () => {
     const root = docRef.current;
     if (!root || exportingPdf) return;
-    // كل وثيقة A4 ملفوفة داخل .afs-inner — نلتقطها بحجمها الطبيعي
+    // ?? ????? A4 ?????? ???? .afs-inner � ??????? ?????? ???????
     const inners = (Array.from(root.querySelectorAll('.afs-inner')) as HTMLElement[])
       .filter(el => el.offsetWidth > 0);
     if (inners.length === 0) return;
 
     setExportingPdf(true);
     try {
-      await exportElementsToPdf(inners, `وثيقة_${docType}_${currentEmployee?.name || 'موظف'}.pdf`);
+      await exportElementsToPdf(inners, `?????_${docType}_${currentEmployee?.name || '????'}.pdf`);
     } catch (err) {
       console.error(err);
-      alert('تعذر توليد ملف PDF، يرجى المحاولة مرة أخرى.');
+      alert('???? ????? ??? PDF? ???? ???????? ??? ????.');
     } finally {
       setExportingPdf(false);
     }
@@ -84,7 +84,7 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
   if (!currentEmployee) {
     return (
       <div className="py-12 text-center text-[#64748b]">
-        يرجى اختيار أو تسجيل موظف أولاً لعرض الوثائق الإدارية.
+        ???? ?????? ?? ????? ???? ????? ???? ??????? ????????.
       </div>
     );
   }
@@ -99,10 +99,10 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
           <div>
             <h2 className="text-xl sm:text-2xl font-black text-[#0f172a] flex items-center gap-2">
               <FileText className="w-6 h-6 text-[#047857]" />
-              <span>شهادة العمل والأجر (ATS) والنماذج الرسمية CNAS</span>
+              <span>????? ????? ?????? (ATS) ???????? ??????? CNAS</span>
             </h2>
             <p className="text-xs text-[#64748b] mt-0.5">
-              نماذج مطابقة طبق الأصل لـ (CNAS AS.01) مع الملء الآلي من جدول الرواتب وقابلية التعديل والطباعة.
+              ????? ?????? ??? ????? ?? (CNAS AS.01) ?? ????? ????? ?? ???? ??????? ??????? ??????? ????????.
             </p>
           </div>
 
@@ -112,7 +112,7 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
               className="bg-[#047857] hover:bg-[#065f46] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
             >
               <Printer className="w-4 h-4" />
-              <span>طباعة الوثيقة</span>
+              <span>????? ???????</span>
             </button>
             <button
               onClick={handleDownload}
@@ -120,14 +120,14 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
               className="bg-white hover:bg-[#f1f5f9] text-[#047857] border border-[#047857] px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-60 disabled:cursor-wait"
             >
               <Download className="w-4 h-4" />
-              <span>{exportingPdf ? 'جاري التوليد...' : 'تحميل (PDF)'}</span>
+              <span>{exportingPdf ? '???? ???????...' : '????? (PDF)'}</span>
             </button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-end">
           <div>
-            <label className="block text-xs font-bold text-[#1e293b] mb-1">اختيار الموظف</label>
+            <label className="block text-xs font-bold text-[#1e293b] mb-1">?????? ??????</label>
             <select
               value={empId}
               onChange={e => setEmpId(e.target.value)}
@@ -135,44 +135,44 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
             >
               {employees.map(e => (
                 <option key={e.id} value={e.id}>
-                  {e.name} — ({JOBS[e.jobIdx]?.name || 'موظف'})
+                  {e.name} � ({JOBS[e.jobIdx]?.name || '????'})
                 </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#1e293b] mb-1">نوع الوثيقة الرسمية</label>
+            <label className="block text-xs font-bold text-[#1e293b] mb-1">??? ??????? ???????</label>
             <select
               value={docType}
               onChange={e => setDocType(e.target.value)}
               className="w-full bg-white border border-[#047857] rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-[#047857] focus:outline-none shadow-sm"
             >
-              <option value="ats-front">⭐ شهادة العمل والأجر ATS (الوجه الأول - AS.01)</option>
-              <option value="ats-back">⭐ شهادة العمل والأجر ATS (الوجه الثاني - جدول 12 شهراً)</option>
-              <option value="ats-both">⭐ شهادة العمل والأجر ATS (الوجهان معاً - Recto/Verso)</option>
-              <option value="drt">بيان استئناف العمل (DRT — طبق أصل الإكسل)</option>
-              <option value="form">استمارة معلومات الموظف</option>
-              <option value="family-cert">شهادة عدم تقاضي المنح العائلية</option>
-              <option value="request-docs">طلب وثائق لإتمام ملف</option>
-              <option value="salary-disclosure">استمارة خاصة بكشف المرتبات (منحة دراسية)</option>
-              <option value="family-withdraw">جدول سحب المنح العائلية (طبق الأصل)</option>
-              <option value="family-insert">جدول التكفل بالمنح العائلية — ادراج (طبق الأصل)</option>
-              <option value="explanation-letter">رسالة توضيحية (تغيرات 36 شهرا)</option>
-              <option value="mutuelle-cert">التعاضدية الوطنية لعمال التربية والثقافة</option>
+              <option value="ats-front">? ????? ????? ?????? ATS (????? ????? - AS.01)</option>
+              <option value="ats-back">? ????? ????? ?????? ATS (????? ?????? - ???? 12 ?????)</option>
+              <option value="ats-both">? ????? ????? ?????? ATS (??????? ???? - Recto/Verso)</option>
+              <option value="drt">???? ??????? ????? (DRT � ??? ??? ??????)</option>
+              <option value="form">??????? ??????? ??????</option>
+              <option value="family-cert">????? ??? ????? ????? ????????</option>
+              <option value="request-docs">??? ????? ?????? ???</option>
+              <option value="salary-disclosure">??????? ???? ???? ???????? (???? ??????)</option>
+              <option value="family-withdraw">???? ??? ????? ???????? (??? ?????)</option>
+              <option value="family-insert">???? ?????? ?????? ???????? � ????? (??? ?????)</option>
+              <option value="explanation-letter">????? ??????? (?????? 36 ????)</option>
+              <option value="mutuelle-cert">????????? ??????? ????? ??????? ????????</option>
             </select>
           </div>
 
           <div className="bg-[#eef5ff] border border-[#b8d4fe] rounded-xl p-2.5 text-xs text-[#004e9a] flex items-center gap-2">
             <Info className="w-4 h-4 flex-shrink-0 text-[#0070C0]" />
             <span>
-              جميع الحقول والخلايا والتواريخ تفاعلية <strong>(قابلة للنقر والتعديل المباشر)</strong> قبل الطباعة أو التصدير.
+              ???? ?????? ???????? ????????? ??????? <strong>(????? ????? ???????? ???????)</strong> ??? ??????? ?? ???????.
             </span>
           </div>
 
           {(docType === 'ats-back' || docType === 'ats-both') && (
             <div>
-              <label className="block text-xs font-bold text-[#1e293b] mb-1">الشهر المرجعي (نهاية الـ 12 شهراً)</label>
+              <label className="block text-xs font-bold text-[#1e293b] mb-1">????? ??????? (????? ??? 12 ?????)</label>
               <input
                 type="month"
                 value={`${refYear}-${String(refMonth).padStart(2, '0')}`}
@@ -217,14 +217,14 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
           {docType === 'ats-both' && (
             <div className="space-y-8 w-full flex flex-col items-center">
               <div className="w-full text-center py-2 text-xs font-bold text-[#64748b] print:hidden">
-                — الوجه الأول (Recto - عمودي A4) —
+                � ????? ????? (Recto - ????? A4) �
               </div>
               <AutoFitScale docWidth={794}>
                 <ATSFront employee={currentEmployee} settings={settings} />
               </AutoFitScale>
 
               <div className="w-full text-center py-2 text-xs font-bold text-[#64748b] print:hidden">
-                — الوجه الثاني (Verso - أفقي A4) —
+                � ????? ?????? (Verso - ???? A4) �
               </div>
               <AutoFitScale docWidth={1123}>
                 <ATSBack employee={currentEmployee} settings={settings} startMonth={refMonth} startYear={refYear} />
@@ -233,7 +233,7 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
           )}
 
           {/* ======================================================== */}
-          {/* 4. DRT — بيان استئناف العمل (طبق أصل ملف الإكسل) */}
+          {/* 4. DRT � ???? ??????? ????? (??? ??? ??? ??????) */}
           {/* ======================================================== */}
           {docType === 'drt' && (
             <AutoFitScale docWidth={444}>
@@ -242,7 +242,7 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
           )}
 
           {/* ======================================================== */}
-          {/* 5. Employee Information Form (استمارة معلومات) */}
+          {/* 5. Employee Information Form (??????? ???????) */}
           {/* ======================================================== */}
           {docType === 'form' && (
             <AutoFitScale docWidth={794}>
@@ -251,7 +251,7 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
           )}
 
           {/* ======================================================== */}
-          {/* 6. Family Cert (شهادة عدم تقاضي المنح العائلية) */}
+          {/* 6. Family Cert (????? ??? ????? ????? ????????) */}
           {/* ======================================================== */}
           {docType === 'family-cert' && (
             <AutoFitScale docWidth={794}>
@@ -260,7 +260,7 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
           )}
 
           {/* ======================================================== */}
-          {/* 7. Request for Missing Documents (طلب وثائق لإتمام ملف) */}
+          {/* 7. Request for Missing Documents (??? ????? ?????? ???) */}
           {/* ======================================================== */}
           {docType === 'request-docs' && (
             <AutoFitScale docWidth={794}>
@@ -269,7 +269,7 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
           )}
 
           {/* ======================================================== */}
-          {/* 8. Salary Disclosure Form (استمارة خاصة بكشف المرتبات) */}
+          {/* 8. Salary Disclosure Form (??????? ???? ???? ????????) */}
           {/* ======================================================== */}
           {docType === 'salary-disclosure' && (
             <AutoFitScale docWidth={794}>

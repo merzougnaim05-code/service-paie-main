@@ -69,6 +69,10 @@ function buildAuto(emp: Employee | undefined, settings: Settings): DrtForm {
   };
 }
 
+/* ============================================================
+   القياسات مأخوذة رقمياً من ملف إكسل نفسه (COM: مواضع كل صف/عمود بالنقاط × 1.3333)
+   عرض الاستمارة = 330.75 نقطة = 442px | الصندوق الأول = 386px | الثاني = 245px
+   ============================================================ */
 const CSS = `
   .drtx-page * { box-sizing: border-box; font-family:'Traditional Arabic','Times New Roman',serif; }
   .drtx-page {
@@ -77,109 +81,99 @@ const CSS = `
     font-family:'Traditional Arabic','Times New Roman',serif;
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
-  .drtx-col { width:428px; margin:0 auto; }
+  .drtx-col { width:442px; margin:0 auto; }
 
   /* ===== الترويسة (شريط CNAS الأسود) ===== */
   .drtx-banner {
-    height:72px; margin:0 21px 0 16px; background:#000;
-    display:flex; align-items:center; gap:8px; padding:0 10px; direction:ltr;
+    height:74px; margin:0 18px 0 22px; background:#000;
+    display:flex; align-items:center; gap:10px; padding:0 12px; direction:ltr;
   }
   .drtx-banner img { height:58px; width:auto; background:#fff; border-radius:50%; padding:1px; flex-shrink:0; }
-  .drtx-banner .btext { flex:1; text-align:center; color:#fff; line-height:1.4; }
-  .drtx-banner .b1 { font-size:12px; }
-  .drtx-banner .b2 { font-size:15.5px; font-weight:700; }
-  .drtx-banner .b3 { font-size:11.5px; font-weight:700; }
+  .drtx-banner .btext { flex:1; text-align:center; color:#fff; line-height:1.35; }
+  .drtx-banner .b1 { font-size:11.5px; }
+  .drtx-banner .b2 { font-size:15px; font-weight:700; }
+  .drtx-banner .b3 { font-size:11px; font-weight:700; }
 
   /* ===== صف العنوان + المربع المستدير ===== */
-  .drtx-head { display:flex; align-items:flex-start; margin-top:14px; }
-  .drtx-stamp { width:142px; height:77px; border:1.4px solid #4a4a4a; border-radius:12px; margin-right:16px; flex-shrink:0; }
-  .drtx-titles { flex:1; text-align:center; padding-top:12px; color:#0000FF; }
-  .drtx-titles .t1 { font-size:24px; line-height:1.1; }
-  .drtx-titles .t2 { font-size:24px; line-height:1.1; }
-  .drtx-titles .ul { border-bottom:3px solid #2f6fb2; padding-bottom:1px; }
+  .drtx-head { display:flex; align-items:flex-start; margin-top:7px; height:87px; }
+  .drtx-stamp { width:141px; height:80px; border:1.4px solid #4a4a4a; border-radius:12px; margin-right:16px; flex-shrink:0; }
+  .drtx-titles { flex:1; text-align:center; padding-top:22px; color:#0000FF; }
+  .drtx-titles .t1 { font-size:26px; line-height:35px; }
+  .drtx-titles .t2 { font-size:23px; line-height:30px; }
+  .drtx-titles .ul { border-bottom:3px solid #2f6fb2; padding-bottom:2px; }
 
-  /* ===== الصندوق الأول ===== */
-  .drtx-box1 { border:1.4px solid #000; margin-top:44px; height:580px; padding:0 3px; position:relative; }
-  .drtx-ahd { font-size:15px; color:#0000FF; text-align:right; height:29px; line-height:29px; padding-right:4px; }
-  .drtx-names { position:relative; height:87px; }
-  .drtx-nrow { display:flex; align-items:flex-end; height:29px; margin-left:172px; }
-  .drtx-nrow .lb { font-size:15px; font-weight:700; color:#0000FF; white-space:nowrap; }
-  .drtx-dots {
-    flex:1; border-bottom:2px dotted #0000FF; height:20px; margin:0 4px;
-    font-size:15px; font-weight:700; color:#0000FF; line-height:17px; text-align:center; outline:none; padding:0 3px;
-  }
-  .drtx-reg { position:absolute; left:3px; top:0; width:162px; height:82px; border:1.4px solid #000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; }
-  .drtx-reg .rl { font-size:12px; color:#0000FF; }
-  .drtx-reg .rv { font-size:15px; font-weight:700; }
+  /* ===== الصندوق الأول (386px، العناصر بمواضع مطلقة من صفوف/أعمدة إكسل) ===== */
+  .drtx-box1 { border:1.5px solid #000; margin-top:20px; height:386px; position:relative; }
+  .drtx-box1 .ed { position:absolute; outline:none; text-align:center; font-weight:700; }
+  .drtx-lb { position:absolute; font-size:14.5px; font-weight:700; color:#0000FF; white-space:nowrap; }
+  .drtx-dots { border-bottom:2px dotted #0000FF; font-size:14px; font-weight:700; color:#0000FF; }
+  .boxb { border:1.4px solid #000; background:#fff; }
 
-  .drtx-dateRow { display:flex; justify-content:flex-end; align-items:center; height:22px; margin-top:23px; }
-  .drtx-dateRow .lb { font-size:15px; font-weight:700; color:#0000FF; white-space:nowrap; }
-  .drtx-dateBox { border:1.4px solid #000; width:104px; height:22px; text-align:center; font-weight:700; font-size:16px; line-height:19px; outline:none; }
+  .drtx-ahd { position:absolute; top:0; right:14px; height:27px; line-height:27px; font-size:15px; font-weight:700; color:#0000FF; }
 
-  .drtx-bRow { display:flex; align-items:center; height:22px; margin-top:8px; padding-right:168px; padding-left:35px; }
-  .drtx-bRow .lb { font-size:15px; font-weight:700; color:#0000FF; white-space:nowrap; }
-  .drtx-dotsB { flex:1; border-bottom:2px dotted #000; height:18px; margin:0 4px; outline:none; font-size:14px; text-align:center; }
+  .drtx-reg { position:absolute; left:2px; top:27px; width:170px; height:44px; }
+  .drtx-reg .rv { display:flex; align-items:center; justify-content:center; height:100%; font-size:14px; }
+  .drtx-regLbl { position:absolute; left:2px; top:66px; width:170px; text-align:center; font-size:12.5px; color:#000; }
 
-  .drtx-stopRow { display:flex; justify-content:flex-end; align-items:center; height:22px; margin-top:27px; padding-right:27px; }
-  .drtx-stopRow .lb { font-size:15px; font-weight:700; color:#0000FF; white-space:nowrap; }
-  .drtx-stopBox { border:1.4px solid #000; width:85px; height:22px; text-align:center; font-weight:700; font-size:15px; line-height:19px; outline:none; }
+  .drtx-name { text-align:right; font-size:14.5px; font-weight:700; color:#0000FF; white-space:nowrap; }
+  .drtx-dateRowEd { font-size:15px; }
 
-  .drtx-cRows { position:relative; }
-  .drtx-cRow { display:flex; align-items:center; height:22px; }
-  .drtx-cRow.first { margin-top:38px; padding-right:92px; }
-  .drtx-cRow.second { margin-top:41px; padding-right:92px; }
-  .drtx-one { position:absolute; right:55px; top:50%; transform:translateY(-38%); width:17px; font-size:13px; font-weight:700; color:#0000FF; text-align:center; }
-  .drtx-cRow .gap { width:21px; }
-  .drtx-cb { width:20px; height:23px; border:1.4px solid #000; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px; line-height:1; flex-shrink:0; }
-  .drtx-cRow .clb { width:109px; text-align:right; font-size:15px; font-weight:700; color:#0000FF; white-space:nowrap; padding:0 2px; }
-  .drtx-fBox { width:77px; height:22px; border-right:1.4px solid #000; border-left:1.4px solid #000; border-bottom:1.4px solid #000; text-align:center; font-size:14px; font-weight:700; outline:none; line-height:19px; flex-shrink:0; }
-  .drtx-cRow .fill { flex:0.35; }
-  .drtx-cRow .fill2 { flex:2; }
+  /* سطر تاريخ الازدياد + بـ (سطر واحد كما في الأصل) */
+  .drtx-be { font-size:14.5px; font-weight:700; color:#0000FF; }
+  .drtx-dotsBe { border-bottom:2px dotted #000; font-size:14px; font-weight:700; color:#000; text-align:center; outline:none; }
 
-  .drtx-harrar { margin-top:20px; height:31px; font-size:15px; font-weight:700; color:#0000FF; display:flex; align-items:center; width:270px; }
-  .drtx-dotsS { display:inline-block; border-bottom:2px dotted #0000FF; height:17px; margin:0 4px; outline:none; min-width:40px; text-align:center; font-size:14px; }
+  /* سطر التوقف + سطرا x */
+  .drtx-cRows { position:absolute; left:0; top:117px; width:442px; height:92px; }
+  .drtx-cb { width:22px; border:1.4px solid #000; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px; line-height:1; }
+  .drtx-fBox { border-right:1.4px solid #000; border-left:1.4px solid #000; border-bottom:1.4px solid #000; background:#fff; font-size:13px; font-weight:700; outline:none; display:flex; align-items:center; justify-content:center; }
 
-  .drtx-labels { display:flex; align-items:flex-end; height:27px; font-size:15px; font-weight:700; color:#0000FF; }
-  .drtx-labels .right { width:200px; text-align:right; }
-  .drtx-labels .sp { flex:1; }
-  .drtx-labels .left { width:150px; text-align:right; }
+  /* حرر بــ: ... في: ... */
+  .drtx-harrar { position:absolute; top:212px; left:35px; width:223px; height:31px; display:flex; align-items:flex-end; gap:3px; }
+  .drtx-harrar .lb { font-size:14.5px; font-weight:700; color:#0000FF; white-space:nowrap; }
+  .drtx-harrar .d { border-bottom:2px dotted #0000FF; height:20px; flex:1; font-size:13px; font-weight:700; outline:none; text-align:center; line-height:17px; }
 
-  .drtx-natures { display:flex; align-items:flex-end; height:21px; }
-  .drtx-natures .natR { width:164px; text-align:right; font-size:14px; font-weight:700; outline:none; padding:0 2px; overflow:hidden; white-space:nowrap; }
-  .drtx-natures .sp { flex:1; }
-  .drtx-natLWrap { width:264px; height:21px; border-bottom:2.4px dotted #000; display:flex; align-items:flex-end; justify-content:flex-end; }
-  .drtx-natLWrap .natL { width:150px; text-align:right; font-size:14px; font-weight:700; outline:none; padding:0 2px; overflow:hidden; white-space:nowrap; }
+  /* التسميات + خط النقاط + الامضاء */
+  .drtx-labels { position:absolute; top:243px; left:0; width:442px; height:27px; }
+  .drtx-labels .right { position:absolute; right:21px; top:2px; font-size:14.5px; font-weight:700; color:#0000FF; white-space:nowrap; }
+  .drtx-labels .left { position:absolute; left:194px; top:2px; width:112px; text-align:center; font-size:14.5px; font-weight:700; color:#0000FF; white-space:nowrap; }
 
-  .drtx-sign1 { font-size:15px; font-weight:700; height:24px; line-height:24px; padding-left:88px; }
+  .drtx-natures { position:absolute; top:270px; left:0; width:442px; height:24px; }
+  .drtx-natures .natR { position:absolute; right:21px; top:0; width:160px; height:22px; font-size:13.5px; font-weight:700; outline:none; text-align:right; color:#0000FF; overflow:hidden; }
+  .drtx-natures .natLWrap { position:absolute; left:0; top:0; width:235px; height:24px; border-bottom:2.4px dotted #000; }
+  .drtx-natures .natL { position:absolute; right:0; bottom:0; width:150px; height:20px; font-size:13.5px; font-weight:700; outline:none; color:#0000FF; text-align:right; overflow:hidden; }
 
-  /* ===== صندوق التصريح الشرفي ===== */
-  .drtx-box2 { border:1.4px solid #000; margin-top:28px; height:246px; padding:4px 3px 0; }
-  .drtx-h1 { text-align:center; font-size:19px; font-weight:700; color:#0000FF; }
-  .drtx-h1 span { border-bottom:2px solid #0000FF; padding:0 6px; }
-  .drtx-h2 { text-align:center; font-size:13px; color:#0000FF; margin-top:1px; }
-  .drtx-honorNames { position:relative; margin-top:12px; height:58px; }
-  .drtx-hrow { display:flex; align-items:flex-end; height:29px; margin-left:190px; padding-right:4px; }
-  .drtx-hrow .lb { font-size:15px; font-weight:700; color:#0000FF; white-space:nowrap; }
-  .drtx-reg2 { position:absolute; left:2px; top:0; width:185px; height:40px; border:1.4px solid #7f9db9; display:flex; align-items:center; justify-content:center; gap:6px; color:#4a6b8a; font-size:12.5px; }
-  .drtx-reg2 .num { color:#000; font-weight:700; font-size:13.5px; }
+  .drtx-sign1 { position:absolute; top:296px; left:88px; width:64px; text-align:center; font-size:14.5px; font-weight:700; color:#0000FF; }
 
-  .drtx-decl { display:flex; align-items:center; margin-top:12px; padding-right:27px; }
-  .drtx-decl .txt { font-size:13.5px; font-weight:700; color:#0000FF; white-space:nowrap; }
-  .drtx-decl .dBox { width:116px; height:23px; border-right:1.4px solid #000; border-left:1.4px solid #000; border-bottom:1.4px solid #000; margin-right:6px; text-align:center; font-size:14px; font-weight:700; outline:none; line-height:20px; }
-  .drtx-decl2 { font-size:13.5px; font-weight:700; color:#0000FF; text-align:right; padding-right:31px; margin-top:2px; }
-  .drtx-harrar2 { display:flex; align-items:center; font-size:14.5px; color:#000; margin-top:6px; padding-right:174px; }
-  .drtx-harrar2 .lb { white-space:nowrap; }
-  .drtx-dotsH { flex:1; border-bottom:2px dotted #000; height:17px; margin:0 4px; outline:none; font-size:13px; text-align:center; }
-  .drtx-imda2 { font-size:13.5px; color:#0000FF; padding-right:88px; margin-top:2px; }
-  .drtx-legend { text-align:right; font-size:13px; color:#0000FF; margin-top:10px; padding-right:2px; }
-  .drtx-legend b { font-size:15px; }
-  .drtx-note { text-align:center; font-size:12.5px; color:#0000FF; margin-top:14px; }
+  /* ===== صندوق التصريح الشرفي (245px) ===== */
+  .drtx-box2 { border:1.5px solid #000; margin-top:27px; height:245px; position:relative; }
+  .drtx-box2 .ed { position:absolute; outline:none; font-weight:700; }
+
+  .drtx-h1 { position:absolute; top:0; left:0; width:442px; text-align:center; font-size:17px; font-weight:700; color:#0000FF; }
+  .drtx-h1 span { border-bottom:2px solid #0000FF; padding:0 5px; }
+  .drtx-h2 { position:absolute; top:19px; left:0; width:442px; text-align:center; font-size:12.5px; color:#0000FF; }
+
+  .drtx-reg2 { position:absolute; left:11px; top:63px; width:166px; height:42px; border:1.4px solid #000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0; }
+  .drtx-reg2 .rl { font-size:12px; color:#000; }
+  .drtx-reg2 .num { font-size:13px; font-weight:700; color:#000; }
+
+  .drtx-decl1 { position:absolute; top:131px; right:52px; height:22px; font-size:14px; font-weight:700; color:#0000FF; white-space:nowrap; }
+  .drtx-declBox { position:absolute; top:131px; left:48px; width:95px; height:26px; border-right:1.4px solid #000; border-left:1.4px solid #000; border-bottom:1.4px solid #000; font-size:13px; font-weight:700; outline:none; text-align:center; }
+  .drtx-decl2 { position:absolute; top:153px; right:52px; height:23px; font-size:14px; font-weight:700; color:#0000FF; white-space:nowrap; }
+
+  .drtx-harrar2 { position:absolute; top:176px; left:0; width:214px; height:21px; display:flex; align-items:flex-end; gap:3px; justify-content:flex-end; }
+  .drtx-harrar2 .lb { font-size:13.5px; color:#000; white-space:nowrap; }
+  .drtx-harrar2 .d { border-bottom:2px dotted #000; height:16px; width:72px; font-size:12px; outline:none; text-align:center; }
+  .drtx-imda2 { position:absolute; top:197px; left:88px; width:64px; text-align:center; font-size:13.5px; color:#0000FF; }
+
+  .drtx-legend { position:absolute; top:218px; right:21px; height:27px; font-size:13px; color:#0000FF; }
+  .drtx-legend b { font-size:14px; }
+
+  .drtx-note { text-align:center; font-size:12.5px; color:#0000FF; margin-top:6px; }
 
   @media print {
     .drtx-page { box-shadow:none !important; margin:0 !important; }
   }
 `;
-
 export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) => {
   const [form, setForm] = useState<DrtForm>(() => buildAuto(employee, settings));
   const [printMode, setPrintMode] = useState<'auto' | 'manual'>('auto');
@@ -283,9 +277,8 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
         <div><label className={labelCls}>الطبيعة الاجتماعية</label><input value={form.socialNature} onChange={e => set('socialNature', e.target.value)} className={inputCls} /></div>
         <div><label className={labelCls}>اسم وصفة الموقع</label><input value={form.signatory} onChange={e => set('signatory', e.target.value)} className={inputCls} /></div>
       </div>
-
       {showPreview && (
-        <div className="drtx-page" style={{ width: '117mm', minHeight: '297mm', padding: '10px 0 6px' }} dir="rtl">
+        <div className="drtx-page" style={{ width: '120mm', minHeight: '297mm', padding: '8px 0 6px' }} dir="rtl">
           <style>{`${CSS} @page { size: 210mm 297mm; margin: 0; }`}</style>
 
           <div className="drtx-col">
@@ -304,80 +297,66 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
               <div className="drtx-stamp" />
               <div className="drtx-titles ar">
                 <div className="t1">تصريح بإستئناف</div>
-                <div className="t2">أو عدم <span className="ul">إستئناف</span> العمل</div>
+                <div className="t2">او عدم <span className="ul">إستئناف</span> العمل</div>
               </div>
             </div>
 
-            {/* ===== الصندوق الأول ===== */}
+            {/* ===== الصندوق الأول (386px) ===== */}
             <div className="drtx-box1 ar">
               <div className="drtx-ahd">أنا المستخدم الممضي أسفله أشهد أن المؤمن :</div>
 
-              <div className="drtx-names">
-                <div className="drtx-reg">
-                  <div className="rl">رقم التسجيل</div>
-                  <div className="rv">{f.regNum || '\u00a0'}</div>
-                </div>
-                <div className="drtx-nrow">
-                  <span className="lb">الاسم :</span>
-                  <span className="drtx-dots" contentEditable suppressContentEditableWarning>{f.firstName}</span>
-                </div>
-                <div className="drtx-nrow">
-                  <span className="lb">اللقب :</span>
-                  <span className="drtx-dots" contentEditable suppressContentEditableWarning>{f.lastName}</span>
-                </div>
+              {/* مربع رقم التسجيل + تسميته تحته كما في الأصل */}
+              <div className="drtx-reg boxb">
+                <span className="rv" contentEditable suppressContentEditableWarning>{f.regNum || '\u00a0'}</span>
               </div>
+              <div className="drtx-regLbl">رقم التسجيل</div>
 
-              <div className="drtx-dateRow">
-                <span className="lb">تاريخ الازدياد:</span>
-                <span className="drtx-dateBox" contentEditable suppressContentEditableWarning>{f.birthDate}</span>
-              </div>
+              {/* الاسم / اللقب — التسمية على اليمين والنقاط في الوسط */}
+              <div className="drtx-lb drtx-name" style={{ top: 27, right: 21 }}>الاسم :</div>
+              <span className="ed drtx-dots" style={{ left: 197, top: 27, width: 193, height: 19 }} contentEditable suppressContentEditableWarning>{f.firstName}</span>
+              <div className="drtx-lb drtx-name" style={{ top: 46, right: 21 }}>اللقب :</div>
+              <span className="ed drtx-dots" style={{ left: 197, top: 46, width: 193, height: 19 }} contentEditable suppressContentEditableWarning>{f.lastName}</span>
 
-              <div className="drtx-bRow">
-                <span className="lb">بــــــ:ـ</span>
-                <span className="drtx-dotsB" contentEditable suppressContentEditableWarning>{f.birthPlace}</span>
-              </div>
+              {/* تاريخ الازدياد + الصندوق + بـ: والنقاط (سطر واحد) */}
+              <div className="drtx-lb" style={{ top: 85, right: 21 }}>تاريخ الازدياد:</div>
+              <span className="ed drtx-dateRowEd boxb" style={{ top: 85, right: 76, width: 102, height: 21 }} contentEditable suppressContentEditableWarning>{f.birthDate}</span>
+              <div className="drtx-be" style={{ position: 'absolute', top: 89, left: 222, width: 40, overflow: 'hidden', textAlign: 'center', fontSize: 13 }}>بــــــ:ـ</div>
+              <span className="ed drtx-dotsBe" style={{ left: 34, top: 85, width: 197, height: 25 }} contentEditable suppressContentEditableWarning>{f.birthPlace}</span>
 
-              <div className="drtx-stopRow">
-                <span className="lb">المتوقف عن العمل في :</span>
-                <span className="drtx-stopBox" contentEditable suppressContentEditableWarning>{f.stopDate}</span>
-              </div>
+              {/* المتوقف عن العمل في : + صندوقه في موضع الأصل */}
+              <div className="drtx-lb" style={{ top: 123, right: 52 }}>المتوقف عن العمل في :</div>
+              <span className="ed boxb" style={{ position: 'absolute', top: 116, left: 88, width: 85, height: 26, borderColor: '#000', fontSize: 13, fontWeight: 700, outline: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }} contentEditable suppressContentEditableWarning>{f.stopDate}</span>
 
+              {/* سطرا خانة x + علامة (1) بينهما */}
               <div className="drtx-cRows">
-                <span className="drtx-one">(1)</span>
-                <div className="drtx-cRow first">
-                  <span className="drtx-cb" onClick={() => toggleMode('resumed')}>{f.mode === 'resumed' ? 'x' : ''}</span>
-                  <span className="clb">قـــــد استأنـــف عملـــــه في:</span>
-                  <span className="fill" />
-                  <span className="drtx-fBox" contentEditable suppressContentEditableWarning>{f.resumeDate}</span>
-                  <span className="fill2" />
-                </div>
+                <span className="drtx-lb" style={{ position: 'absolute', top: 51, left: 99, width: 17, textAlign: 'center', fontSize: 12.5 }}>(1)</span>
+                <span className="drtx-cb" style={{ position: 'absolute', left: 295, top: 0, height: 19 }} onClick={() => toggleMode('resumed')}>{f.mode === 'resumed' ? 'x' : ''}</span>
+                <div className="drtx-lb" style={{ top: 1, right: 151, fontSize: 14 }}>قـــــد استأنـــف عملـــــه في:</div>
+                <span className="ed drtx-fBox" style={{ position: 'absolute', left: 88, top: 0, width: 85, height: 20 }} contentEditable suppressContentEditableWarning>{f.resumeDate}</span>
 
-                <div className="drtx-cRow second">
-                  <span className="drtx-cb" onClick={() => toggleMode('notResumed')}>{f.mode === 'notResumed' ? 'x' : ''}</span>
-                  <span className="clb">لم يباشر عمله الى يومنا هذا</span>
-                  <span className="fill" />
-                  <span className="drtx-fBox" contentEditable suppressContentEditableWarning />
-                  <span className="fill2" />
-                </div>
+                <span className="drtx-cb" style={{ position: 'absolute', left: 295, top: 33, height: 22 }} onClick={() => toggleMode('notResumed')}>{f.mode === 'notResumed' ? 'x' : ''}</span>
+                <div className="drtx-lb" style={{ top: 34, right: 151, fontSize: 14 }}>لم يباشر عمله الى يومنا هذا</div>
+                <span className="ed drtx-fBox" style={{ position: 'absolute', left: 88, top: 33, width: 85, height: 20 }} contentEditable suppressContentEditableWarning />
               </div>
 
+              {/* حرر بــ: ... في: ... */}
               <div className="drtx-harrar">
-                <span>حرر بــ:</span>
-                <span className="drtx-dotsS" style={{ width: 118 }} contentEditable suppressContentEditableWarning>{f.madePlace}</span>
-                <span>في:</span>
-                <span className="drtx-dotsS" style={{ width: 82 }} contentEditable suppressContentEditableWarning>{f.madeDate}</span>
+                <span className="lb">حرر بــ:</span>
+                <span className="d" contentEditable suppressContentEditableWarning>{f.madePlace}</span>
+                <span className="lb">في:</span>
+                <span className="d" contentEditable suppressContentEditableWarning>{f.madeDate}</span>
               </div>
 
+              {/* التسميات */}
               <div className="drtx-labels">
                 <span className="right">الطبيعة الاجتماعية وختم المستخدم:</span>
-                <span className="sp" />
                 <span className="left">اسم وصفة الموقع:</span>
               </div>
 
+              {/* بيانات المؤسسة + اسم وصي الموقع فوق خط النقاط */}
               <div className="drtx-natures">
                 <span className="natR" contentEditable suppressContentEditableWarning>{f.socialNature}</span>
-                <span className="sp" />
-                <div className="drtx-natLWrap">
+                <div className="natLWrap">
                   <span className="natL" contentEditable suppressContentEditableWarning>{f.signatory}</span>
                 </div>
               </div>
@@ -385,38 +364,32 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
               <div className="drtx-sign1">الامضاء،</div>
             </div>
 
-            {/* ===== صندوق التصريح الشرفي ===== */}
+            {/* ===== صندوق التصريح الشرفي (245px) ===== */}
             <div className="drtx-box2 ar">
               <div className="drtx-h1"><span>تصريح شرفي</span></div>
               <div className="drtx-h2">( يملأ من طرف المؤمن له في حالة عدم إستئناف العمل )</div>
 
-              <div className="drtx-honorNames">
-                <div className="drtx-reg2">
-                  <span>رقم التسجيل</span>
-                  <span className="num">{f.regNum || '................'}</span>
-                </div>
-                <div className="drtx-hrow">
-                  <span className="lb">الأسم :</span>
-                  <span className="drtx-dots" contentEditable suppressContentEditableWarning>{f.firstName}</span>
-                </div>
-                <div className="drtx-hrow">
-                  <span className="lb">اللقب :</span>
-                  <span className="drtx-dots" contentEditable suppressContentEditableWarning>{f.lastName}</span>
-                </div>
+              {/* مربع رقم التسجيل (بتسمية داخله) + الاسم/اللقب */}
+              <div className="drtx-reg2">
+                <span className="rl">رقم التسجيل</span>
+                <span className="num" contentEditable suppressContentEditableWarning>{f.regNum || '\u00a0'}</span>
               </div>
+              <div className="drtx-lb drtx-name" style={{ top: 63, right: 21 }}>الأسم :</div>
+              <span className="ed drtx-dots" style={{ left: 214, top: 63, width: 176, height: 25 }} contentEditable suppressContentEditableWarning>{f.firstName}</span>
+              <div className="drtx-lb drtx-name" style={{ top: 88, right: 21 }}>اللقب :</div>
+              <span className="ed drtx-dots" style={{ left: 214, top: 88, width: 176, height: 22 }} contentEditable suppressContentEditableWarning>{f.lastName}</span>
 
-              <div className="drtx-decl">
-                <span className="txt">أصرح بشرفــي، أنني في حالة توقــف عن العمـل منذ تاريخ:</span>
-                <span className="dBox" contentEditable suppressContentEditableWarning>{f.stopDate}</span>
-              </div>
+              {/* التصريح */}
+              <div className="drtx-decl1">أصرح بشرفــي، أنني في حالة توقــف عن العمـل منذ تاريخ:</div>
+              <span className="drtx-declBox" contentEditable suppressContentEditableWarning>{f.stopDate}</span>
               <div className="drtx-decl2">وأنني لا أمارس أي نشــاط مهنــي:</div>
 
               <div className="drtx-harrar2">
                 <span className="lb">حرر بـ:</span>
-                <span className="drtx-dotsH" style={{ maxWidth: 80 }} contentEditable suppressContentEditableWarning>{f.madePlace}</span>
-                <span className="drtx-dotsH" style={{ maxWidth: 88 }} contentEditable suppressContentEditableWarning>{f.madeDate}</span>
+                <span className="d" contentEditable suppressContentEditableWarning>{f.madePlace}</span>
+                <span className="lb">في:</span>
+                <span className="d" contentEditable suppressContentEditableWarning>{f.madeDate}</span>
               </div>
-
               <div className="drtx-imda2">الإمضاء</div>
 
               <div className="drtx-legend"><b>(1)</b> ضع علامة <b>(x)</b> في الخانة المناسبة</div>
@@ -429,3 +402,4 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
     </div>
   );
 };
+
