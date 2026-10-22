@@ -206,10 +206,10 @@ const CSS = `
   }
 `;
 
-const Comb: React.FC<{ value?: string; top: number; left: number; width?: number }> = ({ value = '', top, left, width = 125 }) => {
+const Comb: React.FC<{ value?: string; top: number; left: number; width?: number; dataF?: string }> = ({ value = '', top, left, width = 125, dataF }) => {
   return (
     <div className="drtx-comb" style={{ top, left, width, height: 14 }}>
-      <span className="cv" contentEditable suppressContentEditableWarning>{value || '\u00a0'}</span>
+      <span className="cv" data-f={dataF} contentEditable suppressContentEditableWarning>{value || '\u00a0'}</span>
       {[0, 1, 2, 3, 4, 5].map(i => <span key={i} className="c" />)}
     </div>
   );
@@ -348,49 +348,49 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
 
               {/* مربع رقم التسجيل */}
               <div className="drtx-reg1">
-                <span className="drtx-regval" contentEditable suppressContentEditableWarning>{f.regNum || '\u00a0'}</span>
+                <span className="drtx-regval" data-f="regNum" contentEditable suppressContentEditableWarning>{f.regNum || '\u00a0'}</span>
                 <span className="drtx-reglbl"><i className="dash" />رقم التسجيل<i className="dash" /></span>
               </div>
 
               {/* الإسم و اللقب */}
               <div className="drtx-lbl drtx-isl">الإسم :</div>
-              <span className="drtx-e drtx-dName drtx-dots" style={{ top: 41 }} contentEditable suppressContentEditableWarning>{f.firstName || '\u00a0'}</span>
+              <span className="drtx-e drtx-dName drtx-dots" style={{ top: 41 }} data-f="firstName" contentEditable suppressContentEditableWarning>{f.firstName || '\u00a0'}</span>
               <div className="drtx-lbl drtx-lql">اللقب :</div>
-              <span className="drtx-e drtx-dName2 drtx-dots" style={{ top: 63 }} contentEditable suppressContentEditableWarning>{f.lastName || '\u00a0'}</span>
+              <span className="drtx-e drtx-dName2 drtx-dots" style={{ top: 63 }} data-f="lastName" contentEditable suppressContentEditableWarning>{f.lastName || '\u00a0'}</span>
 
               {/* تاريخ الإزياد + الخانة المركبة + بـ */}
               <div className="drtx-lbl drtx-bl">تاريخ الإزياد :</div>
-              <Comb value={f.birthDate} top={89} left={250} />
-              <span className="drtx-lbl drtx-be" style={{ top: 90, left: 228, width: 22, textAlign: 'center' }} contentEditable suppressContentEditableWarning>بـــ:</span>
-              <span className="drtx-e drtx-dBirth drtx-dots" style={{ top: 91, height: 16 }} contentEditable suppressContentEditableWarning>{f.birthPlace || '\u00a0'}</span>
+              <Comb value={f.birthDate} top={89} left={250} dataF="birthDate" />
+              <span className="drtx-lbl drtx-be" style={{ top: 90, left: 228, width: 22, textAlign: 'center' }}>بـــ:</span>
+              <span className="drtx-e drtx-dBirth drtx-dots" style={{ top: 91, height: 16 }} data-f="birthPlace" contentEditable suppressContentEditableWarning>{f.birthPlace || '\u00a0'}</span>
 
               {/* المتوقف عن العمل في */}
               <div className="drtx-lbl drtx-sl">المتوقف عن العمل في :</div>
-              <Comb value={f.stopDate} top={117} left={194} />
+              <Comb value={f.stopDate} top={117} left={194} dataF="stopDate" />
 
               {/* سطرا الخانات مع (1) */}
               <span className="drtx-e drtx-fn">(1)</span>
               <span className="drtx-cb drtx-fcb1" style={{ top: 138, left: 315 }} onClick={() => toggleMode('resumed')}>{f.mode === 'resumed' ? 'x' : ''}</span>
               <div className="drtx-lbl drtx-flab drtx-f1" style={{ top: 140 }}>قــــد استأنــف عملـــه في :</div>
-              <Comb value={combResume} top={139} left={38} />
+              <Comb value={combResume} top={139} left={38} dataF="resumeDate" />
 
               <span className="drtx-cb" style={{ top: 160, left: 315 }} onClick={() => toggleMode('notResumed')}>{f.mode === 'notResumed' ? 'x' : ''}</span>
               <div className="drtx-lbl drtx-flab drtx-f2" style={{ top: 162 }}>لم يـستأنف عمله إلــى يومنا هذا :</div>
-              <Comb value={combNotResume} top={161} left={38} />
+              <Comb value={combNotResume} top={161} left={38} dataF="madeDate" />
 
               {/* حرر بـ ... ، في ... */}
               <div className="drtx-harr">
                 <span className="lb">حرر بــ</span>
-                <span className="dots d1" contentEditable suppressContentEditableWarning>{f.madePlace || '\u00a0'}</span>
+                <span className="dots d1" data-f="madePlace" contentEditable suppressContentEditableWarning>{f.madePlace || '\u00a0'}</span>
                 <span className="lb">، في</span>
-                <span className="dots d2" contentEditable suppressContentEditableWarning>{f.madeDate || '\u00a0'}</span>
+                <span className="dots d2" data-f="madeDate" contentEditable suppressContentEditableWarning>{f.madeDate || '\u00a0'}</span>
               </div>
 
               {/* تسميات الختم و صيغة الموقع + قيمهما */}
               <div className="drtx-lbl drtx-ltn">الطبيعة الإجتماعية و ختم المستخدم:</div>
               <div className="drtx-lbl drtx-ltw">إسم وصفة الموقع :</div>
-              <span className="drtx-e drtx-vNat" contentEditable suppressContentEditableWarning>{f.socialNature || '\u00a0'}</span>
-              <span className="drtx-e drtx-vSig" contentEditable suppressContentEditableWarning>{f.signatory || '\u00a0'}</span>
+              <span className="drtx-e drtx-vNat" data-f="socialNature" contentEditable suppressContentEditableWarning>{f.socialNature || '\u00a0'}</span>
+              <span className="drtx-e drtx-vSig" data-f="signatory" contentEditable suppressContentEditableWarning>{f.signatory || '\u00a0'}</span>
               <div className="drtx-sline" />
 
               <div className="drtx-sig1">الامضاء،</div>
@@ -402,24 +402,24 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
               <div className="drtx-h2">(يملأ من طرف المؤمن له في حالة عدم إستئناف العمل)</div>
 
               <div className="drtx-rg2">
-                <span className="drtx-regval" contentEditable suppressContentEditableWarning>{f.regNum || '\u00a0'}</span>
+                <span className="drtx-regval" data-f="regNum" contentEditable suppressContentEditableWarning>{f.regNum || '\u00a0'}</span>
                 <span className="drtx-reglbl"><i className="dash" />رقم التسجيل<i className="dash" /></span>
               </div>
               <div className="drtx-lbl drtx-nisl">الإسم :</div>
-              <span className="drtx-e drtx-dName drtx-dots" style={{ top: 67, left: 205 }} contentEditable suppressContentEditableWarning>{f.firstName || '\u00a0'}</span>
+              <span className="drtx-e drtx-dName drtx-dots" style={{ top: 67, left: 205 }} data-f="firstName" contentEditable suppressContentEditableWarning>{f.firstName || '\u00a0'}</span>
               <div className="drtx-lbl drtx-nlql">اللقب :</div>
-              <span className="drtx-e drtx-dName drtx-dots" style={{ top: 88, left: 205 }} contentEditable suppressContentEditableWarning>{f.lastName || '\u00a0'}</span>
+              <span className="drtx-e drtx-dName drtx-dots" style={{ top: 88, left: 205 }} data-f="lastName" contentEditable suppressContentEditableWarning>{f.lastName || '\u00a0'}</span>
 
               {/* التصريح بخانتين */}
               <div className="drtx-lbl drtx-decl">أصرح بشرفي، أنني في حالة توقف عن العمل منذ تاريخ :</div>
-              <Comb value={f.stopDate} top={120} left={10} />
+              <Comb value={f.stopDate} top={120} left={10} dataF="stopDate" />
               <div className="drtx-lbl drtx-decl2">وأنني لا أمارس أي نشـــاط مهني .</div>
 
               <div className="drtx-harr2">
                 <span className="lb">حرر بــ</span>
-                <span className="dots d1" contentEditable suppressContentEditableWarning>{f.madePlace || '\u00a0'}</span>
+                <span className="dots d1" data-f="madePlace" contentEditable suppressContentEditableWarning>{f.madePlace || '\u00a0'}</span>
                 <span className="lb">، في</span>
-                <span className="dots d2" contentEditable suppressContentEditableWarning>{f.madeDate || '\u00a0'}</span>
+                <span className="dots d2" data-f="madeDate" contentEditable suppressContentEditableWarning>{f.madeDate || '\u00a0'}</span>
               </div>
               <div className="drtx-sig2">الامضاء،</div>
 
