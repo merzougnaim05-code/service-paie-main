@@ -112,25 +112,24 @@ const CSS = `
   .drtx-isl { top:40px; }
   .drtx-lql { top:62px; }
 
-  /* خط النقاط المنقط (زعففات مضغوطة) */
-  .drtx-dots {
-    border-bottom:2px dotted #000;
-    background-image:radial-gradient(circle, #000 1px, transparent 1.2px);
-    background-size:6.5px 4px; background-repeat:repeat-x; background-position:0 bottom;
+  /* خط النقاط المنقط (نقطة واحدة مضمونة بمستوى ثابت — بلا تكرار مزدوج) */
+  .drtx-harr .dots, .drtx-harr2 .dots { position:relative; }
+  .drtx-dots::after, .drtx-harr .dots::after, .drtx-harr2 .dots::after {
+    content:''; position:absolute; left:0; right:0; bottom:1px; height:2px;
+    background-image:radial-gradient(circle, #000 1px, transparent 1.25px);
+    background-size:6.3px 2px; background-repeat:repeat-x;
   }
 
   .drtx-dName { left:203px; width:204px; height:17px; top:41px; font-size:12.5px; text-align:center; }
   .drtx-dName2 { left:203px; width:204px; height:17px; top:63px; font-size:12.5px; text-align:center; }
 
-  /* مربع رقم التسجيل (داخل الصندوق): خانات ك خانة رقم — التسمية تتموضع على الحد السفلي */
+  /* مربع رقم التسجيل (داخل الصندوق): أرقام حرة فوق التسمية — الخط يمر متصلاً من حد لحد */
   .drtx-reg1 { position:absolute; left:10px; top:39px; width:189px; height:39px; border:1.2px solid #000; }
-  .drtx-regcells { position:absolute; top:4px; left:5px; right:5px; height:16px; display:flex; direction:ltr; }
-  .drtx-regcells::after { content:''; position:absolute; left:0; bottom:0; width:1px; height:16px; background:#000; }
-  .drtx-regcells i { flex:1; font-style:normal; display:flex; align-items:flex-end; justify-content:center; font-size:8.5px; font-weight:700; line-height:1; position:relative; border-bottom:1px solid #000; }
-  .drtx-regcells i:not(:last-child)::before { content:''; position:absolute; right:-1px; bottom:0; width:1px; height:10px; background:#000; }
-  .drtx-regcells i:last-child::before { content:''; position:absolute; right:-1px; bottom:0; width:1px; height:16px; background:#000; }
-  .drtx-reglbl { position:absolute; bottom:-6px; left:0; width:100%; display:flex; align-items:center; justify-content:center; gap:4px; font-size:11px; font-weight:700; background:#fff; }
-  .drtx-reglbl .dash { width:34px; height:1.2px; background:#000; }
+  .drtx-regcells { position:absolute; top:5px; left:6px; right:6px; height:16px; display:flex; direction:ltr; align-items:flex-end; }
+  .drtx-regcells i { font-style:normal; flex:1; display:flex; align-items:flex-end; justify-content:center; font-size:9px; font-weight:700; line-height:1; }
+  .drtx-reglbl { position:absolute; bottom:-6px; left:1px; right:1px; height:11px; display:flex; align-items:center; font-size:11px; font-weight:700; line-height:11px; }
+  .drtx-reglbl .dash { flex:1 1 0; min-width:12px; height:1.2px; background:#000; margin:0 3px; }
+  .drtx-reglbl b { background:#fff; padding:0 3px; font-weight:700; line-height:11px; }
 
   /* صف تاريخ الإزياد */
   .drtx-bl { top:92px; right:10px; font-size:11.5px; }
@@ -165,7 +164,7 @@ const CSS = `
   /* حرر بـ ... ، في ... */
   .drtx-harr { position:absolute; top:199px; left:8px; width:238px; display:flex; align-items:flex-end; direction:rtl; }
   .drtx-harr .lb { font-size:12.5px; font-weight:700; white-space:nowrap; }
-  .drtx-harr .dots { height:16px; border-bottom:2px dotted #000; font-size:10.5px; font-weight:700; text-align:center; outline:none; line-height:12px; }
+  .drtx-harr .dots { height:16px; font-size:10.5px; font-weight:700; text-align:center; outline:none; line-height:12px; }
   .drtx-harr .d1 { flex:0.88; }
   .drtx-harr .d2 { flex:1.12; }
 
@@ -194,7 +193,7 @@ const CSS = `
 
   .drtx-harr2 { position:absolute; top:166px; left:8px; width:238px; display:flex; align-items:flex-end; direction:rtl; }
   .drtx-harr2 .lb { font-size:12.5px; font-weight:700; white-space:nowrap; }
-  .drtx-harr2 .dots { height:16px; border-bottom:2px dotted #000; font-size:10.5px; font-weight:700; text-align:center; outline:none; line-height:12px; }
+  .drtx-harr2 .dots { height:16px; font-size:10.5px; font-weight:700; text-align:center; outline:none; line-height:12px; }
   .drtx-harr2 .d1 { flex:0.88; }
   .drtx-harr2 .d2 { flex:1.12; }
 
@@ -357,7 +356,13 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
       {showPreview && (
         <div className="drtx-page" style={{ width: '140mm', minHeight: '220mm' }} dir="rtl">
           <style>{`${CSS}
-            @page { size: 210mm 297mm; margin: 0; }
+            @page { size: 148mm 210mm; margin: 0; }
+            @media print {
+              .drtx-page {
+                box-shadow:none !important; margin:0 !important;
+                zoom:0.9545; /* 220mm × 0.9545 = 210mm → تملأ ورقة A5 من الأعلى للأسفل */
+              }
+            }
           `}</style>
 
           <div className="drtx-col">
@@ -381,7 +386,7 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
               {/* مربع رقم التسجيل */}
               <div className="drtx-reg1">
                 <RegCells value={f.regNum} />
-                <span className="drtx-reglbl"><i className="dash" />رقم التسجيل<i className="dash" /></span>
+                <span className="drtx-reglbl"><i className="dash" /><b>رقم التسجيل</b><i className="dash" /></span>
               </div>
 
               {/* الإسم و اللقب */}
@@ -435,7 +440,7 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
 
               <div className="drtx-rg2">
                 <RegCells value={f.regNum} />
-                <span className="drtx-reglbl"><i className="dash" />رقم التسجيل<i className="dash" /></span>
+                <span className="drtx-reglbl"><i className="dash" /><b>رقم التسجيل</b><i className="dash" /></span>
               </div>
               <div className="drtx-lbl drtx-nisl">الإسم :</div>
               <span className="drtx-e drtx-dName drtx-dots" style={{ top: 67, left: 205 }} data-f="firstName" contentEditable suppressContentEditableWarning>{f.firstName || '\u00a0'}</span>
