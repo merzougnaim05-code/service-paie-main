@@ -51,7 +51,7 @@ function splitName(full: string): [string, string] {
 }
 
 function buildAuto(emp: Employee | undefined, settings: Settings): DrtForm {
-  const today = new Date().toLocaleDateString('ar-DZ');
+  const today = new Date().toISOString().slice(0, 10);
   const [first, last] = splitName(emp?.name || '');
   return {
     firstName: first,
@@ -106,9 +106,9 @@ const CSS = `
   .drtx-e { position:absolute; outline:none; font-weight:700; white-space:nowrap; }
   .drtx-lbl { position:absolute; font-weight:700; white-space:nowrap; }
 
-  .drtx-ana { top:11px; right:26px; font-size:13.5px; }
+  .drtx-ana { top:11px; right:26px; font-size:11.5px; }
 
-  .drtx-isl, .drtx-lql { right:10px; font-size:13.5px; }
+  .drtx-isl, .drtx-lql { right:10px; font-size:11.5px; }
   .drtx-isl { top:40px; }
   .drtx-lql { top:62px; }
 
@@ -119,44 +119,48 @@ const CSS = `
     background-size:6.5px 4px; background-repeat:repeat-x; background-position:0 bottom;
   }
 
-  .drtx-dName { left:203px; width:219px; height:17px; top:41px; font-size:12.5px; text-align:center; }
-  .drtx-dName2 { left:203px; width:219px; height:17px; top:63px; font-size:12.5px; text-align:center; }
+  .drtx-dName { left:203px; width:204px; height:17px; top:41px; font-size:12.5px; text-align:center; }
+  .drtx-dName2 { left:203px; width:204px; height:17px; top:63px; font-size:12.5px; text-align:center; }
 
-  /* مربع رقم التسجيل (داخل الصندوق الأول): تسمية + شرطات داخل أسفله */
+  /* مربع رقم التسجيل (داخل الصندوق): خانات ك خانة رقم — التسمية تتموضع على الحد السفلي */
   .drtx-reg1 { position:absolute; left:10px; top:39px; width:189px; height:39px; border:1.2px solid #000; }
-  .drtx-regval { position:absolute; top:3px; left:4px; right:4px; text-align:center; font-size:11px; font-weight:700; outline:none; white-space:nowrap; }
-  .drtx-reglbl { position:absolute; bottom:1px; left:0; width:100%; display:flex; align-items:center; justify-content:center; gap:3px; font-size:9.5px; font-weight:700; }
-  .drtx-reglbl .dash { width:26px; height:1px; background:#000; }
+  .drtx-regcells { position:absolute; top:4px; left:5px; right:5px; height:16px; display:flex; direction:ltr; }
+  .drtx-regcells::after { content:''; position:absolute; left:0; bottom:0; width:1px; height:16px; background:#000; }
+  .drtx-regcells i { flex:1; font-style:normal; display:flex; align-items:flex-end; justify-content:center; font-size:8.5px; font-weight:700; line-height:1; position:relative; border-bottom:1px solid #000; }
+  .drtx-regcells i:not(:last-child)::before { content:''; position:absolute; right:-1px; bottom:0; width:1px; height:10px; background:#000; }
+  .drtx-regcells i:last-child::before { content:''; position:absolute; right:-1px; bottom:0; width:1px; height:16px; background:#000; }
+  .drtx-reglbl { position:absolute; bottom:-6px; left:0; width:100%; display:flex; align-items:center; justify-content:center; gap:4px; font-size:11px; font-weight:700; background:#fff; }
+  .drtx-reglbl .dash { width:34px; height:1.2px; background:#000; }
 
   /* صف تاريخ الإزياد */
-  .drtx-bl { top:90px; right:9px; font-size:13.5px; }
-  .drtx-be { top:90px; left:230px; font-size:13px; width:14px; }
+  .drtx-bl { top:92px; right:10px; font-size:11.5px; }
+  .drtx-be { top:90px; left:230px; font-size:11.5px; width:14px; }
   .drtx-dBirth { left:9px; width:216px; height:16px; top:91px; font-size:11.5px; text-align:center; }
 
   /* صف التوقف */
-  .drtx-sl { top:116px; right:26px; font-size:13.5px; }
+  .drtx-sl { top:117px; right:26px; font-size:11.5px; }
 
   /* سطرا الاستئناف مع مربع x وعلامة (1) وخط عليه تاريخ */
   .drtx-cb { position:absolute; width:16px; height:16px; border:1.2px solid #000; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; line-height:1; padding:0; }
-  .drtx-flab { font-size:12.5px; }
-  .drtx-f1 { top:140px; right:164px; }
-  .drtx-f2 { top:161px; right:164px; }
-  .drtx-fcb1 { top:138px; left:315px; }
-  .drtx-fcb2 { top:160px; left:315px; }
-  .drtx-fn { top:149px; left:346px; font-size:9px; font-weight:700; }
+  .drtx-flab { font-size:11.5px; }
+  .drtx-f1 { top:142px; right:194px; }
+  .drtx-f2 { top:166px; right:165px; }
+  .drtx-fcb1 { top:142px; left:315px; }
+  .drtx-fcb2 { top:164px; left:315px; }
+  .drtx-fn { top:151px; left:341px; font-size:9px; font-weight:700; }
 
-  /* المكون: خط التاريخ المركّب (6 خانات بلوازم قصيرة وطرفتين ارتفاعاً) */
-  .drtx-comb { position:absolute; height:14px; display:flex; direction:rtl; }
-  .drtx-comb .c { flex:1; position:relative; border-bottom:1.2px solid #000; }
-  .drtx-comb .c:not(:first-child)::before { content:''; position:absolute; right:-1px; bottom:0; width:1px; height:7px; background:#000; }
-  .drtx-comb .c:first-child::before { content:''; position:absolute; right:-1px; bottom:0; width:1.2px; height:14px; background:#000; }
-  .drtx-comb::before { content:''; position:absolute; left:0; bottom:0; width:1px; height:14px; background:#000; }
-  .drtx-comb .cv { position:absolute; top:-4px; left:0; right:0; text-align:center; font-size:9.5px; font-weight:700; outline:none; white-space:nowrap; line-height:1; }
+  /* المكون: خط التاريخ المركّب — أنصاف مربعات (شُرط داخلية أعلى) و أرقام بين الخطوط */
+  .drtx-comb { position:absolute; height:14px; display:flex; direction:ltr; }
+  .drtx-comb::after { content:''; position:absolute; left:0; bottom:0; width:1.2px; height:14px; background:#000; }
+  .drtx-comb .c { flex:1; position:relative; border-bottom:1.2px solid #000; display:flex; align-items:flex-end; justify-content:center; font-size:9px; font-weight:700; line-height:1; padding:0 1px; }
+  .drtx-comb .c:not(:last-child)::before { content:''; position:absolute; right:-1px; bottom:0; width:1px; height:11px; background:#000; }
+  .drtx-comb .c:last-child::before { content:''; position:absolute; right:-1px; bottom:0; width:1.2px; height:14px; background:#000; }
+  .drtx-comb .ctx { position:absolute; top:-3px; left:0; right:0; text-align:center; font-size:9.5px; font-weight:700; outline:none; white-space:nowrap; line-height:1; }
 
   .comb-birth { left:250px; top:89px; width:125px; }
   .comb-stop { left:194px; top:117px; width:125px; }
   .comb-f1 { left:38px; top:139px; width:126px; }
-  .comb-f2 { left:38px; top:161px; width:126px; }
+  .comb-f2 { left:38px; top:162px; width:126px; }
 
   /* حرر بـ ... ، في ... */
   .drtx-harr { position:absolute; top:199px; left:8px; width:238px; display:flex; align-items:flex-end; direction:rtl; }
@@ -166,8 +170,8 @@ const CSS = `
   .drtx-harr .d2 { flex:1.12; }
 
   /* التسميات + القيم فوق خط النقاط */
-  .drtx-ltn { top:219px; right:24px; font-size:13.5px; }
-  .drtx-ltw { top:219px; left:67px; font-size:13.5px; }
+  .drtx-ltn { top:219px; right:24px; font-size:11.5px; }
+  .drtx-ltw { top:219px; left:67px; font-size:11.5px; }
   .drtx-vNat { top:233px; left:314px; width:132px; text-align:center; font-size:12px; }
   .drtx-vSig { top:233px; left:67px; width:99px; text-align:center; font-size:12px; }
   .drtx-sline { position:absolute; top:251px; left:13px; width:233px; height:2px; background-image:radial-gradient(circle, #000 1.3px, transparent 1.55px); background-size:9px 4px; background-repeat:repeat-x; }
@@ -179,14 +183,14 @@ const CSS = `
   .drtx-h2 { position:absolute; top:31px; left:0; width:470px; text-align:center; font-size:11.5px; font-weight:700; }
 
   .drtx-rg2 { position:absolute; left:10px; top:66px; width:189px; height:33px; border:1.2px solid #000; }
-  .drtx-nisl { position:absolute; top:65px; right:10px; font-size:13.5px; font-weight:700; white-space:nowrap; }
-  .drtx-nlql { position:absolute; top:86px; right:10px; font-size:13.5px; font-weight:700; white-space:nowrap; }
-  .drtx-ndName { left:205px; width:219px; height:16px; font-size:12.5px; text-align:center; }
+  .drtx-nisl { position:absolute; top:65px; right:10px; font-size:11.5px; font-weight:700; white-space:nowrap; }
+  .drtx-nlql { position:absolute; top:86px; right:10px; font-size:11.5px; font-weight:700; white-space:nowrap; }
+  .drtx-ndName { left:205px; width:202px; height:16px; font-size:12.5px; text-align:center; }
   .drtx-nameA { top:67px; }
   .drtx-nameB { top:88px; }
 
-  .drtx-decl { position:absolute; top:120px; right:21px; font-size:13.5px; white-space:nowrap; }
-  .drtx-decl2 { position:absolute; top:141px; right:12px; font-size:12.5px; white-space:nowrap; }
+  .drtx-decl { position:absolute; top:120px; right:21px; font-size:11.5px; white-space:nowrap; }
+  .drtx-decl2 { position:absolute; top:141px; right:12px; font-size:11px; white-space:nowrap; }
 
   .drtx-harr2 { position:absolute; top:166px; left:8px; width:238px; display:flex; align-items:flex-end; direction:rtl; }
   .drtx-harr2 .lb { font-size:12.5px; font-weight:700; white-space:nowrap; }
@@ -199,20 +203,48 @@ const CSS = `
   .drtx-sig2 { position:absolute; top:186px; left:109px; width:34px; text-align:center; font-size:11.5px; font-weight:700; }
   .drtx-legend { position:absolute; top:219px; right:9px; font-size:11.5px; font-weight:700; white-space:nowrap; }
 
-  .drtx-note { display:block; margin-top:2px; text-align:center; font-size:12.5px; font-weight:700; }
+  .drtx-note { position:absolute; top:798px; left:0; width:470px; text-align:center; font-size:12.5px; font-weight:700; }
 
   @media print {
     .drtx-page { box-shadow:none !important; margin:0 !important; }
   }
 `;
 
-const Comb: React.FC<{ value?: string; top: number; left: number; width?: number; dataF?: string }> = ({ value = '', top, left, width = 125, dataF }) => {
+/* الأرقام داخل الخانات: تاريخ ISO «yyyy-mm-dd» يصبح يوم/شهر/سنة رقماً في كل خانة */
+function combChars(v?: string, n = 6): string[] | null {
+  const s = (v || '').trim();
+  if (!s) return Array(n).fill('');
+  const m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(s);
+  if (m) {
+    const str = m[3].padStart(2, '0') + m[2].padStart(2, '0') + m[1].slice(-2);
+    if (str.length === n) return str.split('');
+  }
+  const digits = s.replace(/[^\d]/g, '');
+  if (digits.length === n) return digits.split('');
+  return null; // نص غير قياسي: رندره فوق الخانات كما هو
+}
+
+const Comb: React.FC<{ value?: string; top: number; left: number; width?: number }> = ({ value = '', top, left, width = 125 }) => {
+  const chars = combChars(value);
   return (
     <div className="drtx-comb" style={{ top, left, width, height: 14 }}>
-      <span className="cv" data-f={dataF} contentEditable suppressContentEditableWarning>{value || '\u00a0'}</span>
-      {[0, 1, 2, 3, 4, 5].map(i => <span key={i} className="c" />)}
+      {chars ? (
+        chars.map((c, i) => <span key={i} className="c">{c || '\u00a0'}</span>)
+      ) : (
+        <>
+          <span className="ctx">{(value || '').trim() || '\u00a0'}</span>
+          {Array.from({ length: 6 }).map((_, i) => <span key={'c' + i} className="c" />)}
+        </>
+      )}
     </div>
   );
+};
+
+/* خانات رقم التسجيل: رقم في كل خانة (يسار ← يمين) */
+const RegCells: React.FC<{ value?: string }> = ({ value = '' }) => {
+  const digits = (value || '').replace(/[^\d]/g, '');
+  const list = digits ? digits.split('') : Array.from({ length: 13 }, () => '');
+  return <span className="drtx-regcells">{list.map((d, i) => <i key={i}>{d}</i>)}</span>;
 };
 
 export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) => {
@@ -348,7 +380,7 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
 
               {/* مربع رقم التسجيل */}
               <div className="drtx-reg1">
-                <span className="drtx-regval" data-f="regNum" contentEditable suppressContentEditableWarning>{f.regNum || '\u00a0'}</span>
+                <RegCells value={f.regNum} />
                 <span className="drtx-reglbl"><i className="dash" />رقم التسجيل<i className="dash" /></span>
               </div>
 
@@ -360,23 +392,23 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
 
               {/* تاريخ الإزياد + الخانة المركبة + بـ */}
               <div className="drtx-lbl drtx-bl">تاريخ الإزياد :</div>
-              <Comb value={f.birthDate} top={89} left={250} dataF="birthDate" />
+              <Comb value={f.birthDate} top={89} left={250} />
               <span className="drtx-lbl drtx-be" style={{ top: 90, left: 228, width: 22, textAlign: 'center' }}>بـــ:</span>
               <span className="drtx-e drtx-dBirth drtx-dots" style={{ top: 91, height: 16 }} data-f="birthPlace" contentEditable suppressContentEditableWarning>{f.birthPlace || '\u00a0'}</span>
 
               {/* المتوقف عن العمل في */}
               <div className="drtx-lbl drtx-sl">المتوقف عن العمل في :</div>
-              <Comb value={f.stopDate} top={117} left={194} dataF="stopDate" />
+              <Comb value={f.stopDate} top={117} left={194} />
 
               {/* سطرا الخانات مع (1) */}
               <span className="drtx-e drtx-fn">(1)</span>
-              <span className="drtx-cb drtx-fcb1" style={{ top: 138, left: 315 }} onClick={() => toggleMode('resumed')}>{f.mode === 'resumed' ? 'x' : ''}</span>
-              <div className="drtx-lbl drtx-flab drtx-f1" style={{ top: 140 }}>قــــد استأنــف عملـــه في :</div>
-              <Comb value={combResume} top={139} left={38} dataF="resumeDate" />
+              <span className="drtx-cb drtx-fcb1" style={{ top: 142, left: 315 }} onClick={() => toggleMode('resumed')}>{f.mode === 'resumed' ? 'x' : ''}</span>
+              <div className="drtx-lbl drtx-flab drtx-f1" style={{ top: 142 }}>قــد استأنــف عملــه في :</div>
+              <Comb value={combResume} top={139} left={38} />
 
-              <span className="drtx-cb" style={{ top: 160, left: 315 }} onClick={() => toggleMode('notResumed')}>{f.mode === 'notResumed' ? 'x' : ''}</span>
-              <div className="drtx-lbl drtx-flab drtx-f2" style={{ top: 162 }}>لم يـستأنف عمله إلــى يومنا هذا :</div>
-              <Comb value={combNotResume} top={161} left={38} dataF="madeDate" />
+              <span className="drtx-cb" style={{ top: 164, left: 315 }} onClick={() => toggleMode('notResumed')}>{f.mode === 'notResumed' ? 'x' : ''}</span>
+              <div className="drtx-lbl drtx-flab drtx-f2" style={{ top: 166 }}>لم يـستأنف عمله إلــى يومنا هذا :</div>
+              <Comb value={combNotResume} top={162} left={38} />
 
               {/* حرر بـ ... ، في ... */}
               <div className="drtx-harr">
@@ -402,7 +434,7 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
               <div className="drtx-h2">(يملأ من طرف المؤمن له في حالة عدم إستئناف العمل)</div>
 
               <div className="drtx-rg2">
-                <span className="drtx-regval" data-f="regNum" contentEditable suppressContentEditableWarning>{f.regNum || '\u00a0'}</span>
+                <RegCells value={f.regNum} />
                 <span className="drtx-reglbl"><i className="dash" />رقم التسجيل<i className="dash" /></span>
               </div>
               <div className="drtx-lbl drtx-nisl">الإسم :</div>
@@ -412,7 +444,7 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
 
               {/* التصريح بخانتين */}
               <div className="drtx-lbl drtx-decl">أصرح بشرفي، أنني في حالة توقف عن العمل منذ تاريخ :</div>
-              <Comb value={f.stopDate} top={120} left={10} dataF="stopDate" />
+              <Comb value={f.stopDate} top={120} left={10} />
               <div className="drtx-lbl drtx-decl2">وأنني لا أمارس أي نشـــاط مهني .</div>
 
               <div className="drtx-harr2">
