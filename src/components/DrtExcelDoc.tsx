@@ -211,13 +211,7 @@ const CSS = `
   .drtx-note { position:absolute; top:798px; left:0; width:470px; text-align:center; font-size:12.5px; font-weight:700; }
 
   @media print {
-    /* ورقة A5 عرضية (210×148مم) — محتوى الوثيقة يُدوَّر 90° مع توسيطه: 210×133.6مم يحتوي الصفحة تماماً */
-    .drtx-page { box-shadow:none !important; margin:0 !important; width:210mm !important; height:148mm !important; display:block !important; overflow:hidden; }
-    .drtx-fit {
-      position:absolute; left:50%; top:50%;
-      transform: translate(-50%, -50%) rotate(90deg);
-      transform-origin: center center;
-    }
+    .drtx-page { box-shadow:none !important; margin:0 !important; }
   }`;
 
 /* الأرقام داخل الخانات: تاريخ ISO «yyyy-mm-dd» يصبح يوم/شهر/سنة رقماً في كل خانة */
@@ -367,7 +361,7 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
       {showPreview && (
         <div className="drtx-page" style={{ width: '148mm', height: '210mm', display: 'flex', justifyContent: 'center', overflow: 'hidden' }} dir="rtl">
           <style>{`${CSS}
-            @page { size: 210mm 148mm; margin: 0; }
+            @page { size: 148mm 210mm; margin: 0; }
           `}</style>
 
           <div className="drtx-fit">
