@@ -123,24 +123,24 @@ const CSS = `
   }
   .drtx-dots.filled::after, .drtx-harr .dots.filled::after, .drtx-harr2 .dots.filled::after { display:none; }
 
-  .drtx-dName { left:203px; width:204px; height:17px; top:41px; font-size:12.5px; text-align:center; }
-  .drtx-dName2 { left:203px; width:204px; height:17px; top:63px; font-size:12.5px; text-align:center; }
+  .drtx-dName { left:203px; width:204px; height:17px; top:41px; font-size:13.5px; text-align:center; }
+  .drtx-dName2 { left:203px; width:204px; height:17px; top:63px; font-size:13.5px; text-align:center; }
 
   /* مربع رقم التسجيل (داخل الصندوق): أرقام حرة فوق التسمية — الخط يمر متصلاً من حد لحد */
   .drtx-reg1 { position:absolute; left:10px; top:39px; width:189px; height:39px; border:1.2px solid #000; border-bottom:0; }
   .drtx-regcells { position:absolute; top:5px; left:6px; right:6px; height:16px; display:flex; direction:ltr; align-items:flex-end; }
-  .drtx-regcells i { font-style:normal; flex:1; display:flex; align-items:flex-end; justify-content:center; font-size:9px; font-weight:700; line-height:1; }
+  .drtx-regcells i { font-style:normal; flex:1; display:flex; align-items:flex-end; justify-content:center; font-size:10px; font-weight:700; line-height:1; }
   /* التسمية هي خط الأسفل الوحيد (بلا حدّين مزدوجَين): شرطات على الحافة نفسها → خط واحد مصدر واحد */
-  .drtx-reglbl { position:absolute; bottom:0; left:1px; right:1px; height:0; display:flex; align-items:center; font-size:11px; font-weight:700; }
-  .drtx-reglbl .dash { flex:1 1 0; min-width:12px; height:1.2px; background:#000; margin:0 3px; }
-  .drtx-reglbl .dash:first-child { margin-left:0; }
-  .drtx-reglbl .dash:last-child { margin-right:0; }
+  .drtx-reglbl { position:absolute; bottom:0; left:0; right:0; height:0; display:flex; align-items:center; font-size:11px; font-weight:700; }
+  .drtx-reglbl .dash { flex:1 1 0; min-width:12px; height:1.2px; background:#000; }
+  .drtx-reglbl .dash:first-child { margin-left:-1.8px; }
+  .drtx-reglbl .dash:last-child { margin-right:-1.8px; }
   .drtx-reglbl b { background:#fff; padding:0 3px; font-weight:700; line-height:11px; }
 
   /* صف تاريخ الإزياد */
   .drtx-bl { top:92px; right:10px; font-size:11.5px; }
   .drtx-be { top:90px; left:230px; font-size:11.5px; width:14px; }
-  .drtx-dBirth { left:9px; width:216px; height:16px; top:91px; font-size:11.5px; text-align:center; }
+  .drtx-dBirth { left:9px; width:216px; height:16px; top:91px; font-size:12.5px; text-align:center; }
 
   /* صف التوقف */
   .drtx-sl { top:117px; right:26px; font-size:11.5px; }
@@ -157,10 +157,10 @@ const CSS = `
   /* المكون: خط التاريخ المركّب — أنصاف مربعات (شُرط داخلية أعلى) و أرقام بين الخطوط */
   .drtx-comb { position:absolute; height:14px; display:flex; direction:ltr; }
   .drtx-comb::after { content:''; position:absolute; left:0; bottom:0; width:1.2px; height:14px; background:#000; }
-  .drtx-comb .c { flex:1; position:relative; border-bottom:1.2px solid #000; display:flex; align-items:flex-end; justify-content:center; font-size:9px; font-weight:700; line-height:1; padding:0 1px; }
+  .drtx-comb .c { flex:1; position:relative; border-bottom:1.2px solid #000; display:flex; align-items:flex-end; justify-content:center; font-size:10px; font-weight:700; line-height:1; padding:0 1px; }
   .drtx-comb .c:not(:last-child)::before { content:''; position:absolute; right:-1px; bottom:0; width:1px; height:11px; background:#000; }
   .drtx-comb .c:last-child::before { content:''; position:absolute; right:-1px; bottom:0; width:1.2px; height:14px; background:#000; }
-  .drtx-comb .ctx { position:absolute; top:-3px; left:0; right:0; text-align:center; font-size:9.5px; font-weight:700; outline:none; white-space:nowrap; line-height:1; }
+  .drtx-comb .ctx { position:absolute; top:-3px; left:0; right:0; text-align:center; font-size:10.5px; font-weight:700; outline:none; white-space:nowrap; line-height:1; }
 
   .comb-birth { left:250px; top:89px; width:125px; }
   .comb-stop { left:194px; top:117px; width:125px; }
@@ -170,15 +170,15 @@ const CSS = `
   /* حرر بـ ... ، في ... */
   .drtx-harr { position:absolute; top:199px; left:8px; width:238px; display:flex; align-items:flex-end; direction:rtl; }
   .drtx-harr .lb { font-size:12.5px; font-weight:700; white-space:nowrap; }
-  .drtx-harr .dots { height:16px; font-size:10.5px; font-weight:700; text-align:center; outline:none; line-height:12px; }
+  .drtx-harr .dots { height:16px; font-size:11.5px; font-weight:700; text-align:center; outline:none; line-height:12px; }
   .drtx-harr .d1 { flex:0.88; }
   .drtx-harr .d2 { flex:1.12; }
 
   /* التسميات + القيم فوق خط النقاط */
   .drtx-ltn { top:219px; right:24px; font-size:11.5px; }
   .drtx-ltw { top:219px; left:67px; font-size:11.5px; }
-  .drtx-vNat { top:233px; left:314px; width:132px; text-align:center; font-size:12px; }
-  .drtx-vSig { top:233px; left:67px; width:99px; text-align:center; font-size:12px; }
+  .drtx-vNat { top:233px; left:314px; width:132px; text-align:center; font-size:13px; }
+  .drtx-vSig { top:233px; left:67px; width:99px; text-align:center; font-size:13px; }
   .drtx-sline { position:absolute; top:251px; left:13px; width:233px; height:2px; background-image:radial-gradient(circle, #000 1.3px, transparent 1.55px); background-size:9px 4px; background-repeat:repeat-x; }
   .drtx-sig1 { position:absolute; top:267px; left:107px; width:34px; text-align:center; font-size:11.5px; font-weight:700; }
 
@@ -190,7 +190,7 @@ const CSS = `
   .drtx-rg2 { position:absolute; left:10px; top:66px; width:189px; height:33px; border:1.2px solid #000; border-bottom:0; }
   .drtx-nisl { position:absolute; top:65px; right:10px; font-size:11.5px; font-weight:700; white-space:nowrap; }
   .drtx-nlql { position:absolute; top:86px; right:10px; font-size:11.5px; font-weight:700; white-space:nowrap; }
-  .drtx-ndName { left:205px; width:202px; height:16px; font-size:12.5px; text-align:center; }
+  .drtx-ndName { left:205px; width:202px; height:16px; font-size:13.5px; text-align:center; }
   .drtx-nameA { top:67px; }
   .drtx-nameB { top:88px; }
 
@@ -199,7 +199,7 @@ const CSS = `
 
   .drtx-harr2 { position:absolute; top:166px; left:8px; width:238px; display:flex; align-items:flex-end; direction:rtl; }
   .drtx-harr2 .lb { font-size:12.5px; font-weight:700; white-space:nowrap; }
-  .drtx-harr2 .dots { height:16px; font-size:10.5px; font-weight:700; text-align:center; outline:none; line-height:12px; }
+  .drtx-harr2 .dots { height:16px; font-size:11.5px; font-weight:700; text-align:center; outline:none; line-height:12px; }
   .drtx-harr2 .d1 { flex:0.88; }
   .drtx-harr2 .d2 { flex:1.12; }
 
