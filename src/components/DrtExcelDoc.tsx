@@ -114,13 +114,14 @@ const CSS = `
   .drtx-isl { top:40px; }
   .drtx-lql { top:62px; }
 
-  /* خط النقاط المنقط (نقطة واحدة مضمونة بمستوى ثابت — بلا تكرار مزدوج) */
+  /* خط النقاط المنقط (نقاط أصغر — تختفي تلقائيا عند ملء الخانة) */
   .drtx-harr .dots, .drtx-harr2 .dots { position:relative; }
   .drtx-dots::after, .drtx-harr .dots::after, .drtx-harr2 .dots::after {
-    content:''; position:absolute; left:0; right:0; bottom:1px; height:2px;
-    background-image:radial-gradient(circle, #000 1px, transparent 1.25px);
-    background-size:6.3px 2px; background-repeat:repeat-x;
+    content:''; position:absolute; left:0; right:0; bottom:1px; height:1.5px;
+    background-image:radial-gradient(circle, #000 0.65px, transparent 0.9px);
+    background-size:5px 1.5px; background-repeat:repeat-x;
   }
+  .drtx-dots.filled::after, .drtx-harr .dots.filled::after, .drtx-harr2 .dots.filled::after { display:none; }
 
   .drtx-dName { left:203px; width:204px; height:17px; top:41px; font-size:12.5px; text-align:center; }
   .drtx-dName2 { left:203px; width:204px; height:17px; top:63px; font-size:12.5px; text-align:center; }
@@ -207,7 +208,13 @@ const CSS = `
   .drtx-note { position:absolute; top:798px; left:0; width:470px; text-align:center; font-size:12.5px; font-weight:700; }
 
   @media print {
-    .drtx-page { box-shadow:none !important; margin:0 !important; }
+    /* ورقة A5 عرضية (210×148مم) — محتوى الوثيقة يُدوَّر 90° مع توسيطه: 210×133.6مم يحتوي الصفحة تماماً */
+    .drtx-page { box-shadow:none !important; margin:0 !important; width:210mm !important; height:148mm !important; display:block !important; overflow:hidden; }
+    .drtx-fit {
+      position:absolute; left:50%; top:50%;
+      transform: translate(-50%, -50%) rotate(90deg);
+      transform-origin: center center;
+    }
   }`;
 
 /* الأرقام داخل الخانات: تاريخ ISO «yyyy-mm-dd» يصبح يوم/شهر/سنة رقماً في كل خانة */
@@ -357,7 +364,7 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
       {showPreview && (
         <div className="drtx-page" style={{ width: '148mm', height: '210mm', display: 'flex', justifyContent: 'center', overflow: 'hidden' }} dir="rtl">
           <style>{`${CSS}
-            @page { size: 148mm 210mm; margin: 0; }
+            @page { size: 210mm 148mm; margin: 0; }
           `}</style>
 
           <div className="drtx-fit">
@@ -387,15 +394,15 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
 
               {/* الإسم و اللقب */}
               <div className="drtx-lbl drtx-isl">الإسم :</div>
-              <span className="drtx-e drtx-dName drtx-dots" style={{ top: 41 }} data-f="firstName" contentEditable suppressContentEditableWarning>{f.firstName || '\u00a0'}</span>
+              <span className={`drtx-e drtx-dName drtx-dots${f.firstName ? ' filled' : ''}`} style={{ top: 41 }} data-f="firstName" contentEditable suppressContentEditableWarning>{f.firstName || '\u00a0'}</span>
               <div className="drtx-lbl drtx-lql">اللقب :</div>
-              <span className="drtx-e drtx-dName2 drtx-dots" style={{ top: 63 }} data-f="lastName" contentEditable suppressContentEditableWarning>{f.lastName || '\u00a0'}</span>
+              <span className={`drtx-e drtx-dName2 drtx-dots${f.lastName ? ' filled' : ''}`} style={{ top: 63 }} data-f="lastName" contentEditable suppressContentEditableWarning>{f.lastName || '\u00a0'}</span>
 
               {/* تاريخ الإزياد + الخانة المركبة + بـ */}
               <div className="drtx-lbl drtx-bl">تاريخ الإزياد :</div>
               <Comb value={f.birthDate} top={89} left={250} />
               <span className="drtx-lbl drtx-be" style={{ top: 90, left: 228, width: 22, textAlign: 'center' }}>بـــ:</span>
-              <span className="drtx-e drtx-dBirth drtx-dots" style={{ top: 91, height: 16 }} data-f="birthPlace" contentEditable suppressContentEditableWarning>{f.birthPlace || '\u00a0'}</span>
+              <span className={`drtx-e drtx-dBirth drtx-dots${f.birthPlace ? ' filled' : ''}`} style={{ top: 91, height: 16 }} data-f="birthPlace" contentEditable suppressContentEditableWarning>{f.birthPlace || '\u00a0'}</span>
 
               {/* المتوقف عن العمل في */}
               <div className="drtx-lbl drtx-sl">المتوقف عن العمل في :</div>
@@ -414,9 +421,9 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
               {/* حرر بـ ... ، في ... */}
               <div className="drtx-harr">
                 <span className="lb">حرر بــ</span>
-                <span className="dots d1" data-f="madePlace" contentEditable suppressContentEditableWarning>{f.madePlace || '\u00a0'}</span>
+                <span className={`dots d1${f.madePlace ? ' filled' : ''}`} data-f="madePlace" contentEditable suppressContentEditableWarning>{f.madePlace || '\u00a0'}</span>
                 <span className="lb">، في</span>
-                <span className="dots d2" data-f="madeDate" contentEditable suppressContentEditableWarning>{f.madeDate || '\u00a0'}</span>
+                <span className={`dots d2${f.madeDate ? ' filled' : ''}`} data-f="madeDate" contentEditable suppressContentEditableWarning>{f.madeDate || '\u00a0'}</span>
               </div>
 
               {/* تسميات الختم و صيغة الموقع + قيمهما */}
@@ -439,9 +446,9 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
                 <span className="drtx-reglbl"><i className="dash" /><b>رقم التسجيل</b><i className="dash" /></span>
               </div>
               <div className="drtx-lbl drtx-nisl">الإسم :</div>
-              <span className="drtx-e drtx-dName drtx-dots" style={{ top: 67, left: 205 }} data-f="firstName" contentEditable suppressContentEditableWarning>{f.firstName || '\u00a0'}</span>
+              <span className={`drtx-e drtx-dName drtx-dots${f.firstName ? ' filled' : ''}`} style={{ top: 67, left: 205 }} data-f="firstName" contentEditable suppressContentEditableWarning>{f.firstName || '\u00a0'}</span>
               <div className="drtx-lbl drtx-nlql">اللقب :</div>
-              <span className="drtx-e drtx-dName drtx-dots" style={{ top: 88, left: 205 }} data-f="lastName" contentEditable suppressContentEditableWarning>{f.lastName || '\u00a0'}</span>
+              <span className={`drtx-e drtx-dName drtx-dots${f.lastName ? ' filled' : ''}`} style={{ top: 88, left: 205 }} data-f="lastName" contentEditable suppressContentEditableWarning>{f.lastName || '\u00a0'}</span>
 
               {/* التصريح بخانتين */}
               <div className="drtx-lbl drtx-decl">أصرح بشرفي، أنني في حالة توقف عن العمل منذ تاريخ :</div>
@@ -450,9 +457,9 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
 
               <div className="drtx-harr2">
                 <span className="lb">حرر بــ</span>
-                <span className="dots d1" data-f="madePlace" contentEditable suppressContentEditableWarning>{f.madePlace || '\u00a0'}</span>
+                <span className={`dots d1${f.madePlace ? ' filled' : ''}`} data-f="madePlace" contentEditable suppressContentEditableWarning>{f.madePlace || '\u00a0'}</span>
                 <span className="lb">، في</span>
-                <span className="dots d2" data-f="madeDate" contentEditable suppressContentEditableWarning>{f.madeDate || '\u00a0'}</span>
+                <span className={`dots d2${f.madeDate ? ' filled' : ''}`} data-f="madeDate" contentEditable suppressContentEditableWarning>{f.madeDate || '\u00a0'}</span>
               </div>
               <div className="drtx-sig2">الامضاء،</div>
 
