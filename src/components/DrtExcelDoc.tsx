@@ -127,11 +127,14 @@ const CSS = `
   .drtx-dName2 { left:203px; width:204px; height:17px; top:63px; font-size:12.5px; text-align:center; }
 
   /* مربع رقم التسجيل (داخل الصندوق): أرقام حرة فوق التسمية — الخط يمر متصلاً من حد لحد */
-  .drtx-reg1 { position:absolute; left:10px; top:39px; width:189px; height:39px; border:1.2px solid #000; }
+  .drtx-reg1 { position:absolute; left:10px; top:39px; width:189px; height:39px; border:1.2px solid #000; border-bottom:0; }
   .drtx-regcells { position:absolute; top:5px; left:6px; right:6px; height:16px; display:flex; direction:ltr; align-items:flex-end; }
   .drtx-regcells i { font-style:normal; flex:1; display:flex; align-items:flex-end; justify-content:center; font-size:9px; font-weight:700; line-height:1; }
-  .drtx-reglbl { position:absolute; bottom:-6px; left:1px; right:1px; height:11px; display:flex; align-items:center; font-size:11px; font-weight:700; line-height:11px; }
+  /* التسمية هي خط الأسفل الوحيد (بلا حدّين مزدوجَين): شرطات على الحافة نفسها → خط واحد مصدر واحد */
+  .drtx-reglbl { position:absolute; bottom:0; left:1px; right:1px; height:0; display:flex; align-items:center; font-size:11px; font-weight:700; }
   .drtx-reglbl .dash { flex:1 1 0; min-width:12px; height:1.2px; background:#000; margin:0 3px; }
+  .drtx-reglbl .dash:first-child { margin-left:0; }
+  .drtx-reglbl .dash:last-child { margin-right:0; }
   .drtx-reglbl b { background:#fff; padding:0 3px; font-weight:700; line-height:11px; }
 
   /* صف تاريخ الإزياد */
@@ -184,7 +187,7 @@ const CSS = `
   .drtx-h1 { position:absolute; top:6px; left:0; width:470px; text-align:center; font-size:16.5px; font-weight:700; line-height:1.1; }
   .drtx-h2 { position:absolute; top:31px; left:0; width:470px; text-align:center; font-size:11.5px; font-weight:700; }
 
-  .drtx-rg2 { position:absolute; left:10px; top:66px; width:189px; height:33px; border:1.2px solid #000; }
+  .drtx-rg2 { position:absolute; left:10px; top:66px; width:189px; height:33px; border:1.2px solid #000; border-bottom:0; }
   .drtx-nisl { position:absolute; top:65px; right:10px; font-size:11.5px; font-weight:700; white-space:nowrap; }
   .drtx-nlql { position:absolute; top:86px; right:10px; font-size:11.5px; font-weight:700; white-space:nowrap; }
   .drtx-ndName { left:205px; width:202px; height:16px; font-size:12.5px; text-align:center; }
@@ -441,25 +444,26 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
               <div className="drtx-h1">تصريح شرفي</div>
               <div className="drtx-h2">(يملأ من طرف المؤمن له في حالة عدم إستئناف العمل)</div>
 
+              {/* المربع السفلي: خاناته فارغة دائما — يُملأ يدويا من طرف المؤمن له */}
               <div className="drtx-rg2">
-                <RegCells value={f.regNum} />
+                <RegCells value="" />
                 <span className="drtx-reglbl"><i className="dash" /><b>رقم التسجيل</b><i className="dash" /></span>
               </div>
               <div className="drtx-lbl drtx-nisl">الإسم :</div>
-              <span className={`drtx-e drtx-dName drtx-dots${f.firstName ? ' filled' : ''}`} style={{ top: 67, left: 205 }} data-f="firstName" contentEditable suppressContentEditableWarning>{f.firstName || '\u00a0'}</span>
+              <span className="drtx-e drtx-dName drtx-dots" style={{ top: 67, left: 205 }} contentEditable suppressContentEditableWarning>{'\u00a0'}</span>
               <div className="drtx-lbl drtx-nlql">اللقب :</div>
-              <span className={`drtx-e drtx-dName drtx-dots${f.lastName ? ' filled' : ''}`} style={{ top: 88, left: 205 }} data-f="lastName" contentEditable suppressContentEditableWarning>{f.lastName || '\u00a0'}</span>
+              <span className="drtx-e drtx-dName drtx-dots" style={{ top: 88, left: 205 }} contentEditable suppressContentEditableWarning>{'\u00a0'}</span>
 
               {/* التصريح بخانتين */}
               <div className="drtx-lbl drtx-decl">أصرح بشرفي، أنني في حالة توقف عن العمل منذ تاريخ :</div>
-              <Comb value={f.stopDate} top={120} left={10} />
+              <Comb value="" top={120} left={10} />
               <div className="drtx-lbl drtx-decl2">وأنني لا أمارس أي نشـــاط مهني .</div>
 
               <div className="drtx-harr2">
                 <span className="lb">حرر بــ</span>
-                <span className={`dots d1${f.madePlace ? ' filled' : ''}`} data-f="madePlace" contentEditable suppressContentEditableWarning>{f.madePlace || '\u00a0'}</span>
+                <span className="dots d1" contentEditable suppressContentEditableWarning>{'\u00a0'}</span>
                 <span className="lb">، في</span>
-                <span className={`dots d2${f.madeDate ? ' filled' : ''}`} data-f="madeDate" contentEditable suppressContentEditableWarning>{f.madeDate || '\u00a0'}</span>
+                <span className="dots d2" contentEditable suppressContentEditableWarning>{'\u00a0'}</span>
               </div>
               <div className="drtx-sig2">الامضاء،</div>
 
