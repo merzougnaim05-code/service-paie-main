@@ -83,7 +83,9 @@ const CSS = `
     box-shadow:0 0 10px rgba(0,0,0,.30);
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
-  .drtx-col { width:470px; margin-left:29px; position:relative; height:796px; }
+  /* الوثيقة بمقياس A5 الكامل (148×210مم): التصميم الداخلي 140×220مم مكبوس بمؤثر zoom موحد وعلى الوسط */
+  .drtx-fit { width:140mm; min-height:220mm; position:relative; zoom:0.9545; }
+  .drtx-col { position:absolute; top:0; left:29px; width:470px; height:796px; }
 
   /* ===== شريط CNAS الأسود: h76 عند y19 ===== */
   .drtx-banner {
@@ -206,8 +208,7 @@ const CSS = `
 
   @media print {
     .drtx-page { box-shadow:none !important; margin:0 !important; }
-  }
-`;
+  }`;
 
 /* الأرقام داخل الخانات: تاريخ ISO «yyyy-mm-dd» يصبح يوم/شهر/سنة رقماً في كل خانة */
 function combChars(v?: string, n = 6): string[] | null {
@@ -354,17 +355,12 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
       </div>
 
       {showPreview && (
-        <div className="drtx-page" style={{ width: '140mm', minHeight: '220mm' }} dir="rtl">
+        <div className="drtx-page" style={{ width: '148mm', height: '210mm', display: 'flex', justifyContent: 'center', overflow: 'hidden' }} dir="rtl">
           <style>{`${CSS}
             @page { size: 148mm 210mm; margin: 0; }
-            @media print {
-              .drtx-page {
-                box-shadow:none !important; margin:0 !important;
-                zoom:0.9545; /* 220mm × 0.9545 = 210mm → تملأ ورقة A5 من الأعلى للأسفل */
-              }
-            }
           `}</style>
 
+          <div className="drtx-fit">
           <div className="drtx-col">
             {/* شريط CNAS */}
             <div className="drtx-banner">
@@ -463,7 +459,8 @@ export const DrtExcelDoc: React.FC<DrtExcelDocProps> = ({ employee, settings }) 
               <div className="drtx-legend">(1) ضع علامة (X) في الخانة المناسبة.</div>
             </div>
 
-            <div className="drtx-note">* القاانون يعاقب كل من يقوم بتزوير او يدلي بتصريحات غير صحيحة.</div>
+            <div className="drtx-note">* القانون يعاقب كل من يقوم بتزوير او يدلي بتصريحات غير صحيحة.</div>
+          </div>
           </div>
         </div>
       )}
