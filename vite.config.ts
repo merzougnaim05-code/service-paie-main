@@ -5,6 +5,8 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
+    // مسارات نسبية: تسمح لتطبيق سطح المكتب (Electron) بتحميل النسخة المبنية عبر file:// دون خادم
+    base: './',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

@@ -5,6 +5,61 @@ const EMPLOYEES_STORAGE_KEY = 'dz_payroll_employees_v3';
 const SETTINGS_STORAGE_KEY = 'dz_payroll_settings_v3';
 const LAST_MODIFIED_KEY = 'dz_payroll_last_modified_v3';
 
+/* =====================================================================
+   موزّع التخزين — نسخة سطح المكتب مقابل الويب:
+   - في تطبيق سطح المكتب (Electron): البيانات في ملف JSON حقيقي على القرص
+     (userData/payroll-data.json مع نسخ احتياطية تلقائية) عبر جسر preload.
+   - في المتصفح: localStorage كما كان دون أي تغيير في السلوك.
+   ===================================================================== */
+interface DesktopBridge {
+  isDesktop: boolean;
+  readData(key: string): string | null;
+  writeData(key: string, value: string): boolean;
+  removeData(key: string): boolean;
+}
+
+const desktopBridge = (): DesktopBridge | null => {
+  const w = window as unknown as { payrollDesktop?: DesktopBridge };
+  return w.payrollDesktop && w.payrollDesktop.isDesktop ? w.payrollDesktop : null;
+};
+
+const storeGet = (key: string): string | null => {
+  const d = desktopBridge();
+  if (d) {
+    try {
+      return d.readData(key);
+    } catch {
+      return null;
+    }
+  }
+  return localStorage.getItem(key);
+};
+
+const storeSet = (key: string, value: string): void => {
+  const d = desktopBridge();
+  if (d) {
+    try {
+      d.writeData(key, value);
+      return;
+    } catch {
+      // عند الفشل نكتب في localStorage كاحتياط
+    }
+  }
+  localStorage.setItem(key, value);
+};
+
+const storeRemove = (key: string): void => {
+  const d = desktopBridge();
+  if (d) {
+    try {
+      d.removeData(key);
+    } catch {
+      // ignore
+    }
+  }
+  localStorage.removeItem(key);
+};
+
 export const DEFAULT_SETTINGS: Settings = {
   institution: 'ثانوية الشهيد محمد العربي التبسي',
   wilaya: 'باتنة',
@@ -167,7 +222,7 @@ function withDataHubDefaults(s: Settings): Settings {
 
 export function loadSettings(): Settings {
   try {
-    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    const raw = storeGet(SETTINGS_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       return withDataHubDefaults({ ...DEFAULT_SETTINGS, ...parsed });
@@ -180,7 +235,7 @@ export function loadSettings(): Settings {
 
 export function saveSettings(settings: Settings): boolean {
   try {
-    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+    storeSet(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
     touchLastModified();
     return true;
   } catch (err) {
@@ -198,7 +253,7 @@ export function loadEmployees(): Employee[] {
       ...e
     } as Employee));
   try {
-    const raw = localStorage.getItem(EMPLOYEES_STORAGE_KEY);
+    const raw = storeGet(EMPLOYEES_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
@@ -215,7 +270,7 @@ export function loadEmployees(): Employee[] {
 
 export function saveEmployees(employees: Employee[]): boolean {
   try {
-    localStorage.setItem(EMPLOYEES_STORAGE_KEY, JSON.stringify(employees));
+    storeSet(EMPLOYEES_STORAGE_KEY, JSON.stringify(employees));
     touchLastModified();
     return true;
   } catch (err) {
@@ -226,7 +281,7 @@ export function saveEmployees(employees: Employee[]): boolean {
 
 export function getLastModified(): string {
   try {
-    return localStorage.getItem(LAST_MODIFIED_KEY) || new Date().toISOString();
+    return storeGet(LAST_MODIFIED_KEY) || new Date().toISOString();
   } catch {
     return new Date().toISOString();
   }
@@ -234,7 +289,7 @@ export function getLastModified(): string {
 
 export function touchLastModified(): void {
   try {
-    localStorage.setItem(LAST_MODIFIED_KEY, new Date().toISOString());
+    storeSet(LAST_MODIFIED_KEY, new Date().toISOString());
   } catch {
     // ignore
   }
@@ -275,8 +330,8 @@ export function resetToDefault(): void {
 
 export function clearAllData(): boolean {
   try {
-    localStorage.removeItem(EMPLOYEES_STORAGE_KEY);
-    localStorage.removeItem(SETTINGS_STORAGE_KEY);
+    storeRemove(EMPLOYEES_STORAGE_KEY);
+    storeRemove(SETTINGS_STORAGE_KEY);
     touchLastModified();
     return true;
   } catch (err) {
