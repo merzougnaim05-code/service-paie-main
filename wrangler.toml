@@ -1,0 +1,10 @@
+# إعدادات نشر Cloudflare Pages مع الواجهات السحابية للترخيص
+# الاسم = مشروع Pages الحالي service-paie.pages.dev
+name = "service-paie"
+pages_build_output_dir = "dist"
+compatibility_date = "2025-01-01"
+
+# مساحة التخزين: سجل المفعّلين + مفتاح الإيقاف/التشغيل
+[[kv_namespaces]]
+binding = "SP_KV"
+id = "74a8d57b8d0741cc8d5cbd26bb4e95ad"

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Settings } from '../types';
 import { ALGERIAN_WILAYAS } from '../data/salaryGrids';
 import { Settings as SettingsIcon, Save, RotateCcw, Building, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { AppUpdateCard } from './AppUpdateCard';
 
 interface SettingsViewProps {
   settings: Settings;
@@ -234,6 +235,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </button>
           </div>
         </form>
+
+        {/* التحديثات والترخيص — خارج الاستمارة حتى لا تؤثر أزرارها على الحفظ */}
+        <div className="mt-6">
+          <AppUpdateCard />
+        </div>
       </div>
     </div>
   );

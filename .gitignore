@@ -7,9 +7,14 @@ coverage/
 .env*
 !.env.example
 *.zip
+# حزم تحديث سطح المكتب تُنشر مع الموقع
+!public/desktop/*.zip
 
 # Local Netlify folder
 .netlify
 
 # Desktop build outputs
 desktop-release/
+
+# Licensing secrets — never publish
+admin/keys.json
