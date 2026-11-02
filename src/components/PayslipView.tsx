@@ -29,10 +29,10 @@ const CHANGE_YEARS: { year: number; note: string }[] = [
 ];
 
 /**
- * تجميع كشوف الأشهر الـ12 في كشف سنوي واحد
+ * تجميع كشوف فترة متصلة (3 أو 6 أو 12 شهراً) في كشف مجمع واحد
  */
-function buildAnnual(emp: Employee, year: number, settings: Settings) {
-  const results = Array.from({ length: 12 }, (_, i) => computePayslip(emp, i + 1, year, settings));
+function buildAggregate(emp: Employee, startMonth: number, count: number, year: number, settings: Settings) {
+  const results = Array.from({ length: count }, (_, i) => computePayslip(emp, startMonth + i, year, settings));
   const agg = new Map<string, number>();
   results.forEach(r => {
     r.allAllowances.filter(a => a.amount > 0).forEach(a => {
@@ -55,6 +55,11 @@ function buildAnnual(emp: Employee, year: number, settings: Settings) {
     net: sum(r => r.net),
     years: results[0].years
   };
+}
+
+/** الكشف السنوي = فترة مجمعة من 12 شهراً */
+function buildAnnual(emp: Employee, year: number, settings: Settings) {
+  return buildAggregate(emp, 1, 12, year, settings);
 }
 
 /* ================= وثيقة كشف الراتب (صفحة A4 واحدة) ================= */
@@ -507,16 +512,19 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
   const [empId, setEmpId] = useState<string>(selectedEmpId || employees[0]?.id || '');
   const [month, setMonth] = useState<number>(new Date().getMonth() + 1);
   const [year, setYear] = useState<number>(new Date().getFullYear());
-  const [mode, setMode] = useState<'monthly' | 'annual' | 'both'>('both');
-  const [printTarget, setPrintTarget] = useState<'monthly' | 'annual' | 'both'>('both');
+  const [mode, setMode] = useState<'monthly' | 'annual' | 'both' | 'quarterly' | 'semiannual'>('both');
+  const [printTarget, setPrintTarget] = useState<'monthly' | 'annual' | 'both' | 'period'>('both');
+  const [periodStart, setPeriodStart] = useState<number>(1);
   const [specimen, setSpecimen] = useState<boolean>(false);
   const [exporting, setExporting] = useState<boolean>(false);
   const [qrMonthly, setQrMonthly] = useState<string>('');
   const [qrAnnual, setQrAnnual] = useState<string>('');
   const [qrBoth, setQrBoth] = useState<string>('');
+  const [qrPeriod, setQrPeriod] = useState<string>('');
   const monthlyRef = useRef<HTMLDivElement>(null);
   const annualRef = useRef<HTMLDivElement>(null);
   const mergedRef = useRef<HTMLDivElement>(null);
+  const periodRef = useRef<HTMLDivElement>(null);
 
   const currentEmployee = employees.find(e => e.id === empId) || employees[0];
   const currentJob = currentEmployee ? JOBS[currentEmployee.jobIdx] : undefined;
@@ -526,6 +534,15 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
     : null;
 
   const annual = currentEmployee ? buildAnnual(currentEmployee, year, settings) : null;
+
+  // الفترة المجمعة: ثلاثي (3 أشهر) أو سداسي (6 أشهر) ابتداء من شهر البداية
+  const periodCount = mode === 'quarterly' ? 3 : mode === 'semiannual' ? 6 : 0;
+  const isPeriodMode = periodCount > 0;
+  const clampedStart = isPeriodMode ? Math.min(Math.max(1, periodStart), 12 - periodCount + 1) : 1;
+  const periodEnd = clampedStart + periodCount - 1;
+  const periodAgg = currentEmployee && isPeriodMode
+    ? buildAggregate(currentEmployee, clampedStart, periodCount, year, settings)
+    : null;
 
   // Generate QR codes for both payslips
   useEffect(() => {
@@ -543,7 +560,17 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
       .catch(() => {});
   }, [currentEmployee, result, annual, month, year, settings.institution]);
 
-  const handlePrint = (target: 'monthly' | 'annual' | 'both') => {
+  // رمز QR للكشف المجمع (ثلاثي/سداسي)
+  useEffect(() => {
+    if (!currentEmployee || !periodAgg) { setQrPeriod(''); return; }
+    const serial = String(currentEmployee.id).replace(/\D/g, '').slice(-7).padStart(7, '0') || '1029384';
+    const base = `${currentEmployee.name} | ${currentJob?.name || ''} | مؤسسة: ${settings.institution} | رقم: ${serial}`;
+    QRCode.toDataURL(`كشف راتب مجمع | ${base} | من ${MONTHS_AR[clampedStart]} إلى ${MONTHS_AR[periodEnd]} ${year} | الصافي: ${fmt(periodAgg.net)} دج`, { width: 100, margin: 1 })
+      .then(setQrPeriod)
+      .catch(() => {});
+  }, [currentEmployee, periodAgg, clampedStart, periodEnd, year, settings.institution]);
+
+  const handlePrint = (target: 'monthly' | 'annual' | 'both' | 'period') => {
     setPrintTarget(target);
     setTimeout(() => {
       window.print();
@@ -551,16 +578,18 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
     }, 80);
   };
 
-  const handleDownload = async (target: 'monthly' | 'annual' | 'both') => {
+  const handleDownload = async (target: 'monthly' | 'annual' | 'both' | 'period') => {
     if (exporting) return;
     const els =
       target === 'monthly'
         ? [monthlyRef.current]
         : target === 'annual'
           ? [annualRef.current]
-          : mode === 'both'
-            ? [mergedRef.current]
-            : [monthlyRef.current, annualRef.current];
+          : target === 'period'
+            ? [periodRef.current]
+            : mode === 'both'
+              ? [mergedRef.current]
+              : [monthlyRef.current, annualRef.current];
     const list = els.filter((el): el is HTMLDivElement => !!el);
     if (list.length === 0) return;
     setExporting(true);
@@ -571,7 +600,9 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
           ? `كشف_الراتب_الشهري_${nameBase}_${month}_${year}.pdf`
           : target === 'annual'
             ? `كشف_الراتب_السنوي_${nameBase}_${year}.pdf`
-            : `كشف_الرواتب_الشهري_والسنوي_${nameBase}_${year}.pdf`;
+            : target === 'period'
+              ? `كشف_الراتب_المجمع_${nameBase}_${clampedStart}-إلى-${periodEnd}_${year}.pdf`
+              : `كشف_الرواتب_الشهري_والسنوي_${nameBase}_${year}.pdf`;
       await exportElementsToPdf(list, filename);
     } catch (err) {
       console.error(err);
@@ -608,7 +639,9 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
     { label: 'عدد الأطفال', value: String(currentEmployee.children).padStart(2, '0') },
     { label: 'الرقم الاستدلالي', value: index },
     { label: 'الصنف / الدرجة', value: isProfessionalWorkerJob(currentJob) ? `${result.g.cat} / ${result.years} سنة` : `${result.g.cat} / ${currentEmployee.echelon}` },
-    { label: 'رقم الضمان (SSN)', value: currentEmployee.ssn || '—' },
+    { label: 'رقم الضمان (SSN)', value: currentEmployee.ssn
+      ? <span className="font-mono whitespace-nowrap tracking-tighter text-[10px] sm:text-[10.5px]">{currentEmployee.ssn}</span>
+      : '—' },
     { label: 'تاريخ التوظيف', value: currentEmployee.hireDate || '—' }
   ];
 
@@ -723,6 +756,66 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
     subtotalAmount: annualTotalDeductions
   };
 
+  /* ===== صفوف الكشف المجمع: ثلاثي (3 أشهر) أو سداسي (6 أشهر) ===== */
+  const periodTitle = specimen
+    ? (mode === 'quarterly' ? 'كــــشــــف الـــــراتـــــب الــثلاثــي النموذجي' : 'كــــشــــف الـــــراتـــــب الســداســي النموذجي')
+    : (mode === 'quarterly' ? 'كــــشــــف الـــــراتـــــب الــثلاثــي' : 'كــــشــــف الـــــراتـــــب الســداســي');
+  const periodGrossExcludingPerf = periodAgg ? Math.max(0, periodAgg.gross - periodAgg.perfBonusTotal) : 0;
+  const periodTotalDeductions = periodAgg
+    ? Math.round((periodAgg.cnasDeduction + periodAgg.mutDeduction + periodAgg.irgTax + periodAgg.perfBonusTax) * 100) / 100
+    : 0;
+
+  const periodAllowances: SheetSection = {
+    title: `الـمـنـح والـعـلاوات — مجموع ${periodCount} أشهر`,
+    amountHeader: 'المبلغ المجمع (دج)',
+    rows: [
+      { name: 'الأجر القاعدي', detail: `${result.g.base} × ${fmt(result.pointVal)} × ${periodCount}`, amount: periodAgg?.basic || 0 },
+      ...((periodAgg?.seniority || 0) > 0
+        ? [{
+            name: 'الخبرة المهنية',
+            detail: isProfessionalWorkerJob(currentJob) ? `1.4% شهرياً — ${periodCount} أشهر` : `الدرجة ${currentEmployee.echelon} — مجموع ${periodCount} أشهر`,
+            amount: periodAgg!.seniority
+          }]
+        : []),
+      ...(periodAgg?.allowanceRows.map(al => ({
+        name: al.name,
+        detail: `مجموع ${periodCount} أشهر`,
+        amount: al.amount
+      })) || []),
+      ...((periodAgg?.familyTotal || 0) > 0
+        ? [{
+            name: 'المنح العائلية',
+            detail: `${currentEmployee.children} طفل ${currentEmployee.singleWage ? '+ أجر وحيد' : ''} — ${periodCount} أشهر`.trim(),
+            amount: periodAgg!.familyTotal
+          }]
+        : [])
+    ],
+    subtotalLabel: `خام الراتب المجمع الإجمالي (دون المردودية)`,
+    subtotalAmount: periodGrossExcludingPerf,
+    extraRows: (periodAgg?.perfBonusTotal || 0) > 0
+      ? [
+          { label: `خام علاوة الأداء / المردودية — ${periodCount} أشهر`, amount: periodAgg!.perfBonusTotal },
+          { label: 'صافي المردودية المجمعة (بعد اقتطاع الضريبة 10%)', amount: periodAgg!.perfBonusTotal - periodAgg!.perfBonusTax }
+        ]
+      : undefined
+  };
+
+  const periodDeductions: SheetSection = {
+    title: `الاقتطاعات القانونية — مجموع ${periodCount} أشهر`,
+    rows: [
+      { name: 'اقتطاع الضمان الاجتماعي (CNAS)', detail: `${fmt(result.cnasRate)}% من الأجر الخاضع — ${periodCount} أشهر`, amount: periodAgg?.cnasDeduction || 0 },
+      { name: 'اقتطاع الضريبة على الدخل (IRG)', detail: `مجموع ضرائب ${periodCount} أشهر وفق سلم سنة الكشف`, amount: periodAgg?.irgTax || 0 },
+      ...((periodAgg?.mutDeduction || 0) > 0
+        ? [{ name: 'اقتطاع التعاضدية', detail: `1% من الأجر الخاضع في حدود 1000 دج — ${periodCount} أشهر`, amount: periodAgg!.mutDeduction }]
+        : []),
+      ...((periodAgg?.perfBonusTax || 0) > 0
+        ? [{ name: 'ضريبة علاوة الأداء (10%)', detail: `10% ثابتة — ${periodCount} أشهر`, amount: periodAgg!.perfBonusTax }]
+        : [])
+    ],
+    subtotalLabel: 'إجمالي الاقتطاعات المجمعة',
+    subtotalAmount: periodTotalDeductions
+  };
+
   /* ===== الجدول الموحد للوثيقة المدمجة: كل بيان سطر واحد بعمودين (شهري / سنوي) ===== */
   const normName = (s: string) => s.replace(/\s*\([^)]*\)\s*$/, '').trim();
 
@@ -805,10 +898,10 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 mb-4 border-b border-[#e2e8f0]">
           <div>
             <h2 className="text-xl sm:text-2xl font-black text-[#0f172a]">
-              كشف الرواتب الشهري والسنوي (Fiche de Paie)
+              كشف الرواتب: شهري، سنوي، ثلاثي وسداسي (Fiche de Paie)
             </h2>
             <p className="text-xs text-[#64748b] mt-0.5">
-              الوثيقة الكاملة (الافتراضية): الكشف الشهري والسنوي مدمجين في ورقة A4 واحدة — أو اختر كشف الشهر أو السنة وحده للطباعة المنفصلة.
+              الوثيقة الكاملة (الافتراضية): الكشف الشهري والسنوي مدمجين — أو اختر كشف الشهر أو السنة، أو كشفاً مجمعاً ثلاثياً (3 أشهر) وسداسياً (6 أشهر) مع تحديد شهر بداية الفترة.
             </p>
           </div>
 
@@ -850,6 +943,26 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
                 >
                   <Download className="w-4 h-4" />
                   <span>{exporting ? 'جاري التوليد...' : 'تحميل السنوي (PDF)'}</span>
+                </button>
+              </>
+            )}
+
+            {isPeriodMode && (
+              <>
+                <button
+                  onClick={() => handlePrint('period')}
+                  className="bg-[#0369a1] hover:bg-[#075985] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>{mode === 'quarterly' ? 'طباعة الكشف الثلاثي' : 'طباعة الكشف السداسي'}</span>
+                </button>
+                <button
+                  onClick={() => handleDownload('period')}
+                  disabled={exporting}
+                  className="bg-white hover:bg-[#f1f5f9] text-[#0369a1] border border-[#0369a1] px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-60 disabled:cursor-wait"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>{exporting ? 'جاري التوليد...' : `تحميل ${mode === 'quarterly' ? 'الثلاثي' : 'السداسي'} (PDF)`}</span>
                 </button>
               </>
             )}
@@ -897,6 +1010,18 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
             >
               كشف سنوي
             </button>
+            <button
+              onClick={() => setMode('quarterly')}
+              className={`px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${mode === 'quarterly' ? 'bg-[#0369a1] text-white shadow-sm' : 'text-[#0f172a] hover:bg-[#f1f5f9]'}`}
+            >
+              كشف ثلاثي (3 أشهر)
+            </button>
+            <button
+              onClick={() => setMode('semiannual')}
+              className={`px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${mode === 'semiannual' ? 'bg-[#0369a1] text-white shadow-sm' : 'text-[#0f172a] hover:bg-[#f1f5f9]'}`}
+            >
+              كشف سداسي (6 أشهر)
+            </button>
           </div>
 
           <label className="flex items-center gap-2 text-xs sm:text-sm font-bold text-[#1e293b] cursor-pointer select-none w-fit">
@@ -940,6 +1065,25 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
               ))}
             </select>
           </div>
+
+          {isPeriodMode && (
+            <div>
+              <label className="block text-xs font-bold text-[#1e293b] mb-1">
+                بداية الفترة ({periodCount} أشهر متصلة)
+              </label>
+              <select
+                value={clampedStart}
+                onChange={e => setPeriodStart(Number(e.target.value))}
+                className="w-full bg-white border border-[#0369a1] rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-[#0369a1] focus:outline-none shadow-sm"
+              >
+                {Array.from({ length: 12 - periodCount + 1 }, (_, i) => i + 1).map(m => (
+                  <option key={m} value={m}>
+                    من {MONTHS_AR[m]} إلى {MONTHS_AR[m + periodCount - 1]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div>
             <label className="block text-xs font-bold text-[#1e293b] mb-1">السنة (لكلا الكشفين)</label>
@@ -1044,6 +1188,29 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
               netLabel="الـصـافـي السـنـوي لـلـدفـع (Net annuel à payer)"
               net={annual.net}
               qrDataUrl={qrAnnual}
+            />
+          </div>
+        )}
+        {/* ===== الكشف المجمع: ثلاثي / سداسي ===== */}
+        {isPeriodMode && periodAgg && (
+          <div ref={periodRef} className="payslip-block payslip-block-annual w-full flex justify-center">
+            <PayslipSheet
+              bigTitle={periodTitle}
+              specimen={specimen}
+              serial={serial}
+              issueDate={issueDate}
+              directorate={settings.wilaya || 'باتنة'}
+              institution={settings.institution || 'المؤسسة التعليمية'}
+              periodLine={
+                <>الفترة المجمعة : <span className="text-black text-base font-extrabold">من {MONTHS_AR[clampedStart]} إلى {MONTHS_AR[periodEnd]} {year}</span> <span className="text-xs text-gray-800">({periodCount} أشهر متصلة)</span></>
+              }
+              infoItems={infoItems}
+              gridLine={gridLine}
+              allowances={periodAllowances}
+              deductions={periodDeductions}
+              netLabel="الـصـافـي الـمـجـمـع لـلـفـتـرة (Net à payer)"
+              net={periodAgg.net}
+              qrDataUrl={qrPeriod}
             />
           </div>
         )}

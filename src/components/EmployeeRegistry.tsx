@@ -77,7 +77,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
 
   const [mutuelle, setMutuelle] = useState(true);
   const [mutuelleNum, setMutuelleNum] = useState('');
-  const [performancePct, setPerformancePct] = useState(40);
+  const [performancePct, setPerformancePct] = useState(0);
   const [incomeDifference, setIncomeDifference] = useState(0);
   const [experienceDifference, setExperienceDifference] = useState(0);
   const [teacherType, setTeacherType] = useState<'عادي' | 'مجاز'>('عادي');
@@ -253,7 +253,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
     setResumeDate('');
     setMutuelle(true);
     setMutuelleNum('');
-    setPerformancePct(40);
+    setPerformancePct(0);
     setIncomeDifference(0);
     setExperienceDifference(0);
     setTeacherType('عادي');
@@ -402,7 +402,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
       <div className="bg-[#ffffff] border border-[#a7f3d0] rounded-3xl p-6 sm:p-8 shadow-sm mb-10">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 mb-6 border-b border-[#e2e8f0] gap-3">
           <div>
-            <h2 className="text-xl sm:text-2xl font-black text-[#0f172a] flex items-center gap-2">
+            <h2 className="text-xl sm:text-2xl font-black text-[#047857] flex items-center gap-2">
               <User className="w-6 h-6 text-[#047857]" />
               <span>{editingId ? `تعديل بيانات: ${name || 'الموظف'}` : 'تسجيل موظف جديد في النظام'}</span>
             </h2>
@@ -1038,7 +1038,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
       <div className="bg-[#ffffff] border border-[#a7f3d0] rounded-3xl p-6 sm:p-8 shadow-sm">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 mb-4 border-b border-[#e2e8f0] gap-3">
           <div>
-            <h3 className="text-lg sm:text-xl font-black text-[#0f172a] flex items-center gap-2">
+            <h3 className="text-lg sm:text-xl font-black text-[#047857] flex items-center gap-2">
               <Users className="w-5 h-5 text-[#047857]" />
               <span>قائمة الموظفين المسجلين ({employees.length} موظف)</span>
             </h3>
@@ -1094,7 +1094,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
           <div className="overflow-x-auto rounded-xl border border-[#e2e8f0]">
             <table className="w-full text-right text-xs border-collapse">
               <thead>
-                <tr className="bg-[#f1f5f9] text-[#0f172a] border-b border-[#e2e8f0]">
+                <tr className="bg-[#d1fae5] text-[#065f46] border-b border-[#a7f3d0]">
                   <th className="p-3 font-bold">#</th>
                   <th className="p-3 font-bold">الاسم واللقب</th>
                   <th className="p-3 font-bold">الوظيفة / الرتبة</th>
