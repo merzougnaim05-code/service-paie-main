@@ -191,8 +191,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { ar: 'طلائح الرواتب', tag: 'طلائح', icon: <FileSpreadsheet className="w-3.5 h-3.5" />, active: activeTab === 'payrollTables', go: () => handleTabClick('payrollTables') },
     { ar: 'التوقف عن العمل', tag: 'ATS', icon: <ShieldCheck className="w-3.5 h-3.5" />, active: activeTab === 'docs' && activeDoc === 'ats-front', go: () => handleDocClick('cert_recto') },
     { ar: 'استئناف العمل', tag: 'DRT', icon: <ShieldCheck className="w-3.5 h-3.5" />, active: activeTab === 'docs' && activeDoc === 'drt', go: () => handleDocClick('res') },
-    { ar: 'وثائق التقاعد', tag: 'CNR', icon: <Award className="w-3.5 h-3.5" />, active: activeTab === 'pension', go: () => handleTabClick('pension') },
-    { ar: 'استمارات CNR', tag: 'فرم', icon: <FileText className="w-3.5 h-3.5" />, active: activeTab === 'cnr-annex', go: () => handleTabClick('cnr-annex') },
+    { ar: 'مركز الوثائق', tag: 'الوثائق', icon: <Award className="w-3.5 h-3.5" />, active: activeTab === 'docs' || activeTab === 'pension' || activeTab === 'cnr-annex', go: () => handleTabClick('docs') },
     { ar: 'متابعة المنح العائلية', tag: 'المنح', icon: <Users className="w-3.5 h-3.5" />, active: activeTab === 'familyfollow', go: () => handleTabClick('familyfollow') },
     { ar: 'استمارات', tag: 'سنوية', icon: <ClipboardList className="w-3.5 h-3.5" />, active: activeTab === 'docs' && activeDoc === 'form', go: () => handleDocClick('form') }
   ];

@@ -135,7 +135,7 @@ export default function App() {
       expl_letter: 'explanation-letter',
       mut_cert: 'mutuelle-cert'
     };
-    // annex CNR/MUNATEC docs open in their own tab (نسخ طبق الأصل)
+    // وثائق CNR الملحقة مدمجة الآن في مركز الوثائق (القائمة الجانبية المجمّعة)
     const annexMapping: Record<string, string> = {
       munatec: 'munatec',
       af_stop: 'af-stop',
@@ -145,8 +145,8 @@ export default function App() {
       attestation: 'attestation'
     };
     if (annexMapping[doc]) {
-      setActiveAnnexDoc(annexMapping[doc]);
-      setActiveTab('cnr-annex');
+      setActiveDoc(annexMapping[doc]);
+      setActiveTab('docs');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -244,6 +244,7 @@ export default function App() {
             settings={settings}
             selectedEmpId={selectedEmpId}
             initialDocType={activeDoc}
+            onUpdateEmployee={handleSaveEmployee}
           />
         )}
 
