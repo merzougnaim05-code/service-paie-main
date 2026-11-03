@@ -709,23 +709,23 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
     title: 'الـمـنـح والـعـلاوات — مجموع 12 شهراً',
     amountHeader: 'المبلغ السنوي (دج)',
     rows: [
-      { name: 'الأجر القاعدي', detail: `${result.g.base} × ${fmt(result.pointVal)} × 12`, amount: annual.basic },
+      { name: 'الأجر القاعدي', detail: `${result.g.base} × ${fmt(result.pointVal)}`, amount: annual.basic },
       ...(annual.seniority > 0
         ? [{
             name: 'الخبرة المهنية',
-            detail: isProfessionalWorkerJob(currentJob) ? `1.4% سنوياً — ${annual.years} سنة` : `الدرجة ${currentEmployee.echelon} — مجموع 12 شهراً`,
+            detail: isProfessionalWorkerJob(currentJob) ? `1.4% سنوياً — ${annual.years} سنة` : `الدرجة ${currentEmployee.echelon}`,
             amount: annual.seniority
           }]
         : []),
       ...annual.allowanceRows.map(al => ({
         name: al.name,
-        detail: 'مجموع 12 شهراً',
+        detail: '',
         amount: al.amount
       })),
       ...(annual.familyTotal > 0
         ? [{
             name: 'المنح العائلية',
-            detail: `${currentEmployee.children} طفل ${currentEmployee.singleWage ? '+ أجر وحيد' : ''} — 12 شهراً`.trim(),
+            detail: `${currentEmployee.children} طفل ${currentEmployee.singleWage ? '+ أجر وحيد' : ''}`.trim(),
             amount: annual.familyTotal
           }]
         : [])
@@ -743,13 +743,13 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
   const annualDeductions: SheetSection = {
     title: 'الاقتطاعات القانونية السنوية',
     rows: [
-      { name: 'اقتطاع الضمان الاجتماعي (CNAS)', detail: `${fmt(result.cnasRate)}% من الأجر الخاضع — 12 شهراً`, amount: annual.cnasDeduction },
-      { name: 'اقتطاع الضريبة على الدخل (IRG)', detail: 'مجموع ضرائب الأشهر الـ12 وفق سلم سنة الكشف', amount: annual.irgTax },
+      { name: 'اقتطاع الضمان الاجتماعي (CNAS)', detail: `${fmt(result.cnasRate)}% من الأجر الخاضع`, amount: annual.cnasDeduction },
+      { name: 'اقتطاع الضريبة على الدخل (IRG)', detail: 'وفق سلم الضريبة الساري في سنة الكشف', amount: annual.irgTax },
       ...(annual.mutDeduction > 0
-        ? [{ name: 'اقتطاع التعاضدية', detail: '1% من الأجر الخاضع في حدود 1000 دج — 12 شهراً', amount: annual.mutDeduction }]
+        ? [{ name: 'اقتطاع التعاضدية', detail: '1% من الأجر الخاضع في حدود 1000 دج', amount: annual.mutDeduction }]
         : []),
       ...(annual.perfBonusTax > 0
-        ? [{ name: 'ضريبة علاوة الأداء (10%)', detail: '10% ثابتة — 12 شهراً', amount: annual.perfBonusTax }]
+        ? [{ name: 'ضريبة علاوة الأداء (10%)', detail: '10% ثابتة', amount: annual.perfBonusTax }]
         : [])
     ],
     subtotalLabel: 'إجمالي الاقتطاعات السنوية',
@@ -769,23 +769,23 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
     title: `الـمـنـح والـعـلاوات — مجموع ${periodCount} أشهر`,
     amountHeader: 'المبلغ المجمع (دج)',
     rows: [
-      { name: 'الأجر القاعدي', detail: `${result.g.base} × ${fmt(result.pointVal)} × ${periodCount}`, amount: periodAgg?.basic || 0 },
+      { name: 'الأجر القاعدي', detail: `${result.g.base} × ${fmt(result.pointVal)}`, amount: periodAgg?.basic || 0 },
       ...((periodAgg?.seniority || 0) > 0
         ? [{
             name: 'الخبرة المهنية',
-            detail: isProfessionalWorkerJob(currentJob) ? `1.4% شهرياً — ${periodCount} أشهر` : `الدرجة ${currentEmployee.echelon} — مجموع ${periodCount} أشهر`,
+            detail: isProfessionalWorkerJob(currentJob) ? `1.4% شهرياً` : `الدرجة ${currentEmployee.echelon}`,
             amount: periodAgg!.seniority
           }]
         : []),
       ...(periodAgg?.allowanceRows.map(al => ({
         name: al.name,
-        detail: `مجموع ${periodCount} أشهر`,
+        detail: '',
         amount: al.amount
       })) || []),
       ...((periodAgg?.familyTotal || 0) > 0
         ? [{
             name: 'المنح العائلية',
-            detail: `${currentEmployee.children} طفل ${currentEmployee.singleWage ? '+ أجر وحيد' : ''} — ${periodCount} أشهر`.trim(),
+            detail: `${currentEmployee.children} طفل ${currentEmployee.singleWage ? '+ أجر وحيد' : ''}`.trim(),
             amount: periodAgg!.familyTotal
           }]
         : [])
@@ -794,7 +794,7 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
     subtotalAmount: periodGrossExcludingPerf,
     extraRows: (periodAgg?.perfBonusTotal || 0) > 0
       ? [
-          { label: `خام علاوة الأداء / المردودية — ${periodCount} أشهر`, amount: periodAgg!.perfBonusTotal },
+          { label: 'خام علاوة الأداء / المردودية', amount: periodAgg!.perfBonusTotal },
           { label: 'صافي المردودية المجمعة (بعد اقتطاع الضريبة 10%)', amount: periodAgg!.perfBonusTotal - periodAgg!.perfBonusTax }
         ]
       : undefined
@@ -803,13 +803,13 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
   const periodDeductions: SheetSection = {
     title: `الاقتطاعات القانونية — مجموع ${periodCount} أشهر`,
     rows: [
-      { name: 'اقتطاع الضمان الاجتماعي (CNAS)', detail: `${fmt(result.cnasRate)}% من الأجر الخاضع — ${periodCount} أشهر`, amount: periodAgg?.cnasDeduction || 0 },
-      { name: 'اقتطاع الضريبة على الدخل (IRG)', detail: `مجموع ضرائب ${periodCount} أشهر وفق سلم سنة الكشف`, amount: periodAgg?.irgTax || 0 },
+      { name: 'اقتطاع الضمان الاجتماعي (CNAS)', detail: `${fmt(result.cnasRate)}% من الأجر الخاضع`, amount: periodAgg?.cnasDeduction || 0 },
+      { name: 'اقتطاع الضريبة على الدخل (IRG)', detail: 'وفق سلم الضريبة الساري في سنة الكشف', amount: periodAgg?.irgTax || 0 },
       ...((periodAgg?.mutDeduction || 0) > 0
-        ? [{ name: 'اقتطاع التعاضدية', detail: `1% من الأجر الخاضع في حدود 1000 دج — ${periodCount} أشهر`, amount: periodAgg!.mutDeduction }]
+        ? [{ name: 'اقتطاع التعاضدية', detail: '1% من الأجر الخاضع في حدود 1000 دج', amount: periodAgg!.mutDeduction }]
         : []),
       ...((periodAgg?.perfBonusTax || 0) > 0
-        ? [{ name: 'ضريبة علاوة الأداء (10%)', detail: `10% ثابتة — ${periodCount} أشهر`, amount: periodAgg!.perfBonusTax }]
+        ? [{ name: 'ضريبة علاوة الأداء (10%)', detail: '10% ثابتة', amount: periodAgg!.perfBonusTax }]
         : [])
     ],
     subtotalLabel: 'إجمالي الاقتطاعات المجمعة',
