@@ -113,6 +113,15 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
     return employees.find(e => e.id === empId) || employees[0];
   }, [employees, empId]);
 
+  // مزامنة الموظف المختار: عند الفتح المباشر (رابط أو إعادة تشغيل) قبل تحميل السجل
+  useEffect(() => {
+    if (selectedEmpId && selectedEmpId !== empId) {
+      setEmpId(selectedEmpId);
+    } else if (!empId && employees.length > 0) {
+      setEmpId(employees[0].id);
+    }
+  }, [selectedEmpId, employees]);
+
   const currentJob: Job | undefined = currentEmployee ? JOBS[currentEmployee.jobIdx] : undefined;
 
   // Generate 60 consecutive months going backwards from refMonth / refYear
@@ -324,6 +333,11 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
   // Edit a single month's quarterly rendement from the back-face trimester rows
   const handleYieldCellChange = (key: string, val: number) => {
     setMonthsData(prev => prev.map(m => (m.key === key ? { ...m, yieldVal: val } : m)));
+  };
+
+  // تعديل يدوي مباشر لأجر شهر من جدول الوجه الخلفي — المجاميع والمعدل تُعاد آلياً لحظياً
+  const handleSalaryCellChange = (key: string, val: number) => {
+    setMonthsData(prev => prev.map(m => (m.key === key ? { ...m, salary: val } : m)));
   };
 
   // Block Totals (5 Blocks of 12 months each) — تشمل المردودية
@@ -808,6 +822,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                     grandTotal={grandTotal}
                     average={averageMonthlySalary}
                     onYieldChange={handleYieldCellChange}
+                    onSalaryChange={handleSalaryCellChange}
                   />
                 </div>
               </AutoFitScale>
@@ -1104,9 +1119,38 @@ interface CNRBackProps {
   grandTotal: number;
   average: number;
   onYieldChange: (key: string, val: number) => void;
+  onSalaryChange: (key: string, val: number) => void;
 }
 
-const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, average, onYieldChange }) => {
+/* خلية أجر قابلة للتعديل اليدوي الحي: عرض خام أثناء الكتابة وتنسيق عند الخروج،
+   وكل ضغطة تعيد حساب مجاميع الكتل والمجموع العام والمعدل آلياً */
+const CNRSalaryCell: React.FC<{ value: number; onChange: (v: number) => void }> = ({ value, onChange }) => {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState('');
+  return (
+    <input
+      type="text"
+      value={editing ? draft : fmt(value)}
+      className="font-mono"
+      onFocus={e => {
+        setDraft(value ? String(value) : '');
+        setEditing(true);
+        // تحديد المحتوى فوراً — المتغير محفوظ لأن currentTarget لا يصح بعد انتهاء الحدث
+        const el = e.currentTarget;
+        setTimeout(() => { try { el.select(); } catch { /* ignore */ } }, 0);
+      }}
+      onChange={e => {
+        const raw = e.target.value;
+        setDraft(raw);
+        const n = parseFloat(raw.replace(/[^\d.-]/g, ''));
+        onChange(isNaN(n) ? 0 : n);
+      }}
+      onBlur={() => setEditing(false)}
+    />
+  );
+};
+
+const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, average, onYieldChange, onSalaryChange }) => {
   // Blocks left-to-right: Total(5) = oldest 12 months ... Total(1) = most recent 12 months
   const blockMonths = (b: number) => monthsData.slice(b * 12, b * 12 + 12);
 
@@ -1228,8 +1272,8 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
                   <React.Fragment key={r}>
                   <tr>
                     <td className="cnrb-data-cell cnrb-month-cell" contentEditable suppressContentEditableWarning>{m.label}</td>
-                    <td className="cnrb-data-cell" contentEditable suppressContentEditableWarning>
-                      <span className="cnrb-sal-val">{fmt(m.salary)}</span>
+                    <td className="cnrb-data-cell">
+                      <CNRSalaryCell value={m.salary} onChange={v => onSalaryChange(m.key, v)} />
                     </td>
                   </tr>
                   {isYieldMonth(m.key) && (
@@ -1267,16 +1311,16 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
         {/* Footer Section */}
         <div className="cnrb-footer">
 
-          {/* Summary Inputs */}
+          {/* Summary — المجموع والمعدل يُحسبان آلياً من الخانات (الجمع ثم القسمة على عدد الأشهر) */}
           <div className="cnrb-summary-section">
             <div className="cnrb-summary-row">
               <span className="cnrb-sum-fr fr">Total général (60) mois</span>
-              <div className="cnrb-sum-box" contentEditable suppressContentEditableWarning>{fmt(grandTotal)}</div>
+              <div className="cnrb-sum-box">{fmt(grandTotal)}</div>
               <span className="cnrb-sum-ar ar">المجموع العام (60) شهرا</span>
             </div>
             <div className="cnrb-summary-row">
               <span className="cnrb-sum-fr fr">Salaire mensuel moyen</span>
-              <div className="cnrb-sum-box" contentEditable suppressContentEditableWarning>{fmt(average)}</div>
+              <div className="cnrb-sum-box">{fmt(average)}</div>
               <span className="cnrb-sum-ar ar">الأجر الشهري المتوسط</span>
             </div>
           </div>
