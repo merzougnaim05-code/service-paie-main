@@ -100,6 +100,17 @@ export const InfoForm: React.FC<InfoFormProps> = ({ employee, settings }) => {
           unicode-bidi: plaintext;
         }
 
+        /* رقم الضمان الاجتماعي — استقامة واحدة: صندوق متوهّج ورقم دون لفّ السطر */
+        .if-page .ssn-oneline { flex: 1; min-width: 0; text-align: center; }
+        .if-page .ssn-oneline .if-input {
+          display: block;
+          width: 100%;
+          white-space: nowrap;
+          overflow: hidden;
+          font-size: 10.5pt;
+          letter-spacing: 0.2px;
+        }
+
         .if-page .top-header { text-align: center; font-weight: bold; font-size: 13.5pt; margin-bottom: 5px; line-height: 1.3; }
         .if-page .header-grid { display: table; width: 100%; margin-bottom: 15px; }
         .if-page .header-right { display: table-cell; text-align: right; width: 50%; vertical-align: top; font-weight: bold; font-size: 12.5pt; line-height: 1.5; }
@@ -189,8 +200,8 @@ export const InfoForm: React.FC<InfoFormProps> = ({ employee, settings }) => {
 
             <div className="field-row" style={{ marginTop: 6 }}>
               <span className="label" style={{ marginLeft: 10 }}>رقم الضمان الإجتماعي:</span>
-              <div className="single-border-box">
-                <span className="if-input" style={{ width: '90%', border: 'none' }} contentEditable suppressContentEditableWarning>
+              <div className="single-border-box ssn-oneline">
+                <span className="if-input" contentEditable suppressContentEditableWarning>
                   {employee.ssn || ''}
                 </span>
               </div>
