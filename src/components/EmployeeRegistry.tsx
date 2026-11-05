@@ -402,8 +402,8 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
       <div className="bg-[#ffffff] border border-[#a7f3d0] rounded-3xl p-6 sm:p-8 shadow-sm mb-10">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 mb-6 border-b border-[#e2e8f0] gap-3">
           <div>
-            <h2 className="text-xl sm:text-2xl font-black text-[#047857] flex items-center gap-2">
-              <User className="w-6 h-6 text-[#047857]" />
+            <h2 className="text-xl sm:text-2xl font-black text-emerald-900 flex items-center gap-2 border-b-[3px] border-amber-500 pb-2">
+              <User className="w-6 h-6 text-emerald-900" />
               <span>{editingId ? `تعديل بيانات: ${name || 'الموظف'}` : 'تسجيل موظف جديد في النظام'}</span>
             </h2>
             <p className="text-xs sm:text-sm text-[#64748b] mt-1">
@@ -426,7 +426,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Section 1: Personal Information */}
           <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-5">
-            <h3 className="text-base font-bold text-[#047857] mb-4 flex items-center gap-2 border-b border-[#e2e8f0] pb-2">
+            <h3 className="text-base font-bold text-emerald-900 mb-4 flex items-center gap-2 border-b-[3px] border-amber-500 pb-2">
               <User className="w-4 h-4" />
               <span>1. المعلومات الشخصية</span>
             </h3>
@@ -539,7 +539,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
 
           {/* Section 2: Family Status */}
           <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-5">
-            <h3 className="text-base font-bold text-[#047857] mb-4 flex items-center gap-2 border-b border-[#e2e8f0] pb-2">
+            <h3 className="text-base font-bold text-emerald-900 mb-4 flex items-center gap-2 border-b-[3px] border-amber-500 pb-2">
               <Heart className="w-4 h-4" />
               <span>2. الحالة العائلية</span>
             </h3>
@@ -604,7 +604,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
 
           {/* Section 3: Professional Information */}
           <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-5">
-            <h3 className="text-base font-bold text-[#047857] mb-4 flex items-center gap-2 border-b border-[#e2e8f0] pb-2">
+            <h3 className="text-base font-bold text-emerald-900 mb-4 flex items-center gap-2 border-b-[3px] border-amber-500 pb-2">
               <Briefcase className="w-4 h-4" />
               <span>3. المعلومات المهنية والرتبة</span>
             </h3>
@@ -748,7 +748,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
 
           {/* Section 4: Salary, Deductions & Allowances */}
           <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-5">
-            <h3 className="text-base font-bold text-[#047857] mb-4 flex items-center gap-2 border-b border-[#e2e8f0] pb-2">
+            <h3 className="text-base font-bold text-emerald-900 mb-4 flex items-center gap-2 border-b-[3px] border-amber-500 pb-2">
               <DollarSign className="w-4 h-4" />
               <span>4. معلومات الراتب والمنح الخاصة</span>
             </h3>
@@ -1038,8 +1038,8 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
       <div className="bg-[#ffffff] border border-[#a7f3d0] rounded-3xl p-6 sm:p-8 shadow-sm">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 mb-4 border-b border-[#e2e8f0] gap-3">
           <div>
-            <h3 className="text-lg sm:text-xl font-black text-[#047857] flex items-center gap-2">
-              <Users className="w-5 h-5 text-[#047857]" />
+            <h3 className="text-lg sm:text-xl font-black text-emerald-900 flex items-center gap-2 border-b-[3px] border-amber-500 pb-2">
+              <Users className="w-5 h-5 text-emerald-900" />
               <span>قائمة الموظفين المسجلين ({employees.length} موظف)</span>
             </h3>
             <p className="text-xs text-[#64748b] mt-0.5">
