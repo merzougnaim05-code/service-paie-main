@@ -52,8 +52,7 @@ const DOC_GROUPS: DocGroup[] = [
       { id: 'ats-front', label: 'ATS — الوجه الأول (AS.01)' },
       { id: 'ats-back', label: 'ATS — الوجه الثاني (جدول 12 شهرا)' },
       { id: 'ats-both', label: 'ATS — الوثيقة الكاملة (وجهان)' },
-      { id: 'drt', label: 'استئناف العمل DRT (AS-09)' },
-      { id: 'mutuelle-cert', label: 'شهادة التعاضدية الوطنية لعمال التربية' }
+      { id: 'drt', label: 'استئناف العمل DRT (AS-09)' }
     ]
   },
   {
@@ -71,8 +70,7 @@ const DOC_GROUPS: DocGroup[] = [
     items: [
       { id: 'form', label: 'استمارة معلومات الموظف السنوية' },
       { id: 'request-docs', label: 'طلب وثائق الملف الإداري' },
-      { id: 'salary-disclosure', label: 'كشف المرتبات (منحة دراسية)' },
-      { id: 'explanation-letter', label: 'خطاب التوضيح (المادة 36)' }
+      { id: 'salary-disclosure', label: 'كشف المرتبات (منحة دراسية)' }
     ]
   },
   {
@@ -80,6 +78,8 @@ const DOC_GROUPS: DocGroup[] = [
     icon: <Award className="w-3.5 h-3.5" />,
     items: [
       { id: 'pension', label: 'ملف التقاعد الرسمي (CNR)' },
+      { id: 'mutuelle-cert', label: 'شهادة التعاضدية الوطنية لعمال التربية' },
+      { id: 'explanation-letter', label: 'خطاب التوضيح (المادة 36)' },
       { id: 'munatec', label: 'شهادة استنفاء الاشتراكات MUNATEC' },
       { id: 'af-stop', label: 'شهادة توقيف الدفع للمنح (CNR)' },
       { id: 'periodes', label: 'المدة المأجورة (جدول السنوات)' },
