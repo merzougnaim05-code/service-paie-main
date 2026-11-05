@@ -14,8 +14,6 @@ import {
   DoorOpen,
   LayoutDashboard,
   Database,
-  ShieldCheck,
-  ClipboardList,
   Download,
   Upload
 } from 'lucide-react';
@@ -189,11 +187,8 @@ export const Navbar: React.FC<NavbarProps> = ({
     { ar: 'سجل الموظفين', tag: 'سجل', icon: <FileText className="w-3.5 h-3.5" />, active: activeTab === 'employees', go: () => handleTabClick('employees') },
     { ar: 'كشف الراتب', tag: 'كشف', icon: <FileText className="w-3.5 h-3.5" />, active: activeTab === 'payslip', go: () => handleTabClick('payslip') },
     { ar: 'طلائح الرواتب', tag: 'طلائح', icon: <FileSpreadsheet className="w-3.5 h-3.5" />, active: activeTab === 'payrollTables', go: () => handleTabClick('payrollTables') },
-    { ar: 'التوقف عن العمل', tag: 'ATS', icon: <ShieldCheck className="w-3.5 h-3.5" />, active: activeTab === 'docs' && activeDoc === 'ats-front', go: () => handleDocClick('cert_recto') },
-    { ar: 'استئناف العمل', tag: 'DRT', icon: <ShieldCheck className="w-3.5 h-3.5" />, active: activeTab === 'docs' && activeDoc === 'drt', go: () => handleDocClick('res') },
     { ar: 'مركز الوثائق', tag: 'الوثائق', icon: <Award className="w-3.5 h-3.5" />, active: activeTab === 'docs' || activeTab === 'pension' || activeTab === 'cnr-annex', go: () => handleTabClick('docs') },
-    { ar: 'متابعة المنح العائلية', tag: 'المنح', icon: <Users className="w-3.5 h-3.5" />, active: activeTab === 'familyfollow', go: () => handleTabClick('familyfollow') },
-    { ar: 'استمارات', tag: 'سنوية', icon: <ClipboardList className="w-3.5 h-3.5" />, active: activeTab === 'docs' && activeDoc === 'form', go: () => handleDocClick('form') }
+    { ar: 'متابعة المنح العائلية', tag: 'المنح', icon: <Users className="w-3.5 h-3.5" />, active: activeTab === 'familyfollow', go: () => handleTabClick('familyfollow') }
   ];
 
   return (
