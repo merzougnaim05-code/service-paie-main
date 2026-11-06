@@ -60,6 +60,8 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
   const [empId, setEmpId] = useState<string>(selectedEmpId || employees[0]?.id || '');
   const [refMonth, setRefMonth] = useState<number>(new Date().getMonth() + 1);
   const [refYear, setRefYear] = useState<number>(new Date().getFullYear());
+  // عدد أشهر الوثيقة: 60 افتراضياً — قابل للتغيير (12 إلى 60) فتتولد الأشهر المطلوبة فقط
+  const [monthsCount, setMonthsCount] = useState<number>(60);
 
   const [activeFace, setActiveFace] = useState<'both' | 'front' | 'back'>('both');
   const [exportingPdf, setExportingPdf] = useState<boolean>(false);
@@ -124,8 +126,8 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
 
   const currentJob: Job | undefined = currentEmployee ? JOBS[currentEmployee.jobIdx] : undefined;
 
-  // Generate 60 consecutive months going backwards from refMonth / refYear
-  const generateInitial60Months = (emp: Employee, rMonth: number, rYear: number) => {
+  // Generate N consecutive months going backwards from refMonth / refYear (N = monthsCount)
+  const generateInitialMonths = (emp: Employee, rMonth: number, rYear: number, count: number) => {
     const list: MonthItem[] = [];
     // قيمة نقطة وأجر استدلالي لكل شهر على حدة حسب سنته (الشبكة ونقطة السنة المعنية)
     const autoFor = (mm: number, yy: number) => {
@@ -146,7 +148,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
       }
     });
 
-    for (let i = 59; i >= 0; i--) {
+    for (let i = count - 1; i >= 0; i--) {
       const d = new Date(rYear, rMonth - 1 - i, 1);
       const y = d.getFullYear();
       const m = d.getMonth() + 1;
@@ -173,15 +175,15 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
     return list;
   };
 
-  // Re-generate months when employee or reference date changes
+  // Re-generate months when employee, reference date or months count changes
   useEffect(() => {
     if (currentEmployee) {
-      const initial = generateInitial60Months(currentEmployee, refMonth, refYear);
+      const initial = generateInitialMonths(currentEmployee, refMonth, refYear, monthsCount);
       setMonthsData(initial);
 
       // Populate initial salary rule 1 from current employee state
       const firstMonth = initial[0]?.key || '';
-      const lastMonth = initial[59]?.key || '';
+      const lastMonth = initial[initial.length - 1]?.key || '';
       const basePayslip = computePayslip(currentEmployee, refMonth, refYear, settings);
       const initCatIdx = GRILLE.findIndex(g => g.cat === String(currentJob?.cat));
       const quarterlyYield = Math.round((basePayslip.perfBonusTotal || 0) * 3 * 100) / 100;
@@ -217,7 +219,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
         { from: '', to: '', amount: '' }
       ]);
     }
-  }, [empId, refMonth, refYear]);
+  }, [empId, refMonth, refYear, monthsCount]);
 
   // Build a temp employee from a salary rule + auto-compute wage (cnasBase) & quarterly rendement
   const autoForRule = (rule: SalaryRule, emp: Employee): { wage: string; yld: string } | null => {
@@ -326,7 +328,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
       });
     }
 
-    triggerToast('تم تطبيق وحفظ الأجور والمردودية على الـ 60 شهراً بنجاح ✓');
+    triggerToast(`تم تطبيق وحفظ الأجور والمردودية على الـ ${monthsCount} شهراً بنجاح ✓`);
     setShowConfigPanel(false);
   };
 
@@ -340,17 +342,20 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
     setMonthsData(prev => prev.map(m => (m.key === key ? { ...m, salary: val } : m)));
   };
 
-  // Block Totals (5 Blocks of 12 months each) — تشمل المردودية
+  // عدد كتل الـ 12 شهراً في الوثيقة (قد تكون الكتلة الأخيرة الأقدم ناقصة)
+  const pensionBlocksCount = Math.max(1, Math.ceil(monthsData.length / 12));
+
+  // Block Totals (كتل من 12 شهراً) — تشمل المردودية، وتُحسب من التعديلات اليدوية لحظياً
   const blockTotals = useMemo(() => {
-    const totals: number[] = [0, 0, 0, 0, 0];
+    const totals: number[] = Array.from({ length: pensionBlocksCount }, () => 0);
     monthsData.forEach((m, idx) => {
       const b = Math.floor(idx / 12);
-      if (b >= 0 && b < 5) {
+      if (b >= 0 && b < pensionBlocksCount) {
         totals[b] += (Number(m.salary) || 0) + (Number(m.yieldVal) || 0);
       }
     });
     return totals;
-  }, [monthsData]);
+  }, [monthsData, pensionBlocksCount]);
 
   const grandTotal = useMemo(() => {
     return blockTotals.reduce((acc, curr) => acc + curr, 0);
@@ -419,10 +424,10 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
               <span>الصندوق الوطني للتقاعد (C.N.R) — النموذج الرسمي مطابق طبق الأصل</span>
             </div>
             <h2 className="text-xl sm:text-2xl font-black text-[#0f172a]">
-              شهادة الأجور للتقاعد (الوجه الأمامي والخلفي 60 شهراً)
+              شهادة الأجور للتقاعد (الوجه الأمامي والخلفي — {monthsCount} شهراً)
             </h2>
             <p className="text-xs sm:text-sm text-[#64748b] mt-0.5">
-              وثيقة رسمية مبرمجة لحساب وتحديد أجور الـ 60 شهراً المعتمدة كأساس لتصفية منحة أو معاش التقاعد.
+              وثيقة رسمية مبرمجة لحساب وتحديد أجور الـ {monthsCount} شهراً المعتمدة كأساس لتصفية منحة أو معاش التقاعد — عدّل عدد الأشهر أو الأجور مباشرة في الجدول وسيُحسب المجموع والمتوسط آلياً.
             </p>
           </div>
 
@@ -473,7 +478,24 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#1e293b] mb-1">الشهر المرجعي الأخير (نهاية الـ 60 شهراً)</label>
+            <label className="block text-xs font-bold text-[#1e293b] mb-1">
+              عدد الأشهر (12 — 60): <span className="font-mono text-[#047857]">{monthsCount}</span>
+            </label>
+            <input
+              type="number"
+              min={12}
+              max={60}
+              value={monthsCount}
+              onChange={e => {
+                const n = Math.min(60, Math.max(12, Number(e.target.value) || 60));
+                setMonthsCount(n);
+              }}
+              className="w-full bg-amber-50 border-2 border-amber-400 rounded-xl px-3 py-2 text-xs sm:text-sm font-mono font-bold text-[#b45309] focus:outline-none focus:border-[#b45309]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-[#1e293b] mb-1">الشهر المرجعي الأخير (نهاية فترة الـ {monthsCount} شهراً)</label>
             <select
               value={refMonth}
               onChange={e => setRefMonth(Number(e.target.value))}
@@ -525,7 +547,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                   activeFace === 'back' ? 'bg-[#047857] text-white shadow-sm' : 'text-[#475569]'
                 }`}
               >
-                الوجه الثاني (60)
+                الوجه الثاني ({monthsCount})
               </button>
             </div>
           </div>
@@ -542,7 +564,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  const regenerated = generateInitial60Months(currentEmployee, refMonth, refYear);
+                  const regenerated = generateInitialMonths(currentEmployee, refMonth, refYear, monthsCount);
                   setMonthsData(regenerated);
                   triggerToast('تمت إعادة الضبط الآلي لجميع الأشهر');
                 }}
@@ -553,7 +575,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
             </div>
 
             <p className="text-xs text-[#64748b] mb-4">
-              حدد فترات الترقية أو تغير الراتب (من شهر/سنة إلى شهر/سنة) ومبلغ الراتب الخاضع للاشتراك لكل فترة، وسيتم تطبيقها فوراً على جدول الـ 60 شهراً وحساب المجاميع. حقل <b>سنوات الخدمة</b> مخصص <b>للعمال المهنيين غير المرسمين</b>: يُملأَ آلياً عند اختيار الرتبة، وكل تغيير فيه يعيد حساب الأجر الخاضع والمردودية آلياً (خبرة 1.4% من الأجر عن كل سنة خدمة) بدل الدرجة.
+              حدد فترات الترقية أو تغير الراتب (من شهر/سنة إلى شهر/سنة) ومبلغ الراتب الخاضع للاشتراك لكل فترة، وسيتم تطبيقها فوراً على جدول الـ {monthsCount} شهراً وحساب المجاميع. حقل <b>سنوات الخدمة</b> مخصص <b>للعمال المهنيين غير المرسمين</b>: يُملأَ آلياً عند اختيار الرتبة، وكل تغيير فيه يعيد حساب الأجر الخاضع والمردودية آلياً (خبرة 1.4% من الأجر عن كل سنة خدمة) بدل الدرجة.
             </p>
 
             <div className="overflow-x-auto rounded-xl border border-[#e2e8f0] bg-white">
@@ -787,7 +809,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                 className="bg-[#047857] hover:bg-[#065f46] text-white px-5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm"
               >
                 <Save className="w-4 h-4" />
-                <span>حفظ وتطبيق البرمجة (الأجور + المردودية) على الـ 60 شهراً</span>
+                <span>حفظ وتطبيق البرمجة (الأجور + المردودية) على الـ {monthsCount} شهراً</span>
               </button>
             </div>
           </div>
@@ -802,7 +824,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
           <div className="flex justify-center pb-4 print:break-after-page">
             <AutoFitScale docWidth={794}>
               <div id="cnr-front-wrapper">
-                <CNRFront employee={currentEmployee} settings={settings} />
+                <CNRFront employee={currentEmployee} settings={settings} monthsCount={monthsData.length} />
               </div>
             </AutoFitScale>
           </div>
@@ -821,6 +843,8 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                     blockTotals={blockTotals}
                     grandTotal={grandTotal}
                     average={averageMonthlySalary}
+                    monthsCount={monthsData.length}
+                    blocksCount={pensionBlocksCount}
                     onYieldChange={handleYieldCellChange}
                     onSalaryChange={handleSalaryCellChange}
                   />
@@ -846,7 +870,7 @@ const DateBox3: React.FC<{ d: { day: string; month: string; year: string } }> = 
   </span>
 );
 
-const CNRFront: React.FC<{ employee: Employee; settings: Settings }> = ({ employee, settings }) => {
+const CNRFront: React.FC<{ employee: Employee; settings: Settings; monthsCount?: number }> = ({ employee, settings, monthsCount = 60 }) => {
   const job = JOBS[employee.jobIdx];
   const { lastName, firstName } = splitName(employee.name);
   const dob = parseDate(employee.birthDate);
@@ -1056,7 +1080,7 @@ const CNRFront: React.FC<{ employee: Employee; settings: Settings }> = ({ employ
             <span className="cnrf-q">Cadre Supérieur <Chk q="sup" /></span>
             <span className="cnrf-q">Cadre Dirigeant <Chk q="dir" /></span>
           </div>
-          <p className="cnrf-para">A perçu à la date d'enregistrement de sa demande, les salaires mensuels soumis à retenue de la sécurité sociale durant les soixante (60) derniers mois tels que mentionnés au verso de la présente attestation.</p>
+          <p className="cnrf-para">A perçu à la date d'enregistrement de sa demande, les salaires mensuels soumis à retenue de la sécurité sociale durant les ({monthsCount}) derniers mois tels que mentionnés au verso de la présente attestation.</p>
         </div>
 
         {/* ===== Arabic Box ===== */}
@@ -1088,7 +1112,7 @@ const CNRFront: React.FC<{ employee: Employee; settings: Settings }> = ({ employ
             <span className="cnrf-q">إطار سامي <Chk q="sup" /></span>
             <span className="cnrf-q">إطار مسير <Chk q="dir" /></span>
           </div>
-          <p className="cnrf-para">قد استفاد(ت) عند تاريخ تسجيل طلبه (ها) من الأجور الشهرية الخاضعة لإشتراكات الضمان الإجتماعي العائدة الى ستين (60) شهرا الأخيرة وذلك حسب ما هو مشار إليه على ظهر هذه الشهادة.</p>
+          <p className="cnrf-para">قد استفاد(ت) عند تاريخ تسجيل طلبه (ها) من الأجور الشهرية الخاضعة لإشتراكات الضمان الإجتماعي العائدة الى ({monthsCount}) شهراً الأخيرة وذلك حسب ما هو مشار إليه على ظهر هذه الشهادة.</p>
         </div>
 
         {/* ===== Legal Notes ===== */}
@@ -1118,6 +1142,8 @@ interface CNRBackProps {
   blockTotals: number[];
   grandTotal: number;
   average: number;
+  monthsCount: number;
+  blocksCount: number;
   onYieldChange: (key: string, val: number) => void;
   onSalaryChange: (key: string, val: number) => void;
 }
@@ -1150,8 +1176,8 @@ const CNRSalaryCell: React.FC<{ value: number; onChange: (v: number) => void }> 
   );
 };
 
-const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, average, onYieldChange, onSalaryChange }) => {
-  // Blocks left-to-right: Total(5) = oldest 12 months ... Total(1) = most recent 12 months
+const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, average, monthsCount, blocksCount, onYieldChange, onSalaryChange }) => {
+  // Blocks left-to-right: الأقدم يساراً ... الأحدث (Total 1) يميناً — الكتلة الأولى قد تكون ناقصة
   const blockMonths = (b: number) => monthsData.slice(b * 12, b * 12 + 12);
 
   return (
@@ -1249,9 +1275,13 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
           <p className="cnrb-header-fr fr">SALAIRES MENSUELS SOUMIS A COTISATION</p>
         </div>
 
-        {/* 5 Column Blocks (Left to Right: Block 5 to Block 1) */}
+        {/* Blocks (Left to Right: الأقدم إلى الأحدث) — عدد الكتل حسب عدد الأشهر المطلوب */}
         <div className="cnrb-tables-container">
-          {[0, 1, 2, 3, 4].map(j => (
+          {Array.from({ length: blocksCount }, (_, j) => {
+            const months = blockMonths(j);
+            // الكتلة الأقدم (الأولى يساراً) قد تحتوي أقل من 12 شهراً — نكمل الصفوف فارغة للحفاظ على تناسق الجدول
+            const fillerCount = Math.max(0, 12 - months.length);
+            return (
             <table key={j} className="cnrb-block-table">
               <thead>
                 <tr>
@@ -1266,7 +1296,7 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
                 </tr>
               </thead>
               <tbody>
-                {blockMonths(j).map((m, r) => {
+                {months.map((m, r) => {
                   const qNum = Number(m.key.slice(5, 7)) === 3 ? 'الأول' : Number(m.key.slice(5, 7)) === 6 ? 'الثاني' : Number(m.key.slice(5, 7)) === 9 ? 'الثالث' : 'الرابع';
                   return (
                   <React.Fragment key={r}>
@@ -1296,16 +1326,23 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
                   </React.Fragment>
                   );
                 })}
+                {Array.from({ length: fillerCount }, (_, f) => (
+                  <tr key={`filler-${f}`}>
+                    <td className="cnrb-data-cell">&nbsp;</td>
+                    <td className="cnrb-data-cell">&nbsp;</td>
+                  </tr>
+                ))}
                 <tr>
                   <td colSpan={2} className="cnrb-total-cell">
-                    <span className="cnrb-total-ar ar">المجموع({5 - j})</span>
-                    <span className="cnrb-total-fr fr">Total ({5 - j})</span>
+                    <span className="cnrb-total-ar ar">المجموع({blocksCount - j})</span>
+                    <span className="cnrb-total-fr fr">Total ({blocksCount - j})</span>
                     <span className="cnrb-total-val">{fmt(blockTotals[j] || 0)}</span>
                   </td>
                 </tr>
               </tbody>
             </table>
-          ))}
+            );
+          })}
         </div>
 
         {/* Footer Section */}
@@ -1314,9 +1351,9 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
           {/* Summary — المجموع والمعدل يُحسبان آلياً من الخانات (الجمع ثم القسمة على عدد الأشهر) */}
           <div className="cnrb-summary-section">
             <div className="cnrb-summary-row">
-              <span className="cnrb-sum-fr fr">Total général (60) mois</span>
+              <span className="cnrb-sum-fr fr">Total général ({monthsCount}) mois</span>
               <div className="cnrb-sum-box">{fmt(grandTotal)}</div>
-              <span className="cnrb-sum-ar ar">المجموع العام (60) شهرا</span>
+              <span className="cnrb-sum-ar ar">المجموع العام ({monthsCount}) شهراً</span>
             </div>
             <div className="cnrb-summary-row">
               <span className="cnrb-sum-fr fr">Salaire mensuel moyen</span>
