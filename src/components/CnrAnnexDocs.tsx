@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Employee, Settings } from '../types';
-import { JOBS } from '../data/salaryGrids';
+import { JOBS, MONTHS_AR } from '../data/salaryGrids';
 import { CNR_LOGO } from '../data/cnrLogo';
 import {
   Printer,
@@ -148,9 +148,10 @@ function buildAutoForm(emp: Employee | undefined, settings: Settings): AnnexForm
 }
 
 /* جدول المدة المأجورة: تعبئة آلية للسنوات + الأجور المحفوظة في سجل الموظف */
-function buildAutoRows(emp: Employee | undefined): PeriodRow[] {
-  const endYear = Number((emp?.lastWorkDate || '').slice(0, 4)) || new Date().getFullYear();
-  const startYear = endYear - 17;
+function buildAutoRows(emp: Employee | undefined, refYear: number): PeriodRow[] {
+  // التوليد الآلي حسب السنوات: من سنة بداية العمل إلى السنة المرجعية
+  const hireYear = Number((emp?.hireDate || '').slice(0, 4)) || (refYear - 17);
+  const hireMonth = Number((emp?.hireDate || '').slice(5, 7)) || 1;
   const job = emp && emp.jobIdx >= 0 ? JOBS[emp.jobIdx] : undefined;
   const wageByYear = new Map<string, string>();
   (emp?.pensionHistory || []).forEach(h => {
@@ -158,18 +159,28 @@ function buildAutoRows(emp: Employee | undefined): PeriodRow[] {
       wageByYear.set(String(h.key).slice(0, 4), String(h.wage));
     }
   });
-  return Array.from({ length: 18 }, (_, i) => {
-    const y = String(startYear + i);
-    return {
-      annee: y,
-      du: '',
-      au: '',
-      duree: '',
-      salaire: wageByYear.get(y) || '',
+  const startYear = Math.min(hireYear, refYear);
+  const rows: PeriodRow[] = [];
+  for (let y = startYear; y <= refYear; y++) {
+    const isHireYear = y === hireYear;
+    // سنة التوظيف تبدأ من شهر التعيين، وباقي السنوات من جانفي إلى ديسمبر — وكلها قابلة للتعديل
+    const du = MONTHS_AR[isHireYear ? hireMonth : 1];
+    const au = MONTHS_AR[12];
+    const monthsWorked = isHireYear ? 12 - hireMonth + 1 : 12;
+    rows.push({
+      annee: String(y),
+      du,
+      au,
+      duree: String(monthsWorked),
+      salaire: wageByYear.get(String(y)) || '',
       emploi: job?.name || '',
       designation: ''
-    };
-  });
+    });
+  }
+  if (rows.length > 0) return rows;
+  return Array.from({ length: 12 }, (_, i) => ({
+    annee: String(refYear - 11 + i), du: '', au: '', duree: '', salaire: '', emploi: job?.name || '', designation: ''
+  }));
 }
 
 const DOC_TITLES: Record<AnnexDocType, string> = {
@@ -323,12 +334,12 @@ const PeriodesDoc: React.FC<{
   form: AnnexForm;
   onCell: (r: number, k: keyof PeriodRow, v: string) => void;
 }> = ({ rows, form, onCell }) => (
-  <div className="annex-page annex-landscape" style={{ width: '297mm', minHeight: '210mm', padding: '6mm 8mm', direction: 'rtl' }}>
-    <style>{`${SHARED_CSS} @page { size: 297mm 210mm; margin: 0; }
+  <div className="annex-page" style={{ width: '210mm', minHeight: '297mm', padding: '8mm 10mm', direction: 'rtl' }}>
+    <style>{`${SHARED_CSS} @page { size: 210mm 297mm; margin: 0; }
       .per-table, .per-table th, .per-table td { border: 1px solid #000; border-collapse: collapse; }
-      .per-table th { font-size: 8.5pt; padding: 1.5mm 1mm; vertical-align: top; background: #fff; }
-      .per-table td { height: 7.2mm; padding: 0; }
-      .per-table td input { width: 100%; height: 100%; border: none; text-align: center; font-size: 9pt; background: transparent; }
+      .per-table th { font-size: 8pt; padding: 1.5mm 1mm; vertical-align: top; background: #fff; }
+      .per-table td { height: 7mm; padding: 0; }
+      .per-table td input { width: 100%; height: 100%; border: none; text-align: center; font-size: 8.5pt; background: transparent; }
       .per-table td input:focus { background: #eef5ff; outline: 1.5px solid #0070C0; }
     `}</style>
     <div style={{ textAlign: 'center', fontWeight: 900, fontSize: '15pt' }}>المدة المأجورة</div>
@@ -337,11 +348,11 @@ const PeriodesDoc: React.FC<{
       <thead>
         <tr>
           <th style={{ width: '9%' }}>ANNEE<br />عام</th>
-          <th style={{ width: '15%' }}>Périodes الفترة<br /><span style={{ display: 'flex' }}><span style={{ flex: 1, borderTop: '1px solid #000' }}>Du من</span><span style={{ flex: 1, borderTop: '1px solid #000', borderLeft: '1px solid #000' }}>Au إلى</span></span></th>
-          <th style={{ width: '16%' }}>Durée du travail وقت العمل<br />Jours-heures-vacations<br />اليوم ـ الساعة ـ الأجرة</th>
-          <th style={{ width: '24%' }}>Salaire soumis a retenue sécurité sociale par année civile<br />الأجرة الخاضعة لاشتراكات الضمان الاجتماعي خلال السنة المدنية</th>
-          <th style={{ width: '16%' }}>Désignation de l&apos;emploi<br />نوعية الاستخدام</th>
-          <th style={{ width: '20%' }}>Désignation de la d&apos;allocation familiales des congés payes ou d&apos;assurance sociale d&apos;affiliation<br />تحديد الصندوق المنتمي إليه</th>
+          <th style={{ width: '17%' }}>Périodes الفترة<br /><span style={{ display: 'flex' }}><span style={{ flex: 1, borderTop: '1px solid #000' }}>Du من</span><span style={{ flex: 1, borderTop: '1px solid #000', borderLeft: '1px solid #000' }}>Au إلى</span></span></th>
+          <th style={{ width: '13%' }}>Durée du travail وقت العمل<br />Jours-heures-vacations<br />اليوم ـ الساعة ـ الأجرة</th>
+          <th style={{ width: '25%' }}>Salaire soumis a retenue sécurité sociale par année civile<br />الأجرة الخاضعة لاشتراكات الضمان الاجتماعي خلال السنة المدنية</th>
+          <th style={{ width: '17%' }}>Désignation de l&apos;emploi<br />نوعية الاستخدام</th>
+          <th style={{ width: '19%' }}>Désignation de la d&apos;allocation familiales des congés payes ou d&apos;assurance sociale d&apos;affiliation<br />تحديد الصندوق المنتمي إليه</th>
         </tr>
       </thead>
       <tbody>
@@ -479,8 +490,10 @@ export const CnrAnnexDocs: React.FC<CnrAnnexDocsProps> = ({
     )
   );
   const [rows, setRows] = useState<PeriodRow[]>(() =>
-    buildAutoRows(employees.find(e => e.id === (selectedEmpId || employees[0]?.id)))
+    buildAutoRows(employees.find(e => e.id === (selectedEmpId || employees[0]?.id)), new Date().getFullYear())
   );
+  // السنة المرجعية لوثيقة المدة المأجورة — نهاية فترة السنوات
+  const [periodRefYear, setPeriodRefYear] = useState<number>(new Date().getFullYear());
   const [showPreview, setShowPreview] = useState(true);
   const [blankPrinting, setBlankPrinting] = useState(false);
   const docRef = useRef<HTMLDivElement>(null);
@@ -495,6 +508,11 @@ export const CnrAnnexDocs: React.FC<CnrAnnexDocsProps> = ({
     if (selectedEmpId) setEmpId(selectedEmpId);
   }, [selectedEmpId]);
 
+  // إعادة توليد سنوات المدة المأجورة آلياً عند تغيّر الموظف أو السنة المرجعية
+  useEffect(() => {
+    setRows(buildAutoRows(currentEmployee, periodRefYear));
+  }, [empId, periodRefYear]);
+
   const currentEmployee = useMemo(
     () => employees.find(e => e.id === empId) || employees[0],
     [employees, empId]
@@ -505,12 +523,12 @@ export const CnrAnnexDocs: React.FC<CnrAnnexDocsProps> = ({
 
   const autoFill = () => {
     setForm(buildAutoForm(currentEmployee, settings));
-    setRows(buildAutoRows(currentEmployee));
+    setRows(buildAutoRows(currentEmployee, periodRefYear));
   };
 
   const clearForm = () => {
     setForm({ ...BLANK_FORM, merouanaPlace: 'مروانة' });
-    setRows(Array.from({ length: 18 }, () => ({ ...EMPTY_ROW })));
+    setRows(Array.from({ length: 30 }, () => ({ ...EMPTY_ROW })));
   };
 
   const onCell = (r: number, k: keyof PeriodRow, v: string) => {
@@ -529,8 +547,7 @@ export const CnrAnnexDocs: React.FC<CnrAnnexDocsProps> = ({
 
   const handleDownload = () => {
     if (!docRef.current) return;
-    const landscape = docType === 'periodes';
-    const html = `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>${DOC_TITLES[docType]} - ${currentEmployee?.name || ''}</title><style>@page { size: ${landscape ? '297mm 210mm' : '210mm 297mm'}; margin: 0; } body { margin:0; padding:0; background:#fff; }</style></head><body>${docRef.current.innerHTML}</body></html>`;
+    const html = `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>${DOC_TITLES[docType]} - ${currentEmployee?.name || ''}</title><style>@page { size: 210mm 297mm; margin: 0; } body { margin:0; padding:0; background:#fff; }</style></head><body>${docRef.current.innerHTML}</body></html>`;
     const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -542,7 +559,7 @@ export const CnrAnnexDocs: React.FC<CnrAnnexDocsProps> = ({
 
   const viewForm: AnnexForm = blankPrinting ? { ...BLANK_FORM, merouanaPlace: '' } : form;
   const viewRows: PeriodRow[] = blankPrinting
-    ? Array.from({ length: 18 }, () => ({ ...EMPTY_ROW }))
+    ? Array.from({ length: 30 }, () => ({ ...EMPTY_ROW }))
     : rows;
 
   const inputCls =
@@ -653,10 +670,21 @@ export const CnrAnnexDocs: React.FC<CnrAnnexDocsProps> = ({
           )}
           {docType === 'periodes' && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className={labelCls}>السنة المرجعية (نهاية الفترات)</label>
+                <input
+                  type="number"
+                  value={periodRefYear}
+                  onChange={e => setPeriodRefYear(Number(e.target.value) || new Date().getFullYear())}
+                  className="w-full bg-amber-50 border-2 border-amber-400 rounded-xl px-3 py-2 font-mono font-bold text-sm text-[#b45309] focus:outline-none focus:border-[#b45309]"
+                />
+              </div>
               <div><label className={labelCls}>حرر بمروانة في</label><input value={form.merouanaPlace} onChange={e => set('merouanaPlace', e.target.value)} className={inputCls} /></div>
               <div><label className={labelCls}>بتاريخ (A Merouana Le)</label><input value={form.merouanaDate} onChange={e => set('merouanaDate', e.target.value)} className={inputCls} /></div>
               <div><label className={labelCls}>توقيع المستخدم بتاريخ (le)</label><input value={form.employerSignDate} onChange={e => set('employerSignDate', e.target.value)} className={inputCls} /></div>
-              <div className="sm:col-span-3 text-xs text-[#706856]">جدول السنوات يُملأ مباشرة داخل خلايا الجدول في المعاينة (18 سطراً قابلة للزيادة بالنقر والتعديل).</div>
+              <div className="sm:col-span-3 text-xs text-[#706856]">
+                تُولَّد السنوات آلياً من <b>سنة بداية العمل</b> إلى <b>السنة المرجعية</b>: أشهر العمل من جانفي إلى ديسمبر (سنة التوظيف تبدأ من شهر التعيين مع المدة المحسوبة) — كل الخلايا قابلة للتعديل بالكتابة مباشرة في الجدول، ومنها خانة <b>نوعية الاستخدام</b>.
+              </div>
             </div>
           )}
           {docType === 'attestation' && (
