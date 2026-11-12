@@ -992,7 +992,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
                   <div className="font-bold text-[#065f46] font-mono mt-0.5">{fmt(previewCalculation.allowTotal)} دج</div>
                 </div>
                 <div className="bg-white/80 p-2 rounded-xl border border-emerald-100">
-                  <div className="text-[#64748b]">الأجر الخام</div>
+                  <div className="text-[#64748b]">الأجر الإجمالي</div>
                   <div className="font-bold text-[#065f46] font-mono mt-0.5">{fmt(previewCalculation.gross)} دج</div>
                 </div>
                 <div className="bg-white/80 p-2 rounded-xl border border-emerald-100">

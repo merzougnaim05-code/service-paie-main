@@ -29,6 +29,16 @@
     print-color-adjust: exact !important;
   }
 
+  /* إخفاء الزر العائم (حيّز الاتصال بالمطوّر) وكل عنصر عائم ثابت عند الطباعة */
+  .cw-fab,
+  .cw-bezel,
+  .cw-tip {
+    display: none !important;
+  }
+  [class~="fixed"] {
+    display: none !important;
+  }
+
   /* كل كشف راتب = صفحة مستقلة (الفاصل على مستوى الغلاف) */
   .payslip-block {
     break-after: page;
@@ -51,47 +61,68 @@
     display: none !important;
   }
 
-  /* ملاءمة وثيقة كشف الراتب لورقة A4 واحدة */
-  .payslip-document {
-    max-width: 100% !important;
+  /* ملاءمة وثيقة كشف الراتب لورقة A4 بالكامل — الطول والعرض (موسّطة أفقياً) */
+  .payslip-block {
+    display: block !important;
     width: 100% !important;
+  }
+
+  /* إزالة الظلال وتأثيرات الضباب — نص حاد تماماً في الطباعة */
+  .payslip-block,
+  .payslip-block * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+  }
+
+  .payslip-document {
+    max-width: none !important;
+    width: 100% !important;
+    min-height: 252mm !important;
     margin: 0 auto !important;
-    padding: 3mm 4mm !important;
+    padding: 5mm 6mm !important;
     border-radius: 0 !important;
     border-width: 1.5px !important;
-    font-size: 10px !important;
+    font-size: 11.5px !important;
     font-weight: 700 !important;
-    line-height: 1.4 !important;
+    line-height: 1.5 !important;
+    box-shadow: none !important;
+    text-rendering: geometricPrecision !important;
   }
 
   .payslip-document h3 {
-    font-size: 17px !important;
+    font-size: 19px !important;
     margin-top: 2px !important;
     margin-bottom: 2px !important;
   }
 
   .payslip-document table {
-    font-size: 9px !important;
+    font-size: 10.5px !important;
   }
 
   .payslip-document th,
   .payslip-document td {
-    padding: 2px 4px !important;
+    padding: 3px 5px !important;
   }
 
   .payslip-document .net-callout {
-    padding: 5px !important;
+    padding: 6px !important;
     margin-bottom: 2mm !important;
   }
 
   .payslip-document .net-callout .text-xl,
   .payslip-document .net-callout .text-2xl {
-    font-size: 17px !important;
+    font-size: 18px !important;
   }
 
   .payslip-document img {
-    width: 48px !important;
-    height: 48px !important;
+    width: 52px !important;
+    height: 52px !important;
   }
 
   /* منع تقطيع الصفوف وصندوق الصافي بين صفحتين */

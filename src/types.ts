@@ -114,6 +114,34 @@ export interface PensionPeriodRule {
   amount?: string;
 }
 
+// سطر برمجة أجر لفترة (وثيقة التقاعد): الرتبة/الصنف/الدرجة + الأجر الخاضع + المردودية الفصلية
+export interface PensionSalaryRule {
+  from: string;   // YYYY-MM
+  to: string;     // YYYY-MM
+  jobIdx: string; // فهرس الرتبة في JOBS ('' = بدون)
+  rank: string;
+  catIdx: string; // فهرس الصنف في GRILLE
+  grade: string;  // الدرجة الحالية 0..12
+  years: string;  // سنوات الخدمة (العمال المهنيون)
+  wage: string;   // الأجر الخاضع للاشتراك
+  teacherType: 'عادي' | 'مجاز';
+  yieldAmt: string;      // المردودية الفصلية
+  wageManual?: boolean;  // تعديل يدوي: لا يُعاد حسابه آلياً
+  yieldManual?: boolean;
+}
+
+// سطر برمجة مردودية مستقلة (من/إلى + المبلغ الفصلي)
+export interface PensionYieldRule {
+  from: string;
+  to: string;
+  amount: string;
+}
+
+export interface PensionProgramming {
+  salary: PensionSalaryRule[];
+  yield: PensionYieldRule[];
+}
+
 export interface Employee {
   id: string;
   name: string;
@@ -144,6 +172,7 @@ export interface Employee {
   allowances: Allowance[];
   childrenBirths?: string[];      // تواريخ ميلاد الأطفال (yyyy-mm-dd) — لجدول متابعة المنح العائلية
   pensionHistory: PensionHistoryRecord[];
+  pensionProgramming?: PensionProgramming; // برمجة الأجور والمردودية المحفوظة (وثيقة التقاعد)
   teacherType?: 'عادي' | 'مجاز'; // صنف الأستاذ حسب جدول الأصناف (-- = مجاز بأكواد أوراس مختلفة)
   auresMode?: 'auto' | 'manual';  // منحة الأوراس: آلية من البرنامج أو يدوية
   auresAmount?: number;           // مبلغ الأوراس اليدوي

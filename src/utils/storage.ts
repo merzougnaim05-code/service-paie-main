@@ -1,4 +1,4 @@
-import { Employee, Settings } from '../types';
+import { Employee, Settings, PensionProgramming } from '../types';
 import { DEFAULT_POINT_TABLES, DEFAULT_ZONE_ENTRIES, buildOfficialCells } from '../data/salaryGrids';
 
 const EMPLOYEES_STORAGE_KEY = 'dz_payroll_employees_v3';
@@ -337,5 +337,43 @@ export function clearAllData(): boolean {
   } catch (err) {
     console.error('Failed to clear data', err);
     return false;
+  }
+}
+
+/* =====================================================================
+   برمجة أجور ومردودية التقاعد — تُحفظ لكل موظف حتى لا تضيع عند إغلاق
+   اللوحة أو تغيير التبويب أو تعديل الفترة المرجعية.
+   ===================================================================== */
+const PENSION_DRAFT_PREFIX = 'dz_payroll_pension_draft_v1:';
+
+export function loadPensionDraft(empId: string): PensionProgramming | null {
+  if (!empId) return null;
+  try {
+    const raw = storeGet(`${PENSION_DRAFT_PREFIX}${empId}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as PensionProgramming;
+    if (!parsed || !Array.isArray(parsed.salary) || !Array.isArray(parsed.yield)) return null;
+    return parsed;
+  } catch (err) {
+    console.warn('Failed to load pension programming draft', err);
+    return null;
+  }
+}
+
+export function savePensionDraft(empId: string, data: PensionProgramming): void {
+  if (!empId) return;
+  try {
+    storeSet(`${PENSION_DRAFT_PREFIX}${empId}`, JSON.stringify(data));
+  } catch (err) {
+    console.error('Failed to save pension programming draft', err);
+  }
+}
+
+export function clearPensionDraft(empId: string): void {
+  if (!empId) return;
+  try {
+    storeRemove(`${PENSION_DRAFT_PREFIX}${empId}`);
+  } catch {
+    // ignore
   }
 }

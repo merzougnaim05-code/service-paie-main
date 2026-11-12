@@ -188,7 +188,7 @@ export default function App() {
         <div
           className={
             deviceMode === 'mobile'
-              ? 'mx-auto w-full max-w-[430px] min-h-full bg-[#ffffff] border-x border-[#a7f3d0] shadow-lg'
+              ? 'mx-auto w-full max-w-[430px] min-h-full bg-[#ffffff] border-x border-[#a7f3d0] shadow-lg print:max-w-none print:border-0 print:shadow-none'
               : ''
           }
         >

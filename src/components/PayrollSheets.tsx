@@ -125,7 +125,7 @@ export const PayrollSheets: React.FC<PayrollSheetsProps> = ({
       });
 
       row['المنح العائلية'] = item.r.familyTotal;
-      row['الأجر الخام'] = item.r.gross;
+      row['الأجر الإجمالي'] = item.r.gross;
       row['اقتطاع الضمان (9%)'] = item.r.cnasDeduction;
       row['اقتطاع الضريبة (IRG)'] = item.r.irgTax;
       row['اقتطاع التعاضدية'] = item.r.mutDeduction;
@@ -339,7 +339,7 @@ export const PayrollSheets: React.FC<PayrollSheetsProps> = ({
                     </th>
                   ))}
                   <th className="p-2.5 font-bold text-left font-mono">المنح العائلية</th>
-                  <th className="p-2.5 font-bold text-left font-mono bg-[#1c402d]">الأجر الخام</th>
+                  <th className="p-2.5 font-bold text-left font-mono bg-[#1c402d]">الأجر الإجمالي</th>
                   <th className="p-2.5 font-bold text-left font-mono text-red-200">CNAS</th>
                   <th className="p-2.5 font-bold text-left font-mono text-red-200">IRG</th>
                   <th className="p-2.5 font-bold text-left font-mono text-red-200">تعاضدية</th>

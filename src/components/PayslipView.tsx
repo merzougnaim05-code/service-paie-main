@@ -678,11 +678,11 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
           }]
         : [])
     ],
-    subtotalLabel: 'خام الراتب الإجمالي (دون المردودية)',
+    subtotalLabel: 'الراتب الإجمالي (دون المردودية)',
     subtotalAmount: grossExcludingPerf,
     extraRows: result.perfBonusTotal > 0
       ? [
-          { label: 'خام علاوة الأداء / المردودية', amount: result.perfBonusTotal },
+          { label: 'علاوة الأداء / المردودية', amount: result.perfBonusTotal },
           { label: 'صافي المردودية (بعد اقتطاع الضريبة 10%)', amount: result.perfBonusTotal - result.perfBonusTax }
         ]
       : undefined
@@ -730,11 +730,11 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
           }]
         : [])
     ],
-    subtotalLabel: 'خام الراتب السنوي الإجمالي (دون المردودية)',
+    subtotalLabel: 'الراتب السنوي الإجمالي (دون المردودية)',
     subtotalAmount: annualGrossExcludingPerf,
     extraRows: annual.perfBonusTotal > 0
       ? [
-          { label: 'خام علاوة الأداء / المردودية السنوية', amount: annual.perfBonusTotal },
+          { label: 'علاوة الأداء / المردودية السنوية', amount: annual.perfBonusTotal },
           { label: 'صافي المردودية السنوية (بعد اقتطاع الضريبة 10%)', amount: annual.perfBonusTotal - annual.perfBonusTax }
         ]
       : undefined
@@ -790,11 +790,11 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
           }]
         : [])
     ],
-    subtotalLabel: `خام الراتب المجمع الإجمالي (دون المردودية)`,
+    subtotalLabel: `الراتب المجمع الإجمالي (دون المردودية)`,
     subtotalAmount: periodGrossExcludingPerf,
     extraRows: (periodAgg?.perfBonusTotal || 0) > 0
       ? [
-          { label: 'خام علاوة الأداء / المردودية', amount: periodAgg!.perfBonusTotal },
+          { label: 'علاوة الأداء / المردودية', amount: periodAgg!.perfBonusTotal },
           { label: 'صافي المردودية المجمعة (بعد اقتطاع الضريبة 10%)', amount: periodAgg!.perfBonusTotal - periodAgg!.perfBonusTax }
         ]
       : undefined
@@ -862,13 +862,13 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
       monthly: Math.round(r.monthly * 100) / 100,
       annual: Math.round(r.annual * 100) / 100
     })),
-    subtotalLabel: 'خام الراتب الإجمالي (دون المردودية)',
+    subtotalLabel: 'الراتب الإجمالي (دون المردودية)',
     subtotalMonthly: grossExcludingPerf,
     subtotalAnnual: annualGrossExcludingPerf,
     extraRows:
       result.perfBonusTotal > 0 || annual.perfBonusTotal > 0
         ? [
-            { label: 'خام علاوة الأداء / المردودية', monthly: result.perfBonusTotal, annual: annual.perfBonusTotal },
+            { label: 'علاوة الأداء / المردودية', monthly: result.perfBonusTotal, annual: annual.perfBonusTotal },
             { label: 'صافي المردودية (بعد اقتطاع الضريبة 10%)', monthly: result.perfBonusTotal - result.perfBonusTax, annual: annual.perfBonusTotal - annual.perfBonusTax }
           ]
         : undefined

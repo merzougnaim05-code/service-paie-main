@@ -276,7 +276,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       </span>
                       <div className="text-2xl md:text-4xl font-black text-white mt-1 tracking-tight">
                         {fmt(totalGross)}
-                        <span className="text-base md:text-xl font-bold text-amber-400 mr-2">دج (خام)</span>
+                        <span className="text-base md:text-xl font-bold text-amber-400 mr-2">دج (إجمالي)</span>
                       </div>
                       <p className="text-xs md:text-sm text-stone-300/80 mt-1">
                         الاقتطاعات: {fmt(totalDeductions)} دج • آخر تحديث: {formattedDate()}
