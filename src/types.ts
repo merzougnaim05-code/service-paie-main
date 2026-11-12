@@ -142,6 +142,20 @@ export interface PensionProgramming {
   yield: PensionYieldRule[];
 }
 
+// سجل الوثائق — نسخة كاملة من وثيقة تقاعد (أشهر + برمجة) قابلة للاسترجاع لاحقاً
+export interface PensionDocRecord {
+  id: string;             // معرف مستقر: الموظف + عدد الأشهر + أول شهر + آخر شهر
+  empId: string;
+  empName: string;
+  refMonth: number;
+  refYear: number;
+  monthsCount: number;
+  createdAt: string;      // ISO
+  months: Array<{ key: string; label: string; salary: number; yieldVal: number }>;
+  salary: PensionSalaryRule[];
+  yield: PensionYieldRule[];
+}
+
 export interface Employee {
   id: string;
   name: string;

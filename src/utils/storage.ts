@@ -1,4 +1,4 @@
-import { Employee, Settings, PensionProgramming } from '../types';
+import { Employee, Settings, PensionProgramming, PensionDocRecord } from '../types';
 import { DEFAULT_POINT_TABLES, DEFAULT_ZONE_ENTRIES, buildOfficialCells } from '../data/salaryGrids';
 
 const EMPLOYEES_STORAGE_KEY = 'dz_payroll_employees_v3';
@@ -375,5 +375,46 @@ export function clearPensionDraft(empId: string): void {
     storeRemove(`${PENSION_DRAFT_PREFIX}${empId}`);
   } catch {
     // ignore
+  }
+}
+
+/* =====================================================================
+   سجل الوثائق — كل وثيقة تقاعد يعمل عليها المستخدم تُحفظ كنسخة كاملة
+   (الأشهر + البرمجة) حتى يعود إليها عند الحاجة.
+   ===================================================================== */
+const PENSION_DOCS_KEY = 'dz_payroll_pension_docs_v1';
+const PENSION_DOCS_MAX = 40;
+
+export function listPensionDocs(): PensionDocRecord[] {
+  try {
+    const raw = storeGet(PENSION_DOCS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as PensionDocRecord[]) : [];
+  } catch (err) {
+    console.warn('Failed to load pension docs log', err);
+    return [];
+  }
+}
+
+export function upsertPensionDoc(rec: PensionDocRecord): void {
+  if (!rec || !rec.id) return;
+  try {
+    const list = listPensionDocs();
+    const idx = list.findIndex(r => r.id === rec.id);
+    if (idx >= 0) list[idx] = rec;
+    else list.unshift(rec);
+    storeSet(PENSION_DOCS_KEY, JSON.stringify(list.slice(0, PENSION_DOCS_MAX)));
+  } catch (err) {
+    console.error('Failed to save pension doc record', err);
+  }
+}
+
+export function deletePensionDoc(id: string): void {
+  if (!id) return;
+  try {
+    storeSet(PENSION_DOCS_KEY, JSON.stringify(listPensionDocs().filter(r => r.id !== id)));
+  } catch (err) {
+    console.error('Failed to delete pension doc record', err);
   }
 }

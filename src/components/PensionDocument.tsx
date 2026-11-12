@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Employee, Settings, Job, PensionSalaryRule, PensionYieldRule } from '../types';
+import { Employee, Settings, Job, PensionSalaryRule, PensionYieldRule, PensionDocRecord } from '../types';
 import { JOBS, GRILLE, MONTHS_AR, MAJAZ_CODES } from '../data/salaryGrids';
 import { computePayslip, fmt, getClassificationCategory, isProfessionalWorkerJob, yearsOfService } from '../utils/salaryCalculator';
-import { loadPensionDraft, savePensionDraft } from '../utils/storage';
+import { loadPensionDraft, savePensionDraft, listPensionDocs, upsertPensionDoc, deletePensionDoc } from '../utils/storage';
 import { exportElementsToPdf } from '../utils/exportPdf';
 import { CNR_LOGO } from '../data/cnrLogo';
 import { AutoFitScale } from './DeviceScaler';
@@ -87,6 +87,14 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
   };
+
+  // سجل الوثائق — كل وثيقة يعمل عليها المستخدم تُحفظ كنسخة كاملة لتعود إليها عند الحاجة
+  const [docLog, setDocLog] = useState<PensionDocRecord[]>([]);
+  const [showDocLog, setShowDocLog] = useState<boolean>(false);
+  const restorePendingRef = useRef<PensionDocRecord | null>(null);
+  useEffect(() => {
+    setDocLog(listPensionDocs());
+  }, []);
 
   const currentEmployee = useMemo(() => {
     return employees.find(e => e.id === empId) || employees[0];
@@ -184,6 +192,20 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
   // Re-generate months when employee, reference date or months count changes
   useEffect(() => {
     if (!currentEmployee) return;
+
+    // استرجاع وثيقة من السجل: نستهلك النسخة المعلّقة بدل إعادة التوليد
+    const pendingRestore = restorePendingRef.current;
+    if (pendingRestore) {
+      restorePendingRef.current = null;
+      if (pendingRestore.empId === currentEmployee.id) {
+        hydratedEmpRef.current = currentEmployee.id;
+        setMonthsData(pendingRestore.months.map(m => ({ ...m })));
+        setSalaryRules((pendingRestore.salary || []).map(r => ({ ...EMPTY_SALARY_RULE, ...r })));
+        setYieldRules((pendingRestore.yield || []).map(r => ({ from: '', to: '', amount: '', ...r })));
+        return;
+      }
+    }
+
     const initial = generateInitialMonths(currentEmployee, refMonth, refYear, monthsCount);
     setMonthsData(initial);
 
@@ -422,6 +444,9 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
         pensionHistory: newHistory,
         pensionProgramming: { salary: salaryRules, yield: yieldRules }
       });
+      // تسجيل الوثيقة تلقائياً في السجل بعد كل «حفظ وتطبيق»
+      upsertPensionDoc(buildDocRecord(updated));
+      setDocLog(listPensionDocs());
     }
 
     persistRules(salaryRules, yieldRules);
@@ -437,6 +462,64 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
   // تعديل يدوي مباشر لأجر شهر من جدول الوجه الخلفي — المجاميع والمعدل تُعاد آلياً لحظياً
   const handleSalaryCellChange = (key: string, val: number) => {
     setMonthsData(prev => prev.map(m => (m.key === key ? { ...m, salary: val } : m)));
+  };
+
+  /* =====================================================================
+     سجل الوثائق — بناء النسخة، التسجيل، الفتح (الاسترجاع) والحذف
+     ===================================================================== */
+  const buildDocRecord = (months: MonthItem[]): PensionDocRecord => {
+    const first = months[0];
+    const last = months[months.length - 1];
+    const count = Math.min(60, Math.max(12, monthsCount || months.length));
+    return {
+      id: `${empId}__${count}__${first?.key || ''}__${last?.key || ''}`,
+      empId,
+      empName: currentEmployee?.name || '',
+      refMonth,
+      refYear,
+      monthsCount: count,
+      createdAt: new Date().toISOString(),
+      months: months.map(m => ({ key: m.key, label: m.label, salary: m.salary, yieldVal: m.yieldVal })),
+      salary: salaryRules,
+      yield: yieldRules
+    };
+  };
+
+  // تسجيل الوثيقة الحالية في السجل (يدوي)
+  const saveDocToLog = () => {
+    if (!currentEmployee || !monthsData.length) return;
+    upsertPensionDoc(buildDocRecord(monthsData));
+    setDocLog(listPensionDocs());
+    triggerToast('تم تسجيل الوثيقة في السجل ✓ يمكنك العودة إليها لاحقاً');
+  };
+
+  // فتح وثيقة من السجل: إن كان السياق مطابقاً نطبّق مباشرة، وإلا نعلّق النسخة لتستهلكها دورة التوليد
+  const openDocFromLog = (rec: PensionDocRecord) => {
+    const count = Math.min(60, Math.max(12, rec.monthsCount || 60));
+    const applyRec = () => {
+      hydratedEmpRef.current = rec.empId;
+      setMonthsData(rec.months.map(m => ({ ...m })));
+      setSalaryRules((rec.salary || []).map(r => ({ ...EMPTY_SALARY_RULE, ...r })));
+      setYieldRules((rec.yield || []).map(r => ({ from: '', to: '', amount: '', ...r })));
+    };
+    const sameContext = rec.empId === empId && rec.refMonth === refMonth && rec.refYear === refYear && count === monthsCount;
+    if (sameContext) {
+      applyRec();
+    } else {
+      restorePendingRef.current = rec;
+      setEmpId(rec.empId);
+      setRefMonth(rec.refMonth);
+      setRefYear(rec.refYear);
+      setMonthsCount(count);
+    }
+    triggerToast(`تم فتح وثيقة ${rec.empName || 'الموظف'} من السجل ✓`);
+  };
+
+  // حذف وثيقة من السجل
+  const removeDocFromLog = (id: string) => {
+    deletePensionDoc(id);
+    setDocLog(listPensionDocs());
+    triggerToast('تم حذف الوثيقة من السجل');
   };
 
   // عدد كتل الـ 12 شهراً في الوثيقة (قد تكون الكتلة الأخيرة الأقدم ناقصة)
@@ -958,6 +1041,76 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
             </div>
           </div>
         )}
+      </div>
+
+      {/* ======================================================== */}
+      {/* سجل الوثائق المحفوظة — تحت الوثيقة (لا يُطبع)             */}
+      {/* ======================================================== */}
+      <div className="max-w-[1123px] mx-auto mt-2 print:hidden">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-slate-50 border-b border-slate-200">
+            <h3 className="flex flex-wrap items-center gap-2 text-sm font-bold text-slate-700">
+              <FileCheck size={16} className="text-emerald-700" />
+              <span>سجل الوثائق المحفوظة ({docLog.length})</span>
+              <span className="text-[11px] font-normal text-slate-500">— كل وثيقة تعمل عليها تُسجَّل هنا لتعود إليها عند الحاجة</span>
+            </h3>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={saveDocToLog}
+                disabled={!monthsData.length}
+                className="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white text-xs font-bold transition-colors"
+              >
+                💾 تسجيل الوثيقة الحالية
+              </button>
+              <button
+                onClick={() => setShowDocLog(v => !v)}
+                className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-colors"
+              >
+                {showDocLog ? 'إخفاء القائمة ▲' : 'عرض القائمة ▼'}
+              </button>
+            </div>
+          </div>
+          {showDocLog && (
+            <div className="divide-y divide-slate-100 max-h-[320px] overflow-y-auto">
+              {docLog.length === 0 && (
+                <div className="px-4 py-6 text-center text-sm text-slate-400">
+                  لا توجد وثائق مسجَّلة بعد — اضغط «تسجيل الوثيقة الحالية» أو استعمل «حفظ وتطبيق» في لوحة البرمجة
+                </div>
+              )}
+              {docLog.map(rec => {
+                const d = new Date(rec.createdAt);
+                const dateStr = isNaN(d.getTime())
+                  ? ''
+                  : `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+                const firstLbl = rec.months[0]?.label || rec.months[0]?.key || '';
+                const lastLbl = rec.months[rec.months.length - 1]?.label || rec.months[rec.months.length - 1]?.key || '';
+                return (
+                  <div key={rec.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm hover:bg-slate-50">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <span className="font-bold text-slate-700">{rec.empName}</span>
+                      <span className="text-slate-500">{rec.monthsCount} شهراً — من {firstLbl} إلى {lastLbl}</span>
+                      <span className="text-[11px] text-slate-400" dir="ltr">{dateStr}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => openDocFromLog(rec)}
+                        className="px-3 py-1 rounded-md bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-colors"
+                      >
+                        ↩ فتح
+                      </button>
+                      <button
+                        onClick={() => removeDocFromLog(rec.id)}
+                        className="px-3 py-1 rounded-md bg-red-50 border border-red-200 hover:bg-red-100 text-red-700 text-xs font-bold transition-colors"
+                      >
+                        🗑 حذف
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
