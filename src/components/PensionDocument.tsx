@@ -154,14 +154,18 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
         : (nearWageKey ? histMap.get(nearWageKey) : undefined);
       const finalSalary = savedWage !== undefined ? savedWage : auto.wage;
 
+      // نهاية الفترة: الشهر الأخير (الأحدث) يستحق المردودية حتى لو كان الثلاثي ناقصاً (شهر واحد أو شهرين)
+      const isEndMonth = i === 0 && !isYieldMonth(key);
       const exactPerf = ignoreHistory ? undefined : histPerf.get(key);
       const nearPerfKey = ignoreHistory ? null : nearestLaterSameYear(recPerfKeys, key);
       const savedPerf = exactPerf !== undefined
         ? exactPerf
         : (nearPerfKey !== null ? histPerf.get(nearPerfKey) : undefined);
-      const yieldVal = savedPerf !== undefined
-        ? savedPerf
-        : (isYieldMonth(key) ? auto.yield : 0);
+      const yieldVal = isEndMonth
+        ? (savedPerf && savedPerf > 0 ? savedPerf : auto.yield)
+        : (savedPerf !== undefined
+          ? savedPerf
+          : (isYieldMonth(key) ? auto.yield : 0));
 
       list.push({
         key,
@@ -368,6 +372,10 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
       return f <= t ? { from: f, to: t } : { from: t, to: f };
     };
 
+    // نهاية الفترة: الشهر الأخير (الأحدث) يستحق المردودية حتى لو كان الثلاثي ناقصاً
+    const lastMonthKey = monthsData[monthsData.length - 1]?.key || '';
+    const isYieldDue = (key: string) => isYieldMonth(key) || key === lastMonthKey;
+
     const updated = monthsData.map(m => {
       let salary = m.salary;
       for (const rule of salaryRules) {
@@ -378,12 +386,12 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
         }
       }
 
-      // المردودية من برمجة الراتب: تُطبق أولاً على أشهر مارس/جوان/سبتمبر/ديسمبر داخل الفترة
+      // المردودية من برمجة الراتب: تُطبق أولاً على أشهر مارس/جوان/سبتمبر/ديسمبر داخل الفترة (وعلى الشهر الأخير مهما كان)
       let yieldVal = m.yieldVal;
       for (const rule of salaryRules) {
         const r = range(rule.from, rule.to);
         const q = Number(rule.yieldAmt);
-        if (r && isYieldMonth(m.key) && String(rule.yieldAmt).trim() !== '' && isFinite(q) && m.key >= r.from && m.key <= r.to) {
+        if (r && isYieldDue(m.key) && String(rule.yieldAmt).trim() !== '' && isFinite(q) && m.key >= r.from && m.key <= r.to) {
           yieldVal = q;
         }
       }
@@ -391,7 +399,7 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
       for (const rule of yieldRules) {
         const r = range(rule.from, rule.to);
         const a = Number(rule.amount);
-        if (r && isYieldMonth(m.key) && String(rule.amount).trim() !== '' && isFinite(a) && m.key >= r.from && m.key <= r.to) {
+        if (r && isYieldDue(m.key) && String(rule.amount).trim() !== '' && isFinite(a) && m.key >= r.from && m.key <= r.to) {
           yieldVal = a;
         }
       }
@@ -1480,7 +1488,9 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
                       <CNRSalaryCell value={m.salary} onChange={v => onSalaryChange(m.key, v)} />
                     </td>
                   </tr>
-                  {isYieldMonth(m.key) && (
+                  {(() => {
+                    const isLast = m.key === (monthsData[monthsData.length - 1]?.key || '');
+                    return isYieldMonth(m.key) || isLast ? (
                     <tr>
                       <td className="cnrb-data-cell cnrb-month-cell" contentEditable suppressContentEditableWarning
                         onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); moveNextCell(e.currentTarget); } }}
@@ -1489,7 +1499,8 @@ const CNRBack: React.FC<CNRBackProps> = ({ monthsData, blockTotals, grandTotal, 
                         <CNRYieldCell value={m.yieldVal} onChange={v => onYieldChange(m.key, v)} />
                       </td>
                     </tr>
-                  )}
+                    ) : null;
+                  })()}
                   </React.Fragment>
                   );
                 })}
