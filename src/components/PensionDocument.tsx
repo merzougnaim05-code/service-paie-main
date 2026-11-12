@@ -127,6 +127,17 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
         if (h.perf !== undefined && h.perf !== null && h.perf !== '') histPerf.set(h.key, Number(h.perf));
       }
     });
+    // مفاتيح السجلات مرتبة تصاعدياً — للشهر بلا سجل نعتمد أقرب سجل لاحق في نفس السنة
+    // (الأجر مستمر من شهر لآخر حتى التغيير التالي، فلا يختلف ديسمبر عن نوفمبر مثلاً)
+    const recKeys = Array.from(histMap.keys()).sort();
+    const recPerfKeys = Array.from(histPerf.keys()).sort();
+    const nearestLaterSameYear = (keys: string[], key: string): string | null => {
+      const y = key.slice(0, 4);
+      for (const k of keys) {
+        if (k >= key && k.slice(0, 4) === y) return k;
+      }
+      return null;
+    };
 
     for (let i = count - 1; i >= 0; i--) {
       const d = new Date(rYear, rMonth - 1 - i, 1);
@@ -136,10 +147,18 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
       const label = `${MONTHS_AR[m]} ${y}`;
 
       const auto = autoFor(m, y);
-      const savedWage = ignoreHistory ? undefined : histMap.get(key);
+      const exactWage = ignoreHistory ? undefined : histMap.get(key);
+      const nearWageKey = ignoreHistory ? null : nearestLaterSameYear(recKeys, key);
+      const savedWage = exactWage !== undefined
+        ? exactWage
+        : (nearWageKey ? histMap.get(nearWageKey) : undefined);
       const finalSalary = savedWage !== undefined ? savedWage : auto.wage;
 
-      const savedPerf = ignoreHistory ? undefined : histPerf.get(key);
+      const exactPerf = ignoreHistory ? undefined : histPerf.get(key);
+      const nearPerfKey = ignoreHistory ? null : nearestLaterSameYear(recPerfKeys, key);
+      const savedPerf = exactPerf !== undefined
+        ? exactPerf
+        : (nearPerfKey !== null ? histPerf.get(nearPerfKey) : undefined);
       const yieldVal = savedPerf !== undefined
         ? savedPerf
         : (isYieldMonth(key) ? auto.yield : 0);
@@ -636,7 +655,17 @@ export const PensionDocument: React.FC<PensionDocumentProps> = ({
                 onClick={() => {
                   const regenerated = generateInitialMonths(currentEmployee, refMonth, refYear, monthsCount, true);
                   setMonthsData(regenerated);
-                  triggerToast('تمت إعادة الضبط الآلي لجميع الأشهر من الراتب الحالي');
+                  // حفظ فوري في ملف الموظف حتى لا تُفقد القيم المعاد ضبطها عند تغيير التبويب
+                  onUpdateEmployee({
+                    ...currentEmployee,
+                    pensionHistory: regenerated.map(m => ({
+                      key: m.key,
+                      wage: m.salary,
+                      perf: m.yieldVal || 0,
+                      note: 'مبرمج من كشف التقاعد'
+                    }))
+                  });
+                  triggerToast('تمت إعادة الضبط الآلي لجميع الأشهر من الراتب الحالي وحفظها');
                 }}
                 className="text-xs bg-[#e9f2ec] hover:bg-[#d5ebd9] text-[#047857] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
               >

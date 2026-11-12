@@ -83,46 +83,50 @@
   .payslip-document {
     max-width: none !important;
     width: 100% !important;
-    min-height: 252mm !important;
+    /* ارتفاع أقل من صفحة A4 (281mm متاحة بعد هوامش 8mm) حتى لا يتجاوز الكشف ورقة واحدة */
+    min-height: 248mm !important;
+    max-height: 278mm !important;
+    overflow: hidden !important;
     margin: 0 auto !important;
-    padding: 5mm 6mm !important;
+    padding: 4mm 5mm !important;
     border-radius: 0 !important;
     border-width: 1.5px !important;
-    font-size: 11.5px !important;
+    font-size: 11px !important;
     font-weight: 700 !important;
-    line-height: 1.5 !important;
+    line-height: 1.45 !important;
     box-shadow: none !important;
     text-rendering: geometricPrecision !important;
+    zoom: 0.96;
   }
 
   .payslip-document h3 {
-    font-size: 19px !important;
+    font-size: 18px !important;
     margin-top: 2px !important;
     margin-bottom: 2px !important;
   }
 
   .payslip-document table {
-    font-size: 10.5px !important;
+    font-size: 10px !important;
   }
 
   .payslip-document th,
   .payslip-document td {
-    padding: 3px 5px !important;
+    padding: 2px 4px !important;
   }
 
   .payslip-document .net-callout {
-    padding: 6px !important;
+    padding: 5px !important;
     margin-bottom: 2mm !important;
   }
 
   .payslip-document .net-callout .text-xl,
   .payslip-document .net-callout .text-2xl {
-    font-size: 18px !important;
+    font-size: 17px !important;
   }
 
   .payslip-document img {
-    width: 52px !important;
-    height: 52px !important;
+    width: 48px !important;
+    height: 48px !important;
   }
 
   /* منع تقطيع الصفوف وصندوق الصافي بين صفحتين */
