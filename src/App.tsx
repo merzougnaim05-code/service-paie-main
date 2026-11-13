@@ -20,7 +20,6 @@ import { CnrAnnexDocs } from './components/CnrAnnexDocs';
 import { AllDocsBundle } from './components/AllDocsBundle';
 import { FamilyFollowTool } from './components/FamilyDocs';
 import { DataHub } from './components/DataHub';
-import { DataHubWidget } from './components/DataHubWidget';
 import { SettingsView } from './components/SettingsView';
 
 export default function App() {
@@ -170,16 +169,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 via-stone-50 to-emerald-50 text-[#0f172a] flex flex-col" style={{ direction: 'rtl' }}>
-      {/* مركز المعطيات: زر عائم ولوحة رفع/تحميل النسخة */}
-      <DataHubWidget
-        appKey="paie"
-        appName="الرواتب والتقاعد"
-        storageKeys={{
-          employees: 'dz_payroll_employees_v3',
-          settings: 'dz_payroll_settings_v3',
-          lastModified: 'dz_payroll_last_modified_v3',
-        }}
-      />
       {/* Navigation Bar */}
       <Navbar
         activeTab={activeTab}
