@@ -8,14 +8,20 @@ interface ATSBackProps {
   settings: Settings;
   startMonth?: number;
   startYear?: number;
+  monthsCount?: number;
 }
+
+/* خيارات سبب الغياب — تظهر في قائمة منسدلة بكل سطر مع إمكانية الكتابة الحرة */
+export const ABSENCE_CHOICES = ['لاشئ', 'عطلة مرضية', 'غياب غير مبرر', 'عطلة أمومة', 'إجازة بدون أجر'];
 
 export const ATSBack: React.FC<ATSBackProps> = ({
   employee,
   settings,
   startMonth,
-  startYear
+  startYear,
+  monthsCount: monthsCountProp
 }) => {
+  const monthsTotal = Math.max(1, Math.min(24, monthsCountProp || 12));
   const currentMonth = startMonth || new Date().getMonth() + 1;
   const currentYear = startYear || new Date().getFullYear();
 
@@ -25,9 +31,9 @@ export const ATSBack: React.FC<ATSBackProps> = ({
   const todayMonth = String(today.getMonth() + 1).padStart(2, '0');
   const todayYear = String(today.getFullYear());
 
-  // Build 12 preceding months data
+  // Build months data — عدد الأشهر قابل للتعديل (افتراضياً 12 شهراً سابقة)
   const rows = useMemo(() => {    const list = [];
-    for (let i = 11; i >= 0; i--) {
+    for (let i = monthsTotal - 1; i >= 0; i--) {
       const d = new Date(currentYear, currentMonth - 1 - i, 1);
       const m = d.getMonth() + 1;
       const y = d.getFullYear();
@@ -46,13 +52,13 @@ export const ATSBack: React.FC<ATSBackProps> = ({
     // Most recent first or chronological order? In Algerian ATS, rows go from month 1 (oldest) to 12 (latest) or vice versa.
     // List has 12 items.
     return list;
-  }, [employee, settings, currentMonth, currentYear]);
+  }, [employee, settings, currentMonth, currentYear, monthsTotal]);
 
   // Absence reasons: editing the FIRST row copies its note automatically to all filled rows
-  const [absences, setAbsences] = useState<string[]>(() => Array(12).fill(''));
+  const [absences, setAbsences] = useState<string[]>(() => Array(monthsTotal).fill(''));
   useEffect(() => {
-    setAbsences(Array(12).fill(''));
-  }, [currentMonth, currentYear, employee?.id]);
+    setAbsences(Array(monthsTotal).fill(''));
+  }, [currentMonth, currentYear, employee?.id, monthsTotal]);
 
   const handleAbsence = (idx: number, v: string) => {
     setAbsences(prev => prev.map((a, i) => (idx === 0 ? v : i === idx ? v : a)));
@@ -120,6 +126,13 @@ export const ATSBack: React.FC<ATSBackProps> = ({
         }
         .ats-back-page table.ats-grid td[contenteditable]:focus { outline: 1.5px solid #0070C0; background: #eef5ff; outline-offset: -1px; }
         .ats-back-page table.ats-grid td input { width: 100%; height: 100%; border: none; background: transparent; text-align: center; font: inherit; color: inherit; padding: 0; }
+        .ats-back-page .absence-cell { display: flex; align-items: center; gap: 1mm; width: 100%; height: 100%; }
+        .ats-back-page .absence-cell select,
+        .ats-back-page .absence-cell input { min-width: 0; height: 100%; border: none; background: transparent; text-align: center; font-size: 8pt; color: inherit; padding: 0; }
+        .ats-back-page .absence-cell select { flex: 1.2; cursor: pointer; }
+        .ats-back-page .absence-cell select:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }
+        .ats-back-page .absence-cell input { flex: 0.8; }
+        .ats-back-page .absence-cell input:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }
         .ats-back-page table.ats-grid td input:focus { outline: 1.5px solid #0070C0; background: #eef5ff; outline-offset: -1px; }
         .ats-back-page col.c0 { width: 16.1%; }
         .ats-back-page col.c1 { width: 23.91%; }
@@ -227,7 +240,24 @@ export const ATSBack: React.FC<ATSBackProps> = ({
                   {row.days}
                 </td>
                 <td data-field={`row${idx}_col2`}>
-                  <input list="ats-absence-motifs" value={absences[idx] ?? ''} onChange={e => handleAbsence(idx, e.target.value)} aria-label="سبب الغياب" />
+                  <div className="absence-cell">
+                    <select
+                      value={ABSENCE_CHOICES.includes(absences[idx] ?? '') ? (absences[idx] ?? '') : ''}
+                      aria-label="اختيار سبب الغياب"
+                      onChange={e => handleAbsence(idx, e.target.value)}
+                    >
+                      <option value="">—</option>
+                      {ABSENCE_CHOICES.map(c => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                    <input
+                      value={absences[idx] ?? ''}
+                      onChange={e => handleAbsence(idx, e.target.value)}
+                      aria-label="سبب الغياب — كتابة"
+                      placeholder="أو اكتب…"
+                    />
+                  </div>
                 </td>
                 <td contentEditable suppressContentEditableWarning data-field={`row${idx}_col3`} className="font-bold">
                   {row.cnasBase}
@@ -240,13 +270,7 @@ export const ATSBack: React.FC<ATSBackProps> = ({
           </tbody>
         </table>
 
-        {/* Shared choices for the absence-reason cells (same list in every row, editable) */}
-        <datalist id="ats-absence-motifs">
-          <option value="لاشئ" />
-          <option value="عطلة مرضية" />
-          <option value="غياب غير مبرر" />
-        </datalist>
-
+        {/* سبب الغياب: قائمة اختيارات بكل سطر (نسخ الملاحظة الأولى يعبّئ الأشهر كلها) + كتابة حرة */}
         <div className="volume-row">
           <span className="fr-label fr gray">Volume horaire journalier</span>
           <span

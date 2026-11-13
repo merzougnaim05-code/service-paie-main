@@ -111,6 +111,8 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
   // الشهر المرجعي للوجه الثاني من ATS (يُعاد توليد 12 شهرا ending بهذا الشهر)
   const [refMonth, setRefMonth] = useState<number>(new Date().getMonth() + 1);
   const [refYear, setRefYear] = useState<number>(new Date().getFullYear());
+  // عدد أشهر جدول ATS الوجه الخلفي (قابل للتعديل — الافتراضي 12)
+  const [atsMonthsCount, setAtsMonthsCount] = useState<number>(12);
   const docRef = useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -289,21 +291,36 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
                   </div>
 
                   {(docType === 'ats-back' || docType === 'ats-both') && (
-                    <div>
-                      <label className="block text-xs font-bold text-[#1e293b] mb-1">الشهر المرجعي (توليد 12 شهرا)</label>
-                      <input
-                        type="month"
-                        value={`${refYear}-${String(refMonth).padStart(2, '0')}`}
-                        onChange={e => {
-                          const [y, m] = e.target.value.split('-').map(Number);
-                          if (y && m) {
-                            setRefYear(y);
-                            setRefMonth(m);
-                          }
-                        }}
-                        className="w-full bg-white border border-[#047857] rounded-xl px-3 py-2 text-xs sm:text-sm font-mono font-bold text-[#047857] focus:outline-none shadow-sm"
-                      />
-                    </div>
+                    <>
+                      <div>
+                        <label className="block text-xs font-bold text-[#1e293b] mb-1">الشهر المرجعي (آخر شهر)</label>
+                        <input
+                          type="month"
+                          value={`${refYear}-${String(refMonth).padStart(2, '0')}`}
+                          onChange={e => {
+                            const [y, m] = e.target.value.split('-').map(Number);
+                            if (y && m) {
+                              setRefYear(y);
+                              setRefMonth(m);
+                            }
+                          }}
+                          className="w-full bg-white border border-[#047857] rounded-xl px-3 py-2 text-xs sm:text-sm font-mono font-bold text-[#047857] focus:outline-none shadow-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-[#1e293b] mb-1">
+                          عدد الأشهر (1 — 24): <span className="font-mono text-[#047857]">{atsMonthsCount}</span>
+                        </label>
+                        <input
+                          type="number"
+                          min={1}
+                          max={24}
+                          value={atsMonthsCount}
+                          onChange={e => setAtsMonthsCount(Math.min(24, Math.max(1, Number(e.target.value) || 12)))}
+                          className="w-full bg-amber-50 border-2 border-amber-400 rounded-xl px-3 py-2 text-xs sm:text-sm font-mono font-bold text-[#b45309] focus:outline-none focus:border-[#b45309]"
+                        />
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
@@ -321,7 +338,7 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
                   {/* 2. OFFICIAL ATS BACK (VERSO - 12 MONTHS) */}
                   {docType === 'ats-back' && (
                     <AutoFitScale docWidth={1123}>
-                      <ATSBack employee={currentEmployee} settings={settings} startMonth={refMonth} startYear={refYear} />
+                      <ATSBack employee={currentEmployee} settings={settings} startMonth={refMonth} startYear={refYear} monthsCount={atsMonthsCount} />
                     </AutoFitScale>
                   )}
 
@@ -339,7 +356,7 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
                         - الوجه الثاني (Verso - ورقة A4) -
                       </div>
                       <AutoFitScale docWidth={1123}>
-                        <ATSBack employee={currentEmployee} settings={settings} startMonth={refMonth} startYear={refYear} />
+                        <ATSBack employee={currentEmployee} settings={settings} startMonth={refMonth} startYear={refYear} monthsCount={atsMonthsCount} />
                       </AutoFitScale>
                     </div>
                   )}
