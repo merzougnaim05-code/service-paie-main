@@ -309,14 +309,14 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
                       </div>
                       <div>
                         <label className="block text-xs font-bold text-[#1e293b] mb-1">
-                          عدد الأشهر (1 — 24): <span className="font-mono text-[#047857]">{atsMonthsCount}</span>
+                          عدد الأشهر المعبأة (1 — 12): <span className="font-mono text-[#047857]">{atsMonthsCount}</span>
                         </label>
                         <input
                           type="number"
                           min={1}
-                          max={24}
+                          max={12}
                           value={atsMonthsCount}
-                          onChange={e => setAtsMonthsCount(Math.min(24, Math.max(1, Number(e.target.value) || 12)))}
+                          onChange={e => setAtsMonthsCount(Math.min(12, Math.max(1, Number(e.target.value) || 12)))}
                           className="w-full bg-amber-50 border-2 border-amber-400 rounded-xl px-3 py-2 text-xs sm:text-sm font-mono font-bold text-[#b45309] focus:outline-none focus:border-[#b45309]"
                         />
                       </div>

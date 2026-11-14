@@ -21,7 +21,7 @@ export const ATSBack: React.FC<ATSBackProps> = ({
   startYear,
   monthsCount: monthsCountProp
 }) => {
-  const monthsTotal = Math.max(1, Math.min(24, monthsCountProp || 12));
+  const monthsTotal = Math.max(1, Math.min(12, monthsCountProp || 12));
   const currentMonth = startMonth || new Date().getMonth() + 1;
   const currentYear = startYear || new Date().getFullYear();
 
@@ -31,7 +31,7 @@ export const ATSBack: React.FC<ATSBackProps> = ({
   const todayMonth = String(today.getMonth() + 1).padStart(2, '0');
   const todayYear = String(today.getFullYear());
 
-  // Build months data — عدد الأشهر قابل للتعديل (افتراضياً 12 شهراً سابقة)
+  // Build months data — العدد المحدد يُعبّأ آلياً والجدول يبقى كاملاً (12 صفاً) والبقية فارغة للتعبئة اليدوية
   const rows = useMemo(() => {    const list = [];
     for (let i = monthsTotal - 1; i >= 0; i--) {
       const d = new Date(currentYear, currentMonth - 1 - i, 1);
@@ -49,16 +49,20 @@ export const ATSBack: React.FC<ATSBackProps> = ({
         cnasCotisation: fmt(payslip.cnasDeduction)
       });
     }
-    // Most recent first or chronological order? In Algerian ATS, rows go from month 1 (oldest) to 12 (latest) or vice versa.
-    // List has 12 items.
+    while (list.length < 12) {
+      list.push({ ref: '', refAr: '', days: '', absence: '', cnasBase: '', cnasCotisation: '' });
+    }
     return list;
   }, [employee, settings, currentMonth, currentYear, monthsTotal]);
 
   // Absence reasons: editing the FIRST row copies its note automatically to all filled rows
-  const [absences, setAbsences] = useState<string[]>(() => Array(monthsTotal).fill(''));
+  const [absences, setAbsences] = useState<string[]>(() => Array(12).fill(''));
   useEffect(() => {
-    setAbsences(Array(monthsTotal).fill(''));
+    setAbsences(Array(12).fill(''));
   }, [currentMonth, currentYear, employee?.id, monthsTotal]);
+
+  // قائمة اختيارات سبب الغياب: تفتح من الزر أمام الشهر وتملأ الخانة
+  const [absenceMenuIdx, setAbsenceMenuIdx] = useState<number | null>(null);
 
   const handleAbsence = (idx: number, v: string) => {
     setAbsences(prev => prev.map((a, i) => (idx === 0 ? v : i === idx ? v : a)));
@@ -126,13 +130,33 @@ export const ATSBack: React.FC<ATSBackProps> = ({
         }
         .ats-back-page table.ats-grid td[contenteditable]:focus { outline: 1.5px solid #0070C0; background: #eef5ff; outline-offset: -1px; }
         .ats-back-page table.ats-grid td input { width: 100%; height: 100%; border: none; background: transparent; text-align: center; font: inherit; color: inherit; padding: 0; }
-        .ats-back-page .absence-cell { display: flex; align-items: center; gap: 1mm; width: 100%; height: 100%; }
-        .ats-back-page .absence-cell select,
-        .ats-back-page .absence-cell input { min-width: 0; height: 100%; border: none; background: transparent; text-align: center; font-size: 8pt; color: inherit; padding: 0; }
-        .ats-back-page .absence-cell select { flex: 1.2; cursor: pointer; }
-        .ats-back-page .absence-cell select:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }
-        .ats-back-page .absence-cell input { flex: 0.8; }
+        .ats-back-page .absence-cell { position: relative; display: flex; align-items: center; gap: 1mm; width: 100%; height: 100%; }
+        .ats-back-page .absence-cell input { min-width: 0; flex: 1; height: 100%; border: none; background: transparent; text-align: center; font-size: 8pt; color: inherit; padding: 0; }
         .ats-back-page .absence-cell input:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }
+        .ats-back-page .absence-btn {
+          flex-shrink: 0; width: 5.5mm; height: 5mm; padding: 0;
+          border: 1px solid #808080; border-radius: 1mm;
+          background: #eef5ff; color: #1e3fae;
+          font-size: 8pt; font-weight: 700; line-height: 1;
+          cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+        }
+        .ats-back-page .absence-btn:hover { background: #d7e6ff; }
+        .ats-back-page .absence-menu {
+          position: absolute; top: 100%; inset-inline-start: 0;
+          min-width: 32mm; z-index: 60;
+          background: #fff; border: 1.5px solid #1e3fae; border-radius: 1.5mm;
+          box-shadow: 0 3mm 6mm rgba(0,0,0,.25);
+          display: flex; flex-direction: column; overflow: hidden;
+        }
+        .ats-back-page .absence-menu button {
+          all: unset; cursor: pointer; text-align: right;
+          padding: 1.4mm 2.5mm; font-size: 8.5pt; font-weight: 700; color: #000;
+        }
+        .ats-back-page .absence-menu button:hover { background: #eef5ff; color: #1e3fae; }
+        @media print {
+          .ats-back-page .absence-btn { display: none !important; }
+          .ats-back-page .absence-menu { display: none !important; }
+        }
         .ats-back-page table.ats-grid td input:focus { outline: 1.5px solid #0070C0; background: #eef5ff; outline-offset: -1px; }
         .ats-back-page col.c0 { width: 16.1%; }
         .ats-back-page col.c1 { width: 23.91%; }
@@ -241,22 +265,33 @@ export const ATSBack: React.FC<ATSBackProps> = ({
                 </td>
                 <td data-field={`row${idx}_col2`}>
                   <div className="absence-cell">
-                    <select
-                      value={ABSENCE_CHOICES.includes(absences[idx] ?? '') ? (absences[idx] ?? '') : ''}
-                      aria-label="اختيار سبب الغياب"
-                      onChange={e => handleAbsence(idx, e.target.value)}
+                    {/* زر أمام الشهر: يفتح قائمة الملاحظات ويملأ الخانة */}
+                    <button
+                      type="button"
+                      className="absence-btn"
+                      title="اختيار سبب الغياب من القائمة"
+                      onClick={() => setAbsenceMenuIdx(prev => (prev === idx ? null : idx))}
                     >
-                      <option value="">—</option>
-                      {ABSENCE_CHOICES.map(c => (
-                        <option key={c} value={c}>{c}</option>
-                      ))}
-                    </select>
+                      ▾
+                    </button>
                     <input
                       value={absences[idx] ?? ''}
                       onChange={e => handleAbsence(idx, e.target.value)}
-                      aria-label="سبب الغياب — كتابة"
-                      placeholder="أو اكتب…"
+                      aria-label="سبب الغياب"
                     />
+                    {absenceMenuIdx === idx && (
+                      <div className="absence-menu">
+                        {ABSENCE_CHOICES.map(c => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => { handleAbsence(idx, c); setAbsenceMenuIdx(null); }}
+                          >
+                            {c}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </td>
                 <td contentEditable suppressContentEditableWarning data-field={`row${idx}_col3`} className="font-bold">
