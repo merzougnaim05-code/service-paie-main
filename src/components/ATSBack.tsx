@@ -14,6 +14,34 @@ interface ATSBackProps {
 /* خيارات سبب الغياب — تظهر في قائمة منسدلة بكل سطر مع إمكانية الكتابة الحرة */
 export const ABSENCE_CHOICES = ['لاشئ', 'عطلة مرضية', 'غياب غير مبرر', 'عطلة أمومة', 'إجازة بدون أجر'];
 
+/* خانة عدد الأيام المعمول بها — تعديلها يعيد حساب الأجر الخاضع ومبلغ الإشتراك آلياً */
+const DaysCell: React.FC<{ value: number | null; onChange: (v: number) => void }> = ({ value, onChange }) => {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState('');
+  if (value == null) return null; // صفوف فارغة خارج العدد المحدد
+  return (
+    <input
+      type="text"
+      value={editing ? draft : String(value)}
+      className="font-mono"
+      onFocus={e => {
+        setDraft(String(value));
+        setEditing(true);
+        const el = e.currentTarget;
+        setTimeout(() => { try { el.select(); } catch { /* ignore */ } }, 0);
+      }}
+      onChange={e => {
+        const raw = e.target.value;
+        setDraft(raw);
+        const n = parseFloat(raw.replace(/[^\d.-]/g, ''));
+        onChange(isNaN(n) ? 0 : n);
+      }}
+      onBlur={() => setEditing(false)}
+      aria-label="عدد الأيام المعمول بها"
+    />
+  );
+};
+
 export const ATSBack: React.FC<ATSBackProps> = ({
   employee,
   settings,
@@ -46,14 +74,27 @@ export const ATSBack: React.FC<ATSBackProps> = ({
         days: '30 يوما و 8 سا',
         absence: '',
         cnasBase: fmt(payslip.cnasBase),
-        cnasCotisation: fmt(payslip.cnasDeduction)
+        cnasCotisation: fmt(payslip.cnasDeduction),
+        // الأجر الشهري الكامل ونسبة الإشتراك — أساس الربط مع عدد الأيام المعمول بها
+        monthlyBase: payslip.cnasBase,
+        rate: payslip.cnasRate
       });
     }
     while (list.length < 12) {
-      list.push({ ref: '', refAr: '', days: '', absence: '', cnasBase: '', cnasCotisation: '' });
+      list.push({ ref: '', refAr: '', days: '', absence: '', cnasBase: '', cnasCotisation: '', monthlyBase: null, rate: null });
     }
     return list;
   }, [employee, settings, currentMonth, currentYear, monthsTotal]);
+
+  // عدد الأيام المعمول بها لكل شهر (افتراضياً 30) — يربط آلياً بالأجر الخاضع ومبلغ الإشتراك
+  const [workDays, setWorkDays] = useState<number[]>(() => Array(12).fill(30));
+  useEffect(() => {
+    setWorkDays(Array(12).fill(30));
+  }, [currentMonth, currentYear, employee?.id, monthsTotal]);
+
+  const handleWorkDays = (idx: number, v: number) => {
+    setWorkDays(prev => prev.map((d, i) => (i === idx ? v : d)));
+  };
 
   // Absence reasons: editing the FIRST row copies its note automatically to all filled rows
   const [absences, setAbsences] = useState<string[]>(() => Array(12).fill(''));
@@ -130,6 +171,10 @@ export const ATSBack: React.FC<ATSBackProps> = ({
         }
         .ats-back-page table.ats-grid td[contenteditable]:focus { outline: 1.5px solid #0070C0; background: #eef5ff; outline-offset: -1px; }
         .ats-back-page table.ats-grid td input { width: 100%; height: 100%; border: none; background: transparent; text-align: center; font: inherit; color: inherit; padding: 0; }
+        .ats-back-page .days-cell { text-align: center; }
+        .ats-back-page .days-cell input { width: 100%; height: 100%; border: none; background: transparent; text-align: center; font-size: 9pt; font-weight: 700; color: inherit; padding: 0; }
+        .ats-back-page .days-cell input:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }
+        .ats-back-page td.linked-val { unicode-bidi: plaintext; }
         .ats-back-page .absence-cell { position: relative; display: flex; align-items: center; gap: 1mm; width: 100%; height: 100%; }
         .ats-back-page .absence-cell input { min-width: 0; flex: 1; height: 100%; border: none; background: transparent; text-align: center; font-size: 8pt; color: inherit; padding: 0; }
         .ats-back-page .absence-cell input:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }
@@ -255,13 +300,19 @@ export const ATSBack: React.FC<ATSBackProps> = ({
             </tr>
           </thead>
           <tbody id="grid-body">
-            {rows.map((row, idx) => (
+            {rows.map((row, idx) => {
+              // الربط الآلي: الأجر الخاضع = الأجر الشهري × (الأيام ÷ 30) — والإشتراك = النسبة × الأجر الخاضع
+              const isGenerated = row.monthlyBase != null;
+              const daysVal = workDays[idx] ?? 30;
+              const linkedBase = isGenerated ? Math.round(row.monthlyBase! * (daysVal / 30) * 100) / 100 : null;
+              const linkedCot = linkedBase != null ? Math.round(linkedBase * (row.rate! / 100) * 100) / 100 : null;
+              return (
               <tr key={idx}>
                 <td contentEditable suppressContentEditableWarning data-field={`row${idx}_col0`}>
                   {row.refAr}
                 </td>
-                <td contentEditable suppressContentEditableWarning data-field={`row${idx}_col1`}>
-                  {row.days}
+                <td data-field={`row${idx}_col1`} className="days-cell">
+                  <DaysCell value={isGenerated ? daysVal : null} onChange={v => handleWorkDays(idx, v)} />
                 </td>
                 <td data-field={`row${idx}_col2`}>
                   <div className="absence-cell">
@@ -294,14 +345,15 @@ export const ATSBack: React.FC<ATSBackProps> = ({
                     )}
                   </div>
                 </td>
-                <td contentEditable suppressContentEditableWarning data-field={`row${idx}_col3`} className="font-bold">
-                  {row.cnasBase}
+                <td data-field={`row${idx}_col3`} className="font-bold linked-val">
+                  {linkedBase != null ? fmt(linkedBase) : ''}
                 </td>
-                <td contentEditable suppressContentEditableWarning data-field={`row${idx}_col4`} className="font-bold text-red-900">
-                  {row.cnasCotisation}
+                <td data-field={`row${idx}_col4`} className="font-bold text-red-900 linked-val">
+                  {linkedCot != null ? fmt(linkedCot) : ''}
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
 
