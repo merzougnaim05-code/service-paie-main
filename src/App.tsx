@@ -20,6 +20,7 @@ import { CnrAnnexDocs } from './components/CnrAnnexDocs';
 import { AllDocsBundle } from './components/AllDocsBundle';
 import { FamilyFollowTool } from './components/FamilyDocs';
 import { DataHub } from './components/DataHub';
+import { InstInfoWidget } from './components/InstInfoWidget';
 import { SettingsView } from './components/SettingsView';
 
 export default function App() {
@@ -169,6 +170,20 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 via-stone-50 to-emerald-50 text-[#0f172a] flex flex-col" style={{ direction: 'rtl' }}>
+      {/* معطيات المؤسسة: سحب الهوية الرسمية من مركز البوابة */}
+      <InstInfoWidget
+        appName="الرواتب والتقاعد"
+        targets={[
+          {
+            storageKey: 'dz_payroll_settings_v3',
+            fields: {
+              institution: 'institution',
+              wilaya: 'wilaya',
+              commune: 'municipality',
+            },
+          },
+        ]}
+      />
       {/* Navigation Bar */}
       <Navbar
         activeTab={activeTab}
