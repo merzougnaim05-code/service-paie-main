@@ -22,9 +22,10 @@ const DaysCell: React.FC<{ value: number | null; onChange: (v: number) => void }
   return (
     <input
       type="text"
-      value={editing ? draft : String(value)}
+      value={editing ? draft : `${value} يوما و 8 سا`}
       className="font-mono"
       onFocus={e => {
+        // أثناء التعديل يظهر الرقم وحده — «8 سا» تُعاد تلقائياً بعد الخروج
         setDraft(String(value));
         setEditing(true);
         const el = e.currentTarget;
