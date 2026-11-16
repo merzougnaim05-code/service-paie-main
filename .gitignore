@@ -18,3 +18,6 @@ desktop-release/
 
 # Licensing secrets — never publish
 admin/keys.json
+
+# حزمة USB المحلية (مثبتات ضخمة — لا تُرفع)
+usb-package/
