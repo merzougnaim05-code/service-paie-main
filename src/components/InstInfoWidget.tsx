@@ -97,22 +97,35 @@ export function InstInfoWidget({ appName, targets }: { appName: string; targets:
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
   const [mecanoInput, setMecanoInput] = useState(getMecano());
-  const [hubUpdate, setHubUpdate] = useState<HubInfo | null>(null);
 
-  // فحص تلقائي عند الإقلاع: تحديث أحدث على المركز؟
+  // تطبيق صامت تلقائي عند الإقلاع: آخر معطيات من المركز تُكتب مباشرة (طلب صريح من المستخدم)
   useEffect(() => {
     let alive = true;
-    const mecano = getMecano();
-    if (!mecano) return;
-    fetchInfo(mecano).then(r => {
+    const boot = async () => {
+      let mecano = getMecano();
+      if (!mecano) {
+        // تبني آلي: مؤسسة واحدة فقط مسجلة في المركز
+        try {
+          const j = await (await fetch(HUB_URL + '/api/orgs', { cache: 'no-store' })).json();
+          if (j.ok && j.orgs && j.orgs.length === 1) {
+            setLS(LS_MECANO, String(j.orgs[0].mecano));
+            mecano = getMecano();
+          }
+        } catch { /* اختياري */ }
+      }
+      if (!mecano) return;
+      const r = await fetchInfo(mecano);
       if (!alive || !('info' in r)) return;
       const hubAt = r.info._updatedAt || '';
       const mine = getLS(LS_APPLIED) || '';
       if (!hubAt || (mine && new Date(hubAt) <= new Date(mine))) return;
-      setHubUpdate(r.info);
-    }).catch(() => { /* اختياري */ });
+      const applied = applyInfo(targets, r.info);
+      setLS(LS_APPLIED, hubAt);
+      if (applied.length > 0) { location.reload(); return; }
+    };
+    boot();
     return () => { alive = false; };
-  }, []);
+  }, [appKey, targets]);
 
   const doFetch = async (mecanoArg?: string) => {
     const mecano = mecanoArg || mecanoInput.trim() || getMecano();
@@ -149,20 +162,6 @@ export function InstInfoWidget({ appName, targets }: { appName: string; targets:
 
   return (
     <>
-      {/* شارة التحديث التلقائي */}
-      {hubUpdate && !open && (
-        <div className="no-print fixed top-0 inset-x-0 z-[9998] bg-emerald-950 text-white text-xs px-3 py-1.5 flex items-center justify-center gap-2 flex-wrap border-b-2 border-amber-500" dir="rtl">
-          <span>🏛 توجد معطيات مؤسسة أحدث على مركز البوابة — تريد تطبيقها على {appName}؟</span>
-          <button
-            onClick={() => { setInfo(hubUpdate); setOpen(true); doApply(hubUpdate); }}
-            className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-2.5 py-0.5 rounded-full text-[11px]"
-          >
-            تطبيق الآن
-          </button>
-          <button onClick={() => { setHubUpdate(null); setLS(LS_APPLIED, hubUpdate._updatedAt || new Date().toISOString()); }} className="bg-white/15 hover:bg-white/25 font-bold px-2.5 py-0.5 rounded-full text-[11px]">لاحقًا</button>
-        </div>
-      )}
-
       {/* الزر العائم */}
       <button
         onClick={() => { setMecanoInput(getMecano()); setOpen(true); setMsg(null); }}
