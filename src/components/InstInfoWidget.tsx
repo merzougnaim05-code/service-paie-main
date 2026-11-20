@@ -125,7 +125,7 @@ export function InstInfoWidget({ appName, targets }: { appName: string; targets:
     };
     boot();
     return () => { alive = false; };
-  }, [appKey, targets]);
+  }, []);
 
   const doFetch = async (mecanoArg?: string) => {
     const mecano = mecanoArg || mecanoInput.trim() || getMecano();
