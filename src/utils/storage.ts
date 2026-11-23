@@ -183,33 +183,19 @@ export const INITIAL_EMPLOYEES: Employee[] = [
 /**
  * بذر مركز الجداول والمعطيات: جداول النقاط الرسمية + حاويات المنح
  * والترقية: إرفاق شبكة النقاط الرسمية (كل صنف × كل درجة) بأي جدول محفوظ سابقاً بدون خلايا
- * + تصحيح قيمة النقطة الاستدلالية إلى 45 دج الثابتة منذ 2008 في السطور المبدئية (ptr-*)
+ * ملاحظة: قيمة النقطة الاستدلالية لا تتغير إلا يدوياً — ما يحفظه المستخدم في الجداول
+ * (قيمة النقطة أو نقاط سطور التغيير) يُحترم كما هو عند التحميل ولا يُعاد فرض أي قيمة عليه.
+ * القيمة الافتراضية 45 دج للجداول الجديدة تأتي من DEFAULT_POINT_TABLES فقط.
  */
-function sanitizePointTables(tables: any[]): any[] {
-  return (tables || []).map(t => {
-    if (!t || typeof t.id !== 'string' || !t.id.startsWith('pt-')) return t;
-    return {
-      ...t,
-      basePoints: 45,
-      rows: (t.rows || []).map((r: any) =>
-        r && typeof r.id === 'string' && r.id.startsWith('ptr-')
-          ? { ...r, bonusPoints: 0, label: 'قيمة النقطة الاستدلالية 45 دج' }
-          : r
-      )
-    };
-  });
-}
-
 function withDataHubDefaults(s: Settings): Settings {
-  const pointTables = sanitizePointTables(
+  const pointTables =
     !s.pointTables || s.pointTables.length === 0
       ? DEFAULT_POINT_TABLES
       : s.pointTables.map(t =>
         !t.cells || t.cells.length === 0
           ? { ...t, cells: buildOfficialCells(Number(t.fromYear) || new Date().getFullYear()) }
           : t
-        )
-  );
+        );
   return {
     ...s,
     pointTables,
