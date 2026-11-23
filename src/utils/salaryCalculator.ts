@@ -318,9 +318,7 @@ export function autoAllowancesForJob(
       if (year >= 2012) {
         push('تعويض دعم نشاطات الإدارة', rp * 0.10, `10% × ${fmt(rp)}`);
       }
-      if (year >= 2015) {
-        push('المنحة الجزافية التعويضية', commonCorpsLumpSum(category), 'مبلغ ثابت حسب الصنف');
-      }
+      // المنحة الجزافية التعويضية أُضيفت أعلاه في القسم العام (نفس المبلغ) — لا تُضاف هنا مرة ثانية
       return list;
     }
   }
