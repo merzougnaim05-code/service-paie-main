@@ -23,6 +23,17 @@ function fmtSheet(n: number): string {
 
 const z = (n: number) => (Math.abs(n) < 0.005 ? '' : fmtSheet(n));
 
+/** عرض نص مختلط (أرقام + كلمة عربية) بترتيبه المخزّن تماماً:
+    كل مقطع يُغلَّف بعنصر معزول bidi فلا يعيد الخوارزم ترتيب المقاطع. */
+const bidiTokens = (text: string) =>
+  text.split(/(\s+)/).map((part, i) =>
+    part.trim() === '' ? (
+      <React.Fragment key={i}>{part}</React.Fragment>
+    ) : (
+      <span key={i} className="ops-tok">{part}</span>
+    )
+  );
+
 export const OfficialPayrollSheet: React.FC<OfficialPayrollSheetProps> = ({
   employees,
   settings,
@@ -85,6 +96,8 @@ export const OfficialPayrollSheet: React.FC<OfficialPayrollSheetProps> = ({
   const th = 'border border-black bg-[#9aa0a6] text-black font-bold px-1 py-1 text-center align-middle';
   const td = 'border border-black px-1 py-0.5 text-center align-middle whitespace-nowrap';
   const tdR = 'border border-black px-1 py-0.5 text-right align-middle';
+  // الخلايا الرقمية: عزل bidi + اتجاه LTR (الفئة ops-num في الأنماط أعلاه)
+  const tdNum = td + ' ops-num';
 
   const cols: { key: string; label: string; get: (r: (typeof rows)[number]) => number | string; num?: boolean }[] = [
     { key: 'n', label: 'سطر', get: r => r.idx },
@@ -127,6 +140,12 @@ export const OfficialPayrollSheet: React.FC<OfficialPayrollSheetProps> = ({
         .ops-page table { border-collapse: collapse; width: 100%; table-layout: auto; }
         .ops-page th { font-size: 7.5pt; }
         .ops-page td { font-size: 8pt; }
+        /* الأرقام: عزل ثنائي الاتجاه + اتجاه LTR حتى لا يعيد خوارزم bidi
+           ترتيب الأرقام داخل الخلايا (الحساب/اللاحقة، التصنيف، المبالغ) */
+        .ops-page .ops-num { direction: ltr; unicode-bidi: isolate; }
+        /* مقطع نصي معزول: يُحفظ ترتيب المقاطع كما في البيانات حتى لو اختلطت
+           الأرقام بكلمة عربية (مثال: رقم الحساب «... مفتاح 88») */
+        .ops-page .ops-tok { unicode-bidi: isolate; }
         .ops-page td[contenteditable]:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }
         @media print {
           .ops-page { width: 100%; box-shadow: none !important; margin: 0 !important; }
@@ -169,35 +188,35 @@ export const OfficialPayrollSheet: React.FC<OfficialPayrollSheetProps> = ({
           <tbody>
             {rows.map(r => (
               <tr key={r.idx}>
-                <td className={td}>{r.idx}</td>
-                <td className={td} style={{ fontSize: '7.5pt' }}>
-                  <div>{r.account}</div>
-                  <div className="text-slate-600">{r.account ? `${r.account}/${r.suffix}` : ''}</div>
+                <td className={tdNum} dir="ltr">{r.idx}</td>
+                <td className={tdNum} dir="ltr" style={{ fontSize: '7.5pt' }}>
+                  <div>{bidiTokens(r.account)}</div>
+                  <div className="text-slate-600">{r.account ? bidiTokens(`${r.account}/${r.suffix}`) : ''}</div>
                 </td>
                 <td className={tdR} style={{ minWidth: '28mm' }}>
                   <div className="font-bold">{r.emp.name}</div>
                   <div className="text-slate-700" style={{ fontSize: '7pt' }}>{r.jobName}</div>
                 </td>
                 <td className={td} contentEditable suppressContentEditableWarning />
-                <td className={td} style={{ fontSize: '7pt' }} contentEditable suppressContentEditableWarning>{r.classement}</td>
+                <td className={tdNum} dir="ltr" style={{ fontSize: '7pt' }} contentEditable suppressContentEditableWarning>{r.classement}</td>
                 {numKeys.map(k => (
-                  <td key={k} className={td} contentEditable suppressContentEditableWarning>
+                  <td key={k} className={tdNum} dir="ltr" contentEditable suppressContentEditableWarning>
                     {z(r[k] as number)}
                   </td>
                 ))}
                 <td className={td} contentEditable suppressContentEditableWarning />
-                <td className={td + ' font-black'}>{fmtSheet(r.net)}</td>
+                <td className={tdNum + ' font-black'} dir="ltr">{fmtSheet(r.net)}</td>
               </tr>
             ))}
             <tr>
               <td className={td} colSpan={5}>المجموع</td>
               {numKeys.map(k => (
-                <td key={k} className={td + ' font-black'}>
+                <td key={k} className={tdNum + ' font-black'} dir="ltr">
                   {fmtSheet(tot[k])}
                 </td>
               ))}
               <td className={td} />
-              <td className={td + ' font-black'}>{fmtSheet(tot.net)}</td>
+              <td className={tdNum + ' font-black'} dir="ltr">{fmtSheet(tot.net)}</td>
             </tr>
           </tbody>
         </table>
