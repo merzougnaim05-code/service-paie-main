@@ -34,7 +34,7 @@ const fmtDate = (iso: string): string => {
   return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString('ar-DZ');
 };
 
-/* سجل DRT — أرشيف الوثائق المنجزة (ATS وجه أول/وجه ثانٍ أو DRT).
+/* ارشيف وثائق CNAS (ATS وجه أول/وجه ثانٍ أو DRT).
    نفس مبدأ سجل الموظفين: جدول + بحث + معاينة/تعديل/حذف.
    يُحفظ لكل موظف آخر 10 وثائق فقط ويُحذف الأقدم تلقائياً (عند الحفظ).
    كل سجل يحمل لقطة بيانات الموظف وقت الإنجاز، فتبقى المعاينة مطابقة للوثيقة الأصلية. */
@@ -98,11 +98,11 @@ export const DrtRegistry: React.FC<DrtRegistryProps> = ({ employees, settings })
     upsertDrtDoc(updated);
     refresh();
     setEditingRec(null);
-    showToast('تم تحديث الوثيقة في سجل DRT ✓');
+    showToast('تم تحديث الوثيقة في ارشيف وثائق CNAS ✓');
   };
 
   const handleDelete = (rec: DrtRecord) => {
-    if (!confirm(`هل أنت متأكد من حذف هذه الوثيقة من سجل DRT؟\n${DOC_LABELS[rec.docType]} — ${rec.empName}`)) return;
+    if (!confirm(`هل أنت متأكد من حذف هذه الوثيقة من ارشيف وثائق CNAS؟\n${DOC_LABELS[rec.docType]} — ${rec.empName}`)) return;
     deleteDrtDoc(rec.id);
     refresh();
     if (previewRec?.id === rec.id) setPreviewRec(null);
@@ -123,10 +123,10 @@ export const DrtRegistry: React.FC<DrtRegistryProps> = ({ employees, settings })
       <div className="bg-[#ffffff] border border-[#a7f3d0] rounded-3xl p-6 sm:p-8 shadow-sm mb-6 print:hidden">
         <h2 className="text-xl sm:text-2xl font-black text-emerald-900 flex items-center gap-2 border-b-[3px] border-amber-500 pb-2">
           <Archive className="w-6 h-6 text-emerald-900" />
-          <span>سجل DRT — أرشيف الوثائق المنجزة ({records.length} وثيقة)</span>
+          <span>ارشيف وثائق CNAS ({records.length} وثيقة)</span>
         </h2>
         <p className="text-xs sm:text-sm text-[#64748b] mt-2">
-          تُحفظ هنا الوثائق المنجزة من مركز الوثائق (زر «حفظ في سجل DRT» تحت وثائق ATS و DRT) لتعود إليها متى احتجت —
+          تُحفظ هنا الوثائق المنجزة من مركز الوثائق (زر «حفظ في ارشيف وثائق CNAS» تحت وثائق ATS و DRT) لتعود إليها متى احتجت —
           معاينة كل وثيقة وحدها، وتعديل تواريخها، أو حذفها. يحتفظ السجل بآخر 10 وثائق لكل موظف ويحذف الأقدم تلقائياً.
         </p>
 
@@ -215,7 +215,7 @@ export const DrtRegistry: React.FC<DrtRegistryProps> = ({ employees, settings })
         {filtered.length === 0 ? (
           <div className="py-12 text-center text-[#827866] text-sm">
             {records.length === 0
-              ? 'السجل فارغ بعد — أنجز وثيقة ATS أو DRT من مركز الوثائق ثم اضغط «حفظ في سجل DRT» لتظهر هنا.'
+              ? 'السجل فارغ بعد — أنجز وثيقة ATS أو DRT من مركز الوثائق ثم اضغط «حفظ في ارشيف وثائق CNAS» لتظهر هنا.'
               : 'لا توجد وثائق مطابقة لشروط البحث.'}
           </div>
         ) : (

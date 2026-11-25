@@ -148,7 +148,7 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
     onUpdateEmployee({ ...currentEmployee, ...patch });
   };
 
-  // حفظ الوثيقة المعروضة (وجه واحد فقط) في سجل DRT — أرشيف الوثائق المنجزة
+  // حفظ الوثيقة المعروضة (وجه واحد فقط) في ارشيف وثائق CNAS
   const handleSaveToDrt = () => {
     if (!currentEmployee) return;
     if (docType !== 'ats-front' && docType !== 'ats-back' && docType !== 'drt') return;
@@ -164,7 +164,7 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
       employee: { ...currentEmployee }
     };
     upsertDrtDoc(rec);
-    setDrtSavedMsg('✓ حُفظت الوثيقة في سجل DRT (أرشيف الوثائق المنجزة)');
+    setDrtSavedMsg('✓ حُفظت الوثيقة في ارشيف وثائق CNAS');
     setTimeout(() => setDrtSavedMsg(null), 5000);
   };
 
@@ -406,10 +406,10 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
                           type="button"
                           onClick={handleSaveToDrt}
                           className="bg-[#0f766e] hover:bg-[#115e59] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
-                          title="حفظ هذه الوثيقة في سجل DRT (أرشيف الوثائق المنجزة)"
+                          title="حفظ هذه الوثيقة في ارشيف وثائق CNAS"
                         >
                           <Archive className="w-4 h-4" />
-                          <span>حفظ في سجل DRT</span>
+                          <span>حفظ في ارشيف وثائق CNAS</span>
                         </button>
                       )}
                     </div>
