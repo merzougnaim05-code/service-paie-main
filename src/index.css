@@ -39,6 +39,31 @@
     display: none !important;
   }
 
+  /* إزالة خلفية التطبيق المتدرجة وحدّ الشاشة الأدنى — كانت تطبع شريطاً أخضر
+     وتدفع المحتوى إلى صفحة ثانية فارغة */
+  .bg-gradient-to-b,
+  #root {
+    background: #ffffff !important;
+    background-image: none !important;
+  }
+  .min-h-screen {
+    min-height: 0 !important;
+  }
+
+  /* إزالة الحشوة السفلية للمحتوى الرئيسي (pb-16 ≈ 17mm) — كانت تدفع
+     ورقة ثانية فارغة بعد الكشف */
+  main {
+    padding-bottom: 0 !important;
+  }
+
+  /* أشرطة عناوين الجداول: بيضاء بخط أسود بدل الكتل السوداء الصلبة */
+  .payslip-bar {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-top: 2px solid #000000 !important;
+    border-bottom: 2px solid #000000 !important;
+  }
+
   /* كل كشف راتب = صفحة مستقلة (الفاصل على مستوى الغلاف) */
   .payslip-block {
     break-after: page;
@@ -83,8 +108,14 @@
   .payslip-document {
     max-width: none !important;
     width: 100% !important;
-    /* ارتفاع أقل من صفحة A4 (281mm متاحة بعد هوامش 8mm) حتى لا يتجاوز الكشف ورقة واحدة */
-    min-height: 248mm !important;
+    /* ورقة A4 واحدة بالضبط: 281mm متاحة بعد هوامش 8mm — ارتفاع ثابت يملأ الصفحة
+       مع توزيع الأقسام عمودياً (التوقيع والرمز أسفل الورقة). بلا zoom حتى لا يتجاوز
+       الارتفاع الفعلي منطقة الطباعة فينشطر لصفحة ثانية فارغة */
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    height: 278mm !important;
+    min-height: 278mm !important;
     max-height: 278mm !important;
     overflow: hidden !important;
     margin: 0 auto !important;
@@ -96,7 +127,6 @@
     line-height: 1.45 !important;
     box-shadow: none !important;
     text-rendering: geometricPrecision !important;
-    zoom: 0.96;
   }
 
   .payslip-document h3 {
@@ -111,7 +141,7 @@
 
   .payslip-document th,
   .payslip-document td {
-    padding: 2px 4px !important;
+    padding: 1.5px 4px !important;
   }
 
   .payslip-document .net-callout {
@@ -125,8 +155,8 @@
   }
 
   .payslip-document img {
-    width: 48px !important;
-    height: 48px !important;
+    width: 44px !important;
+    height: 44px !important;
   }
 
   /* منع تقطيع الصفوف وصندوق الصافي بين صفحتين */
@@ -134,4 +164,73 @@
   .payslip-document .net-callout {
     page-break-inside: avoid;
   }
+}
+
+/* ===== التقاط PDF: نسخة بمواصفات الطباعة (مستنسخة خارج الشاشة أثناء الالتقاط) =====
+   تطابق قواعد الطباعة أعلاه (العرض 190mm، الارتفاع 278mm، بلا ظل
+   ولا زوايا مستديرة، وأشرطة العناوين بيضاء) حتى يخرج ملف PDF نظيفاً يملأ ورقة A4. */
+.pdf-capture-sheet {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  width: 190mm;
+  background: #ffffff;
+  z-index: -1;
+}
+
+.pdf-capture-sheet .payslip-document {
+  width: 190mm !important;
+  max-width: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  height: 278mm !important;
+  min-height: 278mm !important;
+  max-height: 278mm !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 4mm 5mm !important;
+  border-radius: 0 !important;
+  border-width: 1.5px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  line-height: 1.45 !important;
+  box-shadow: none !important;
+}
+
+.pdf-capture-sheet .payslip-document h3 {
+  font-size: 18px !important;
+  margin-top: 2px !important;
+  margin-bottom: 2px !important;
+}
+
+.pdf-capture-sheet .payslip-document table {
+  font-size: 10px !important;
+}
+
+.pdf-capture-sheet .payslip-document th,
+.pdf-capture-sheet .payslip-document td {
+  padding: 1.5px 4px !important;
+}
+
+.pdf-capture-sheet .payslip-document .net-callout {
+  padding: 5px !important;
+  margin-bottom: 2mm !important;
+}
+
+.pdf-capture-sheet .payslip-document .net-callout .text-xl,
+.pdf-capture-sheet .payslip-document .net-callout .text-2xl {
+  font-size: 17px !important;
+}
+
+.pdf-capture-sheet .payslip-document img {
+  width: 44px !important;
+  height: 44px !important;
+}
+
+.pdf-capture-sheet .payslip-bar {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-top: 2px solid #000000 !important;
+  border-bottom: 2px solid #000000 !important;
 }

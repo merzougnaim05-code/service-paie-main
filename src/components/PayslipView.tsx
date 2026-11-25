@@ -173,7 +173,7 @@ const PayslipSheet: React.FC<PayslipSheetProps> = ({
 
       {/* Allowances Table — الأرقام موسّطة */}
       <div className="mb-2.5">
-        <div className="bg-black text-white text-center py-1 font-bold text-[11px] sm:text-xs">
+        <div className="payslip-bar bg-black text-white text-center py-1 font-bold text-[11px] sm:text-xs">
           {allowances.title}
         </div>
         <table className="w-full border-collapse text-[11px] border-2 border-black">
@@ -309,7 +309,7 @@ const MergedTable: React.FC<MergedTableData> = ({
   extraRows
 }) => (
   <div className="mb-2.5">
-    <div className="bg-black text-white text-center py-1 font-bold text-[11px]">{title}</div>
+    <div className="payslip-bar bg-black text-white text-center py-1 font-bold text-[11px]">{title}</div>
     <table className="w-full border-collapse text-[10px] border-2 border-black">
       <thead>
         <tr className="bg-white border-b-2 border-black text-black">
