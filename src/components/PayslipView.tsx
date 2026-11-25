@@ -3,13 +3,39 @@ import { Employee, Settings, PayslipResult } from '../types';
 import { JOBS, MONTHS_AR } from '../data/salaryGrids';
 import { computePayslip, fmt, amountWordsDZD, isProfessionalWorkerJob } from '../utils/salaryCalculator';
 import { exportElementsToPdf } from '../utils/exportPdf';
-import QRCode from 'qrcode';
+import JsBarcode from 'jsbarcode';
 import { Printer, Download } from 'lucide-react';
 
 interface PayslipViewProps {
   employees: Employee[];
   settings: Settings;
   selectedEmpId?: string;
+}
+
+/**
+ * توليد الرمز الشريطي CODE128 للرقم التسلسلي (7 أرقام) كصورة SVG (data URL).
+ * CODE128 لا يرمّز العربية، لذا محتواه الرقم التسلسلي فقط؛ ويُعرض الرقم
+ * مطبوعاً تحت الأشرطة (displayValue) ليقرأه الإنسان أيضاً.
+ */
+function makeBarcodeDataUrl(serial: string): string {
+  try {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    JsBarcode(svg, serial, {
+      format: 'CODE128',
+      width: 2,
+      height: 56,
+      displayValue: true,
+      font: 'monospace',
+      fontSize: 15,
+      margin: 12, // منطقة بيضاء (quiet zone) حول الأشرطة حتى يقرأها الماسح
+      background: '#ffffff',
+      lineColor: '#000000',
+    });
+    const xml = new XMLSerializer().serializeToString(svg);
+    return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(xml)));
+  } catch {
+    return '';
+  }
 }
 
 /**
@@ -93,7 +119,7 @@ interface PayslipSheetProps {
   deductions: SheetSection;
   netLabel: string;
   net: number;
-  qrDataUrl: string;
+  barcodeSrc: string;
 }
 
 const PayslipSheet: React.FC<PayslipSheetProps> = ({
@@ -110,7 +136,7 @@ const PayslipSheet: React.FC<PayslipSheetProps> = ({
   deductions,
   netLabel,
   net,
-  qrDataUrl
+  barcodeSrc
 }) => (
   <div className="payslip-page">
     <div
@@ -255,7 +281,7 @@ const PayslipSheet: React.FC<PayslipSheetProps> = ({
         <strong>بتاريخ:</strong> <span className="font-mono">{issueDate}</span>
       </div>
 
-      {/* Footer with QR Code and Signature */}
+      {/* Footer with barcode and signature */}
       <div className="flex justify-between items-center pt-2 border-t border-dotted border-black text-[10px] text-center">
         <div className="flex-1 text-center">
           <div className="font-bold text-gray-800">إمضاء وختم المقتصد</div>
@@ -264,15 +290,15 @@ const PayslipSheet: React.FC<PayslipSheetProps> = ({
 
         <div className="flex-1 text-center">
           <div className="font-bold text-gray-800">التحقق من صحة الكشف</div>
-          <div className="text-[9px] text-gray-500 mt-0.5">امسح رمز الاستجابة السريعة QR</div>
+          <div className="text-[9px] text-gray-500 mt-0.5">امسح الرمز الشريطي</div>
         </div>
 
         <div className="flex-1 flex justify-center">
-          {qrDataUrl ? (
-            <img src={qrDataUrl} alt="QR Code" className="w-14 h-14 border border-black p-0.5 rounded bg-white" />
+          {barcodeSrc ? (
+            <img src={barcodeSrc} alt="الرمز الشريطي" className="payslip-barcode h-16 w-auto bg-white p-1" />
           ) : (
-            <div className="w-14 h-14 border border-black flex items-center justify-center text-[10px] text-gray-500 bg-white">
-              QR
+            <div className="w-32 h-12 border border-black flex items-center justify-center text-[10px] text-gray-500 bg-white">
+              رمز شريطي
             </div>
           )}
         </div>
@@ -364,7 +390,7 @@ interface MergedSheetProps {
   deductions: MergedTableData;
   monthlyNet: number;
   annualNet: number;
-  qrDataUrl: string;
+  barcodeSrc: string;
 }
 
 const MergedPayslipSheet: React.FC<MergedSheetProps> = ({
@@ -381,7 +407,7 @@ const MergedPayslipSheet: React.FC<MergedSheetProps> = ({
   deductions,
   monthlyNet,
   annualNet,
-  qrDataUrl
+  barcodeSrc
 }) => (
   <div className="payslip-page">
     <div
@@ -476,7 +502,7 @@ const MergedPayslipSheet: React.FC<MergedSheetProps> = ({
         <strong>بتاريخ:</strong> <span className="font-mono">{issueDate}</span>
       </div>
 
-      {/* Footer with QR Code and Signature — مشترك */}
+      {/* Footer with barcode and signature — مشترك */}
       <div className="flex justify-between items-center pt-2 border-t border-dotted border-black text-[10px] text-center">
         <div className="flex-1 text-center">
           <div className="font-bold text-gray-800">إمضاء وختم المقتصد</div>
@@ -485,15 +511,15 @@ const MergedPayslipSheet: React.FC<MergedSheetProps> = ({
 
         <div className="flex-1 text-center">
           <div className="font-bold text-gray-800">التحقق من صحة الكشف</div>
-          <div className="text-[9px] text-gray-500 mt-0.5">امسح رمز الاستجابة السريعة QR</div>
+          <div className="text-[9px] text-gray-500 mt-0.5">امسح الرمز الشريطي</div>
         </div>
 
         <div className="flex-1 flex justify-center">
-          {qrDataUrl ? (
-            <img src={qrDataUrl} alt="QR Code" className="w-14 h-14 border border-black p-0.5 rounded bg-white" />
+          {barcodeSrc ? (
+            <img src={barcodeSrc} alt="الرمز الشريطي" className="payslip-barcode h-16 w-auto bg-white p-1" />
           ) : (
-            <div className="w-14 h-14 border border-black flex items-center justify-center text-[10px] text-gray-500 bg-white">
-              QR
+            <div className="w-32 h-12 border border-black flex items-center justify-center text-[10px] text-gray-500 bg-white">
+              رمز شريطي
             </div>
           )}
         </div>
@@ -517,10 +543,7 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
   const [periodStart, setPeriodStart] = useState<number>(1);
   const [specimen, setSpecimen] = useState<boolean>(false);
   const [exporting, setExporting] = useState<boolean>(false);
-  const [qrMonthly, setQrMonthly] = useState<string>('');
-  const [qrAnnual, setQrAnnual] = useState<string>('');
-  const [qrBoth, setQrBoth] = useState<string>('');
-  const [qrPeriod, setQrPeriod] = useState<string>('');
+  const [barcodeSrc, setBarcodeSrc] = useState<string>('');
   const monthlyRef = useRef<HTMLDivElement>(null);
   const annualRef = useRef<HTMLDivElement>(null);
   const mergedRef = useRef<HTMLDivElement>(null);
@@ -528,6 +551,11 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
 
   const currentEmployee = employees.find(e => e.id === empId) || employees[0];
   const currentJob = currentEmployee ? JOBS[currentEmployee.jobIdx] : undefined;
+
+  // الرقم التسلسلي للكشف (7 أرقام) — هو نفسه محتوى الرمز الشريطي
+  const serial = currentEmployee
+    ? String(currentEmployee.id).replace(/\D/g, '').slice(-7).padStart(7, '0') || '0029381'
+    : '';
 
   const result = currentEmployee
     ? computePayslip(currentEmployee, month, year, settings)
@@ -544,31 +572,11 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
     ? buildAggregate(currentEmployee, clampedStart, periodCount, year, settings)
     : null;
 
-  // Generate QR codes for both payslips
+  // الرمز الشريطي للكشف: الرقم التسلسلي (7 أرقام) — مشترك بين الكشوف الأربعة
   useEffect(() => {
-    if (!currentEmployee || !result || !annual) return;
-    const serial = String(currentEmployee.id).replace(/\D/g, '').slice(-7).padStart(7, '0') || '1029384';
-    const base = `${currentEmployee.name} | ${currentJob?.name || ''} | مؤسسة: ${settings.institution} | رقم: ${serial}`;
-    QRCode.toDataURL(`كشف الراتب | ${base} | ${MONTHS_AR[month]} ${year} | الصافي: ${fmt(result.net)} دج`, { width: 100, margin: 1 })
-      .then(setQrMonthly)
-      .catch(() => {});
-    QRCode.toDataURL(`كشف راتب سنوي | ${base} | سنة ${year} | الصافي السنوي: ${fmt(annual.net)} دج`, { width: 100, margin: 1 })
-      .then(setQrAnnual)
-      .catch(() => {});
-    QRCode.toDataURL(`كشف الراتب الشهري والسنوي | ${base} | ${MONTHS_AR[month]} ${year} | الصافي الشهري: ${fmt(result.net)} دج | الصافي السنوي: ${fmt(annual.net)} دج`, { width: 100, margin: 1 })
-      .then(setQrBoth)
-      .catch(() => {});
-  }, [currentEmployee, result, annual, month, year, settings.institution]);
-
-  // رمز QR للكشف المجمع (ثلاثي/سداسي)
-  useEffect(() => {
-    if (!currentEmployee || !periodAgg) { setQrPeriod(''); return; }
-    const serial = String(currentEmployee.id).replace(/\D/g, '').slice(-7).padStart(7, '0') || '1029384';
-    const base = `${currentEmployee.name} | ${currentJob?.name || ''} | مؤسسة: ${settings.institution} | رقم: ${serial}`;
-    QRCode.toDataURL(`كشف راتب مجمع | ${base} | من ${MONTHS_AR[clampedStart]} إلى ${MONTHS_AR[periodEnd]} ${year} | الصافي: ${fmt(periodAgg.net)} دج`, { width: 100, margin: 1 })
-      .then(setQrPeriod)
-      .catch(() => {});
-  }, [currentEmployee, periodAgg, clampedStart, periodEnd, year, settings.institution]);
+    if (!currentEmployee || !serial) { setBarcodeSrc(''); return; }
+    setBarcodeSrc(makeBarcodeDataUrl(serial));
+  }, [currentEmployee, serial]);
 
   const handlePrint = (target: 'monthly' | 'annual' | 'both' | 'period') => {
     setPrintTarget(target);
@@ -620,7 +628,6 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
     );
   }
 
-  const serial = String(currentEmployee.id).replace(/\D/g, '').slice(-7).padStart(7, '0') || '0029381';
   const issueDate = new Date().toLocaleDateString('ar-DZ');
   const index = result.g.base + (currentEmployee.echelon > 0 && currentEmployee.echelon <= result.g.ech.length ? result.g.ech[currentEmployee.echelon - 1] : 0);
   const grossExcludingPerf = Math.max(0, result.gross - result.perfBonusTotal);
@@ -1139,7 +1146,7 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
               deductions={unifiedDeductions}
               monthlyNet={result.net}
               annualNet={annual.net}
-              qrDataUrl={qrBoth}
+              barcodeSrc={barcodeSrc}
             />
           </div>
         )}
@@ -1163,7 +1170,7 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
               deductions={monthlyDeductions}
               netLabel="الـصـافـي لـلـدفـع (Net à payer)"
               net={result.net}
-              qrDataUrl={qrMonthly}
+              barcodeSrc={barcodeSrc}
             />
           </div>
         )}
@@ -1187,7 +1194,7 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
               deductions={annualDeductions}
               netLabel="الـصـافـي السـنـوي لـلـدفـع (Net annuel à payer)"
               net={annual.net}
-              qrDataUrl={qrAnnual}
+              barcodeSrc={barcodeSrc}
             />
           </div>
         )}
@@ -1210,7 +1217,7 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
               deductions={periodDeductions}
               netLabel="الـصـافـي الـمـجـمـع لـلـفـتـرة (Net à payer)"
               net={periodAgg.net}
-              qrDataUrl={qrPeriod}
+              barcodeSrc={barcodeSrc}
             />
           </div>
         )}

@@ -159,6 +159,13 @@
     height: 44px !important;
   }
 
+  /* الرمز الشريطي شريط أفقي: ارتفاع ثابت وعرض تلقائي ليحافظ على نسبة الأشرطة
+     (60px ≈ 16مم: وحدة الشريط ≈ 0.26مم في الطباعة حتى يقرأها الماسح) */
+  .payslip-document img.payslip-barcode {
+    width: auto !important;
+    height: 60px !important;
+  }
+
   /* منع تقطيع الصفوف وصندوق الصافي بين صفحتين */
   .payslip-document tr,
   .payslip-document .net-callout {
@@ -226,6 +233,11 @@
 .pdf-capture-sheet .payslip-document img {
   width: 44px !important;
   height: 44px !important;
+}
+
+.pdf-capture-sheet .payslip-document img.payslip-barcode {
+  width: auto !important;
+  height: 60px !important;
 }
 
 .pdf-capture-sheet .payslip-bar {
