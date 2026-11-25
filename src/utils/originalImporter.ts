@@ -1,12 +1,20 @@
 import * as XLSX from 'xlsx';
-import { Employee, MaritalStatus } from '../types';
+import { Employee, EmploymentStatus, MaritalStatus } from '../types';
 import { JOBS } from '../data/salaryGrids';
 import { GRILLE } from '../data/salaryGrids';
 
 /* ===== استيراد المعطيات من ملف برنامج الرواتب الأصلي (Excel) =====
-   المصدر: ورقة «سحب المنح العائلية» — سجل الموظفين:
-   الاسم | اللقب | رقم الحساب البريد | المهنة | تاريخ التوظيف | الصنف | الدرجة |
-   الحالة العائلية | عدد الأولاد | (+10) | وتواريخ ميلاد الأطفال (10 خانات)         */
+   المصدران:
+   1) ورقة «حجز المعلومات» (المصدر الرئيسي): سجل الموظفين الكامل —
+      الاسم | اللقب | رقم الحساب البريدي | المهنة | تاريخ الإزدياد | مكان الإزدياد |
+      العنوان | رقم الضمان الاجتماعي | تاريخ التوظيف | تاريخ آخر يوم عمل |
+      تاريخ الاستئناف | عدد سنوات العمل | الرمز | رمز منحة الأوراس | الصنف الحالي |
+      الصنف القديم 89 | الدرجة | الحالة العائلية | عدد الأطفال | أكبر من 10س |
+      الأجر الوحيد | التعاضدية | الصفة | ... — تُقرأ الأعمدة من ترويسات الصف
+      نفسه فلا تضر إزاحة الأعمدة، مع رجوع للأعمدة الثابتة عند غياب ترويسة.
+   2) ورقة «سحب المنح العائلية»: مصدر تواريخ ميلاد الأطفال (10 كتل)،
+      وبديل للحقول الأساسية عند غياب ورقة «حجز المعلومات».
+   الدمج بين الورقتين بالاسم (بعد التطبيع).                                  */
 
 /** تطبيع النص العربي للمطابقة */
 const norm = (s: string): string =>
@@ -19,6 +27,11 @@ const norm = (s: string): string =>
     .replace(/\s+/g, ' ')
     .trim();
 const key = (s: string): string => norm(s).replace(/\s/g, '');
+
+/** مفتاح الدمج بالاسم: المفتاح المطبّع، وإن كان فارغاً (اسم بلا حروف عربية
+    كما في الأسماء الرمزية L/N) يُستعمل الاسم الخام صغير الحروف حتى لا
+    تتصادم أسماء مختلفة كلها على مفتاح فارغ واحد. */
+const mergeKey = (s: string): string => key(s) || s.trim().toLowerCase();
 
 /** رقم تسلسل إكسل أو نص dd/mm/yyyy إلى yyyy-mm-dd */
 function anyToDate(v: unknown): string {
@@ -43,6 +56,12 @@ function anyToDate(v: unknown): string {
 export function matchJobIdx(label: string): number {
   const raw = key(label);
   if (!raw || raw === '0') return -1;
+  // 0) مطابقة تامة (بعد التطبيع) تفوق أي تقريب — وإلا قد يتفوق عليها
+  //    التقريب بالكلمات المفتاحية (مثال: «أستاذ التعليم الثانوي» كان
+  //    يُطابَق خطأً مع «أستاذ مميز في التعليم الثانوي» لأن التقريب
+  //    يصل إلى 121 نقطة مقابل 100 للمطابقة التامة).
+  const exact = JOBS.findIndex(j => key(j.name) === raw);
+  if (exact >= 0) return exact;
   // 1) مطابقة مباشرة
   let best = -1, bestScore = 0;
   JOBS.forEach((j, i) => {
@@ -80,6 +99,46 @@ function matchMarital(v: string): MaritalStatus | '' {
   return '';
 }
 
+/** نعم/لا (أو 1/0، true/false) إلى منطقي — null عند غياب قيمة واضحة */
+function parseYesNo(v: unknown): boolean | null {
+  if (v === null || v === undefined || v === '') return null;
+  if (typeof v === 'boolean') return v;
+  if (typeof v === 'number') return v !== 0;
+  const raw = String(v).trim().toLowerCase();
+  if (['yes', 'oui', 'true', '1'].includes(raw)) return true;
+  if (['no', 'non', 'false', '0'].includes(raw)) return false;
+  const s = norm(raw);
+  if (!s || s === '0') return null;
+  if (s.startsWith('نعم')) return true;
+  if (s.startsWith('لا')) return false;
+  return null;
+}
+
+/** الصفة من الورقة إلى حالة التوظيف — '' عند غياب قيمة واضحة.
+    ملاحظة: نوع EmploymentStatus لا يعرف «متربص» فيُقرَّب إلى «متعاقد». */
+function matchEmploymentStatus(v: string): EmploymentStatus | '' {
+  if (!v || v === '0') return '';
+  const k = norm(v);
+  if (k.startsWith('مرس')) return 'مرسم';
+  if (k.startsWith('متع')) return 'متعاقد';
+  if (k.startsWith('مترب')) return 'متعاقد';
+  return '';
+}
+
+/** الصنف: من الورقة إن وُجد في الشبكة، وإلا صنف الخاصية للوظيفة */
+function resolveCategory(catVal: number, jobIdx: number): number {
+  const j = jobIdx >= 0 ? JOBS[jobIdx] : null;
+  if (catVal > 0) {
+    const gi = GRILLE.findIndex(g => String(g.cat) === String(catVal));
+    return gi >= 0 ? gi : (typeof j?.cat === 'number' ? j.cat - 1 : 0);
+  }
+  if (typeof j?.cat === 'number') {
+    const gi = GRILLE.findIndex(g => String(g.cat) === String(j.cat));
+    return gi >= 0 ? gi : j.cat - 1;
+  }
+  return 0;
+}
+
 export interface ImportReport {
   imported: number;
   updated: number;
@@ -88,14 +147,18 @@ export interface ImportReport {
   drafts: Employee[];
 }
 
-/** قراءة الملف الأصلي وبناء قوائم الموظفين (بدون حفظ) */
-export async function parseOriginalWorkbook(file: File): Promise<ImportReport> {
-  const buf = await file.arrayBuffer();
-  const wb = XLSX.read(buf, { cellDates: false });
-  const sheetName = wb.SheetNames.find(s => s.includes('سحب المنح العائلية'))
-    || wb.SheetNames.find(s => s.includes('المنح العائلية') && s.includes('سحب'));
-  if (!sheetName) throw new Error('لم يتم العثور على ورقة سجل الموظفين «سحب المنح العائلية» في الملف');
-  const ws = wb.Sheets[sheetName];
+/* ---------- ورقة «سحب المنح العائلية» ---------- */
+
+interface FamRec {
+  key: string; name: string; num: unknown;
+  postal: string; jobLabel: string; jobIdx: number;
+  hireDate: string; catVal: number; echVal: number;
+  marital: MaritalStatus | ''; children: number; children10: number;
+  births: string[]; realChildren: number; older10: number;
+}
+
+/** قراءة ورقة المنح العائلية: الحقول الأساسية + تواريخ ميلاد الأطفال */
+function parseFamSheet(ws: XLSX.WorkSheet): { recs: FamRec[]; skipped: number; unmatched: string[] } {
   const range = XLSX.utils.decode_range(ws['!ref']);
   const cell = (r: number, c: number) => {
     const cc = ws[XLSX.utils.encode_cell({ r, c })];
@@ -103,18 +166,19 @@ export async function parseOriginalWorkbook(file: File): Promise<ImportReport> {
   };
   // كتلتا ميلاد الأطفال: كل كتلة عنوانها L..الخ (عمود البداية كل 5 أعمدة من L=11)
   const childBlocks = [11, 16, 21, 26, 31, 36, 41, 46, 51, 56];
-  const drafts: Employee[] = [];
+  const recs: FamRec[] = [];
   const unmatched: Record<string, true> = {};
-  let imported = 0, updated = 0, skipped = 0;
+  let skipped = 0;
+  const isName = (s: string) => !!s && s !== '0' && !/^[\d.,\s]+$/.test(s) && s.trim().length >= 1 && !s.includes('الاسم') && !s.includes('اللقب');
 
   for (let row = 3; row <= range.e.r; row++) {
     const num = cell(row, 0);
     const prenom = String(cell(row, 1) ?? '').trim();   // الاسم
     const nom = String(cell(row, 2) ?? '').trim();      // اللقب
-    const isName = (s: string) => !!s && s !== '0' && !/^[\d.,\s]+$/.test(s) && s.trim().length >= 1 && !s.includes('الاسم') && !s.includes('اللقب');
     if (!isName(prenom) && !isName(nom)) { skipped++; continue; }
 
-    const postal = String(cell(row, 3) ?? '').trim();
+    const postalRaw = String(cell(row, 3) ?? '').trim();
+    const postal = postalRaw && postalRaw !== '0' ? postalRaw : '';
     const jobLabel = String(cell(row, 4) ?? '').trim(); // المهنة
     const hireDate = anyToDate(cell(row, 5));           // تاريخ التوظيف
     const catVal = Number(cell(row, 6)) || 0;           // الصنف
@@ -149,54 +213,243 @@ export async function parseOriginalWorkbook(file: File): Promise<ImportReport> {
     const name = (isName(prenom) ? prenom : '') + (isName(prenom) && isName(nom) ? ' ' : '') + (isName(nom) ? nom : '');
     if (!name) { skipped++; continue; }
 
-    const j = jobIdx >= 0 ? JOBS[jobIdx] : null;
-    // الصنف: من الورقة إن وُجد في الشبكة، وإلا صنف الخاصية للوظيفة
-    let category = 0;
-    if (catVal > 0) {
-      const gi = GRILLE.findIndex(g => String(g.cat) === String(catVal));
-      category = gi >= 0 ? gi : (typeof j?.cat === 'number' ? j.cat - 1 : 0);
-    } else if (typeof j?.cat === 'number') {
-      const gi = GRILLE.findIndex(g => String(g.cat) === String(j.cat));
-      category = gi >= 0 ? gi : j.cat - 1;
-    }
-    const echelon = echVal > 0 && echVal <= 12 ? echVal : 0;
-
-    drafts.push({
-      id: 'imp_' + String(num ?? drafts.length + 1) + '_' + key(name).slice(0, 8),
-      name,
-      jobIdx: jobIdx >= 0 ? jobIdx : 1,
-      ssn: '',
-      category,
-      echelon,
-      employmentStatus: 'مرسم',
-      hireDate,
-      yearsOverride: null,
-      marital: marital || 'أعزب',
-      children: Math.max(children, realChildren),
-      children10: Math.max(children10, older10),
-      singleWage: marital === 'متزوج' ? false : false,
-      mutuelle: true,
-      mutuelleNum: '',
-      performancePct: 40,
-      incomeDifference: 0,
-      experienceDifference: 0,
-      birthPlace: '',
-      birthDate: '',
-      address: '',
-      postalAccount: postal && postal !== '0' ? postal : '',
-      lastWorkDate: '',
-      resumeDate: '',
-      allowances: [],
-      childrenBirths: births,
-      pensionHistory: [],
-      teacherType: 'عادي',
-      auresMode: 'auto',
-      auresAmount: 0
+    recs.push({
+      key: mergeKey(name), name, num, postal, jobLabel, jobIdx, hireDate,
+      catVal, echVal, marital, children, children10, births, realChildren, older10,
     });
-    imported++;
   }
 
-  return { imported, updated, skipped, unmatchedJobs: Object.keys(unmatched), drafts };
+  return { recs, skipped, unmatched: Object.keys(unmatched) };
+}
+
+/* ---------- ورقة «حجز المعلومات» (المصدر الرئيسي) ---------- */
+
+/** أعمدة ورقة «حجز المعلومات» الثابتة (احتياط عند غياب الترويسة) — 0-based */
+const INFO_FIXED: Record<string, number> = {
+  first: 1, last: 2, postal: 3, job: 4, birthDate: 5, birthPlace: 6, address: 7,
+  ssn: 8, hireDate: 9, lastWorkDate: 10, resumeDate: 11, years: 12, code: 13,
+  auresCode: 14, category: 15, oldCat: 16, echelon: 17, marital: 18,
+  children: 19, children10: 20, singleWage: 21, mutuelle: 24, status: 26,
+  singleWageAmt: 44,
+};
+/** مفاتيح الترويسات (بعد التطبيع key) لكل حقل في ورقة «حجز المعلومات» —
+    تُحسب بـ key نفسها حتى لا يختلف حرف مكتوب هنا عن التطبيع
+    (مثال: «الإستئناف» ترويستها تُطبَّع إلى «الاستيناف» بالياء). */
+const INFO_HEADERS: Record<string, string> = {
+  first: key('الاسم'), last: key('اللقب'), postal: key('رقم الحساب البريدي'), job: key('الوظيفة'),
+  birthDate: key('تاريخ الإزدياد'), birthPlace: key('مكان الإزدياد'), address: key('العنوان'),
+  ssn: key('رقم الضمان الإجتماعي'), hireDate: key('تاريخ التوظيف'), lastWorkDate: key('تاريخ أخر يوم عمل'),
+  resumeDate: key('تاريخ الإستئناف'), years: key('عدد سنوات العمل'), code: key('الرمز'),
+  auresCode: key('رمز منحة الاوراس'), category: key('الصنف الحالي'), oldCat: key('الصنف القديم 89'),
+  echelon: key('الدرجة'), marital: key('الحالة العائلية'), children: key('عدد الأطفال'),
+  children10: key('اكبر من 10س'), singleWage: key('الاجر الوحيد'), mutuelle: key('التعاضدية'),
+  status: key('الصفة'),
+};
+
+interface InfoRec {
+  key: string; name: string; num: unknown;
+  postal: string; jobLabel: string; jobIdx: number;
+  ssn: string; catVal: number; echVal: number;
+  category: number; echelon: number;
+  employmentStatus: EmploymentStatus; hireDate: string; yearsOverride: number | null;
+  marital: MaritalStatus | ''; children: number; children10: number;
+  singleWage: boolean; mutuelle: boolean;
+  birthPlace: string; birthDate: string; address: string;
+  lastWorkDate: string; resumeDate: string;
+}
+
+/** قراءة ورقة «حجز المعلومات»: الحقول الكاملة للموظف.
+    الأعمدة تُحدَّد من ترويسات الصف نفسه (فلا تضر إزاحة الأعمدة)،
+    ومن لم توجد ترويسة له يُؤخذ من العمود الثابت. ترويسة «الأجر الوحيد»
+    تظهر مرتين: الأولى (نعم/لا) والثانية مبلغه — تُستعمل الثانية دليلاً
+    احتياطياً للأجر الوحيد عند غياب الأولى. */
+function parseInfoSheet(ws: XLSX.WorkSheet): { recs: InfoRec[]; skipped: number; unmatched: string[] } {
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  const cell = (r: number, c: number) => {
+    const cc = ws[XLSX.utils.encode_cell({ r, c })];
+    return cc ? cc.v : undefined;
+  };
+  // إيجاد صف الترويسات: الصف الذي يحوي «الإسم» و«اللقب» في أي عمودين
+  // (فلا تضر إزاحة الأعمدة) — وإلا الصف 10 ثابتاً
+  let headerRow = 9;
+  for (let r = 0; r <= Math.min(20, range.e.r); r++) {
+    let hasFirst = false, hasLast = false;
+    for (let c = 0; c <= Math.min(20, range.e.c); c++) {
+      const k = key(String(cell(r, c) ?? ''));
+      if (k === 'الاسم') hasFirst = true;
+      if (k === 'اللقب') hasLast = true;
+    }
+    if (hasFirst && hasLast) { headerRow = r; break; }
+  }
+  // خريطة الترويسات: مفتاح الترويسة → الأعمدة التي تحمله
+  const headerCols: Record<string, number[]> = {};
+  for (let c = 0; c <= range.e.c; c++) {
+    const k = key(String(cell(headerRow, c) ?? ''));
+    if (!k) continue;
+    (headerCols[k] = headerCols[k] || []).push(c);
+  }
+  const col = (field: string): number => {
+    if (field === 'singleWage') return headerCols[INFO_HEADERS.singleWage]?.[0] ?? INFO_FIXED.singleWage;
+    if (field === 'singleWageAmt') return headerCols[INFO_HEADERS.singleWage]?.[1] ?? INFO_FIXED.singleWageAmt;
+    return headerCols[INFO_HEADERS[field]]?.[0] ?? INFO_FIXED[field];
+  };
+  const isName = (s: string) => !!s && s !== '0' && !/^[\d.,\s]+$/.test(s) && s.trim().length >= 1 && !s.includes('الاسم') && !s.includes('اللقب');
+  const str = (v: unknown): string => {
+    const s = String(v ?? '').trim();
+    return s === '0' ? '' : s;
+  };
+  const recs: InfoRec[] = [];
+  const unmatched: Record<string, true> = {};
+  let skipped = 0;
+
+  for (let row = headerRow + 1; row <= range.e.r; row++) {
+    const prenom = str(cell(row, col('first')));
+    const nom = str(cell(row, col('last')));
+    if (!isName(prenom) && !isName(nom)) { skipped++; continue; }
+
+    const jobLabel = str(cell(row, col('job')));
+    const jobIdx = matchJobIdx(jobLabel);
+    if (jobIdx < 0 && jobLabel) unmatched[jobLabel] = true;
+
+    const catVal = Number(cell(row, col('category'))) || 0;   // الصنف الحالي
+    const echVal = Number(cell(row, col('echelon'))) || 0;    // الدرجة
+    const marital = matchMarital(str(cell(row, col('marital'))));
+    const sw = parseYesNo(cell(row, col('singleWage')));      // الأجر الوحيد (نعم/لا)
+    const swAmt = Number(cell(row, col('singleWageAmt'))) || 0; // مبلغ الأجر الوحيد (دليل احتياطي)
+    const singleWage = sw !== null ? sw : swAmt > 0;
+    const mut = parseYesNo(cell(row, col('mutuelle')));       // التعاضدية
+    const status = matchEmploymentStatus(str(cell(row, col('status')))); // الصفة
+    const years = Number(cell(row, col('years'))) || 0;       // عدد سنوات العمل
+
+    const name = (isName(prenom) ? prenom : '') + (isName(prenom) && isName(nom) ? ' ' : '') + (isName(nom) ? nom : '');
+    if (!name) { skipped++; continue; }
+
+    recs.push({
+      key: mergeKey(name), name, num: cell(row, 0),
+      postal: str(cell(row, col('postal'))), jobLabel, jobIdx,
+      ssn: str(cell(row, col('ssn'))),
+      catVal, echVal,
+      category: resolveCategory(catVal, jobIdx),
+      echelon: echVal > 0 && echVal <= 12 ? echVal : 0,
+      employmentStatus: status || 'مرسم',
+      hireDate: anyToDate(cell(row, col('hireDate'))),
+      yearsOverride: years > 0 ? years : null,
+      marital,
+      children: Number(cell(row, col('children'))) || 0,
+      children10: Number(cell(row, col('children10'))) || 0,
+      singleWage,
+      mutuelle: mut !== null ? mut : true,
+      birthPlace: str(cell(row, col('birthPlace'))),
+      birthDate: anyToDate(cell(row, col('birthDate'))),
+      address: str(cell(row, col('address'))),
+      lastWorkDate: anyToDate(cell(row, col('lastWorkDate'))),
+      resumeDate: anyToDate(cell(row, col('resumeDate'))),
+    });
+  }
+
+  return { recs, skipped, unmatched: Object.keys(unmatched) };
+}
+
+/* ---------- بناء المسودات ---------- */
+
+interface DraftParams {
+  id: string; name: string; jobIdx: number; ssn: string; category: number; echelon: number;
+  employmentStatus: EmploymentStatus; hireDate: string; yearsOverride: number | null;
+  marital: MaritalStatus; children: number; children10: number; singleWage: boolean;
+  mutuelle: boolean; birthPlace: string; birthDate: string; address: string;
+  postalAccount: string; lastWorkDate: string; resumeDate: string; births: string[];
+}
+
+function toDraft(p: DraftParams): Employee {
+  return {
+    id: p.id, name: p.name, jobIdx: p.jobIdx, ssn: p.ssn, category: p.category,
+    echelon: p.echelon, employmentStatus: p.employmentStatus, hireDate: p.hireDate,
+    yearsOverride: p.yearsOverride, marital: p.marital, children: p.children,
+    children10: p.children10, singleWage: p.singleWage, mutuelle: p.mutuelle,
+    mutuelleNum: '', performancePct: 40, incomeDifference: 0, experienceDifference: 0,
+    birthPlace: p.birthPlace, birthDate: p.birthDate, address: p.address,
+    postalAccount: p.postalAccount, lastWorkDate: p.lastWorkDate, resumeDate: p.resumeDate,
+    allowances: [], childrenBirths: p.births, pensionHistory: [],
+    teacherType: 'عادي', auresMode: 'auto', auresAmount: 0,
+  };
+}
+
+/** مسودة من صف ورقة المنح العائلية وحده (المنطق القديم) */
+function famToDraft(r: FamRec): Employee {
+  return toDraft({
+    id: 'imp_' + String(r.num ?? '') + '_' + r.key.slice(0, 8),
+    name: r.name, jobIdx: r.jobIdx >= 0 ? r.jobIdx : 1, ssn: '',
+    category: resolveCategory(r.catVal, r.jobIdx),
+    echelon: r.echVal > 0 && r.echVal <= 12 ? r.echVal : 0,
+    employmentStatus: 'مرسم', hireDate: r.hireDate, yearsOverride: null,
+    marital: r.marital || 'أعزب',
+    children: Math.max(r.children, r.realChildren),
+    children10: Math.max(r.children10, r.older10),
+    singleWage: false, mutuelle: true,
+    birthPlace: '', birthDate: '', address: '',
+    postalAccount: r.postal, lastWorkDate: '', resumeDate: '', births: r.births,
+  });
+}
+
+/** قراءة الملف الأصلي وبناء قوائم الموظفين (بدون حفظ) */
+export async function parseOriginalWorkbook(file: File): Promise<ImportReport> {
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf, { cellDates: false });
+  const famName = wb.SheetNames.find(s => s.includes('سحب المنح العائلية'))
+    || wb.SheetNames.find(s => s.includes('المنح العائلية') && s.includes('سحب'));
+  const infoName = wb.SheetNames.find(s => s.includes('حجز المعلومات'));
+  if (!famName && !infoName) throw new Error('لم يتم العثور على ورقة سجل الموظفين «حجز المعلومات» أو «سحب المنح العائلية» في الملف');
+  const drafts: Employee[] = [];
+  const unmatched: Record<string, true> = {};
+  let skipped = 0;
+
+  let fam: { recs: FamRec[]; skipped: number; unmatched: string[] } | null = null;
+  if (famName) {
+    fam = parseFamSheet(wb.Sheets[famName]);
+    skipped += fam.skipped;
+    fam.unmatched.forEach(u => { unmatched[u] = true; });
+  }
+  const famByKey = new Map<string, FamRec>();
+  if (fam) for (const r of fam.recs) if (!famByKey.has(r.key)) famByKey.set(r.key, r);
+
+  if (infoName) {
+    const info = parseInfoSheet(wb.Sheets[infoName]);
+    skipped += info.skipped;
+    info.unmatched.forEach(u => { unmatched[u] = true; });
+    const infoKeys = new Set<string>();
+    for (const r of info.recs) {
+      infoKeys.add(r.key);
+      const f = famByKey.get(r.key);
+      // تواريخ ميلاد الأطفال من ورقة المنح العائلية (بالاسم)
+      const births = f?.births ?? [];
+      const children = Math.max(r.children, f?.realChildren ?? 0);
+      const children10 = Math.max(r.children10, f?.older10 ?? 0);
+      // بدائل من ورقة المنح عند فراغ الحقل في «حجز المعلومات»
+      const category = r.catVal > 0 ? r.category : (f && f.catVal > 0 ? resolveCategory(f.catVal, r.jobIdx) : r.category);
+      const echelon = r.echelon > 0 ? r.echelon : (f && f.echVal > 0 && f.echVal <= 12 ? f.echVal : r.echelon);
+      drafts.push(toDraft({
+        id: 'imp_' + String(r.num ?? drafts.length + 1) + '_' + r.key.slice(0, 8),
+        name: r.name, jobIdx: r.jobIdx >= 0 ? r.jobIdx : 1, ssn: r.ssn,
+        category, echelon, employmentStatus: r.employmentStatus,
+        hireDate: r.hireDate || f?.hireDate || '',
+        yearsOverride: r.yearsOverride,
+        marital: r.marital || f?.marital || 'أعزب',
+        children, children10, singleWage: r.singleWage, mutuelle: r.mutuelle,
+        birthPlace: r.birthPlace, birthDate: r.birthDate, address: r.address,
+        postalAccount: r.postal || f?.postal || '',
+        lastWorkDate: r.lastWorkDate, resumeDate: r.resumeDate, births,
+      }));
+    }
+    // من لا يوجد إلا في ورقة المنح العائلية: بالمنطق القديم
+    if (fam) for (const r of fam.recs) {
+      if (infoKeys.has(r.key)) continue;
+      drafts.push(famToDraft(r));
+    }
+  } else if (fam) {
+    for (const r of fam.recs) drafts.push(famToDraft(r));
+  }
+
+  return { imported: drafts.length, updated: 0, skipped, unmatchedJobs: Object.keys(unmatched), drafts };
 }
 
 /** دمج المسودات مع الموظفين الحاليين: تحديث المتطابق بالاسم وإلا إضافته */
@@ -205,8 +458,8 @@ export function mergeEmployees(current: Employee[], drafts: Employee[]): { chang
   const changed: Employee[] = [];
   let updated = 0, added = 0;
   for (const d of drafts) {
-    const dk = key(d.name);
-    const at = out.findIndex(e => key(e.name) === dk);
+    const dk = mergeKey(d.name);
+    const at = out.findIndex(e => mergeKey(e.name) === dk);
     if (at >= 0) {
       const e = out[at];
       if (!e.hireDate && d.hireDate) e.hireDate = d.hireDate;
@@ -218,6 +471,20 @@ export function mergeEmployees(current: Employee[], drafts: Employee[]): { chang
       if (d.jobIdx > 0) e.jobIdx = d.jobIdx;
       if (d.category > 0) e.category = d.category;
       if (d.echelon > 0) e.echelon = d.echelon;
+      // الحقول الجديدة من ورقة «حجز المعلومات»: تُنسخ فقط عندما تحمل
+      // المسودة قيمة فعلية — فلا تُمحى قيمة موجودة بقيمة فارغة من الملف.
+      // (القيم الافتراضية للمسودة — مثل false للأجر الوحيد أو «مرسم» للصفة —
+      // لا تعني «غير موجود في الملف» دائماً، فلا تُلغي قيمة قائمة.)
+      if (d.ssn) e.ssn = d.ssn;
+      if (d.birthDate) e.birthDate = d.birthDate;
+      if (d.birthPlace) e.birthPlace = d.birthPlace;
+      if (d.address) e.address = d.address;
+      if (d.lastWorkDate) e.lastWorkDate = d.lastWorkDate;
+      if (d.resumeDate) e.resumeDate = d.resumeDate;
+      if (d.singleWage) e.singleWage = true;
+      if (!d.mutuelle) e.mutuelle = false;
+      if (d.employmentStatus === 'متعاقد') e.employmentStatus = 'متعاقد';
+      if (d.yearsOverride != null) e.yearsOverride = d.yearsOverride;
       changed.push(e);
       updated++;
     } else { out.push(d); changed.push(d); added++; }

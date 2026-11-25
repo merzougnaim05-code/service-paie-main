@@ -109,7 +109,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
     try {
       const rep: ImportReport = await parseOriginalWorkbook(file);
       if (rep.drafts.length === 0) {
-        showToast('⚠ الملف لا يحتوي أي موظف في ورقة «سحب المنح العائلية»');
+        showToast('⚠ الملف لا يحتوي أي موظف في ورقتي «حجز المعلومات» و«سحب المنح العائلية»');
         return;
       }
       const merged = mergeEmployees(employees, rep.drafts);
@@ -1035,7 +1035,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
               disabled={importBusy}
               onClick={() => importInputRef.current?.click()}
               className="bg-[#1d4ed8] hover:bg-[#1e40af] disabled:opacity-60 text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm"
-              title="استيراد المعطيات من ملف برنامج الرواتب الأصلي (Excel) — ورقة سحب المنح العائلية"
+              title="استيراد المعطيات من ملف برنامج الرواتب الأصلي (Excel) — ورقتا «حجز المعلومات» و«سحب المنح العائلية»"
             >
               {importBusy ? '⏲ جارٍ الاستيراد...' : '⬆ استيراد من ملف البرنامج الأصلي'}
             </button>
