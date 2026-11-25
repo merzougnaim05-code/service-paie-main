@@ -369,9 +369,18 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
                       <Calendar className="w-4 h-4 text-[#047857]" />
                       <span>تواريخ ATS / استئناف العمل — تُحفظ في بيانات الموظف وتظهر فوراً في الوثيقة</span>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
-                      <div>
-                        <label className="block text-xs font-bold text-[#1e293b] mb-1">تاريخ آخر يوم عمل</label>
+                    <div className="flex flex-col gap-2.5 max-w-xl">
+                      <div className="grid grid-cols-[8.5rem_1fr] sm:grid-cols-[10rem_1fr] items-center gap-3">
+                        <label className="text-xs font-bold text-[#1e293b] text-right">تاريخ التوظيف</label>
+                        <input
+                          type="date"
+                          value={currentEmployee.hireDate || ''}
+                          onChange={e => updateAtsDates({ hireDate: e.target.value })}
+                          className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3 py-2 text-xs sm:text-sm focus:outline-none focus:border-[#047857]"
+                        />
+                      </div>
+                      <div className="grid grid-cols-[8.5rem_1fr] sm:grid-cols-[10rem_1fr] items-center gap-3">
+                        <label className="text-xs font-bold text-[#1e293b] text-right">تاريخ آخر يوم عمل</label>
                         <input
                           type="date"
                           value={currentEmployee.lastWorkDate || ''}
@@ -379,8 +388,8 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
                           className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3 py-2 text-xs sm:text-sm focus:outline-none focus:border-[#047857]"
                         />
                       </div>
-                      <div>
-                        <label className="block text-xs font-bold text-[#1e293b] mb-1">تاريخ استئناف العمل</label>
+                      <div className="grid grid-cols-[8.5rem_1fr] sm:grid-cols-[10rem_1fr] items-center gap-3">
+                        <label className="text-xs font-bold text-[#1e293b] text-right">تاريخ استئناف العمل</label>
                         <input
                           type="date"
                           value={currentEmployee.resumeDate || ''}
@@ -389,19 +398,23 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
                           className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3 py-2 text-xs sm:text-sm focus:outline-none focus:border-[#047857] disabled:bg-[#f1f5f9] disabled:text-[#94a3b8]"
                         />
                       </div>
-                      <label className="flex items-center gap-2 cursor-pointer select-none bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-                        <input
-                          type="checkbox"
-                          checked={notResumedChecked}
-                          onChange={e => {
-                            if (e.target.checked) updateAtsDates({ notResumed: true, resumeDate: '' });
-                            else updateAtsDates({ notResumed: false });
-                          }}
-                          className="w-4 h-4 accent-[#047857]"
-                        />
-                        <span className="text-xs font-bold text-[#1e293b]">لم يستأنف عمله إلى يومنا هذا</span>
-                      </label>
-                      {(docType === 'ats-front' || docType === 'ats-back' || docType === 'drt') && (
+                      <div className="grid grid-cols-[8.5rem_1fr] sm:grid-cols-[10rem_1fr] items-center gap-3">
+                        <span className="text-xs font-bold text-[#1e293b] text-right">المعني بالأمر</span>
+                        <label className="flex items-center gap-2 cursor-pointer select-none bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                          <input
+                            type="checkbox"
+                            checked={notResumedChecked}
+                            onChange={e => {
+                              if (e.target.checked) updateAtsDates({ notResumed: true, resumeDate: '' });
+                              else updateAtsDates({ notResumed: false });
+                            }}
+                            className="w-4 h-4 shrink-0 accent-[#047857]"
+                          />
+                          <span className="text-xs font-bold text-[#1e293b]">لم يستأنف عمله إلى يومنا هذا</span>
+                        </label>
+                      </div>
+                      <div className="grid grid-cols-[8.5rem_1fr] sm:grid-cols-[10rem_1fr] items-center gap-3">
+                        <span />
                         <button
                           type="button"
                           onClick={handleSaveToDrt}
@@ -411,7 +424,7 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
                           <Archive className="w-4 h-4" />
                           <span>حفظ في ارشيف وثائق CNAS</span>
                         </button>
-                      )}
+                      </div>
                     </div>
                     {drtSavedMsg && (
                       <div className="mt-2 text-xs font-bold text-[#047857]">{drtSavedMsg}</div>
