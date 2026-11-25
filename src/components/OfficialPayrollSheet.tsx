@@ -39,13 +39,13 @@ export const OfficialPayrollSheet: React.FC<OfficialPayrollSheetProps> = ({
       const job = JOBS[emp.jobIdx];
       const byName = (s: string) => r.allAllowances.find(a => a.name.startsWith(s))?.amount || 0;
       const indice = Math.round((r.basic + r.seniority) / 45);
-      const suffix = (emp.ssn || '').replace(/\D/g, '').slice(-2) || '00';
+      const suffix = (emp.postalAccount || '').replace(/\D/g, '').slice(-2) || '00';
       const catLabel = GRILLE[emp.category]?.cat || '';
       return {
         idx: idx + 1,
         emp,
         jobName: job?.name || 'موظف',
-        ssn: emp.ssn || '',
+        account: emp.postalAccount || '',
         suffix,
         classement: `C00/00 ${catLabel} ${indice} ${catLabel} ${suffix}`,
         basic: r.basic,
@@ -88,7 +88,7 @@ export const OfficialPayrollSheet: React.FC<OfficialPayrollSheetProps> = ({
 
   const cols: { key: string; label: string; get: (r: (typeof rows)[number]) => number | string; num?: boolean }[] = [
     { key: 'n', label: 'سطر', get: r => r.idx },
-    { key: 'ssn', label: 'رقم', get: r => r.ssn },
+    { key: 'account', label: 'رقم', get: r => r.account },
     { key: 'name', label: 'الاسم واللقب', get: () => '' },
     { key: 'h', label: 'ح.ع', get: () => '' },
     { key: 'cl', label: 'التصنيف', get: r => r.classement },
@@ -171,8 +171,8 @@ export const OfficialPayrollSheet: React.FC<OfficialPayrollSheetProps> = ({
               <tr key={r.idx}>
                 <td className={td}>{r.idx}</td>
                 <td className={td} style={{ fontSize: '7.5pt' }}>
-                  <div>{r.ssn}</div>
-                  <div className="text-slate-600">{r.ssn ? `${r.ssn}/${r.suffix}` : ''}</div>
+                  <div>{r.account}</div>
+                  <div className="text-slate-600">{r.account ? `${r.account}/${r.suffix}` : ''}</div>
                 </td>
                 <td className={tdR} style={{ minWidth: '28mm' }}>
                   <div className="font-bold">{r.emp.name}</div>

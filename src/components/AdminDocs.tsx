@@ -53,7 +53,6 @@ const DOC_GROUPS: DocGroup[] = [
     items: [
       { id: 'ats-front', label: 'ATS — الوجه الأول (AS.01)' },
       { id: 'ats-back', label: 'ATS — الوجه الثاني (جدول 12 شهرا)' },
-      { id: 'ats-both', label: 'ATS — الوثيقة الكاملة (وجهان)' },
       { id: 'drt', label: 'استئناف العمل DRT (AS-09)' }
     ]
   },
@@ -108,7 +107,10 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
   onUpdateEmployee
 }) => {
   const [empId, setEmpId] = useState<string>(selectedEmpId || employees[0]?.id || '');
-  const [docType, setDocType] = useState<string>(initialDocType || 'ats-front');
+  const [docType, setDocType] = useState<string>(() => {
+    const valid = DOC_GROUPS.some(g => g.items.some(i => i.id === initialDocType));
+    return valid ? (initialDocType as string) : 'ats-front';
+  });
   const [exportingPdf, setExportingPdf] = useState<boolean>(false);
   // الشهر المرجعي للوجه الثاني من ATS (يُعاد توليد 12 شهرا ending بهذا الشهر)
   const [refMonth, setRefMonth] = useState<number>(new Date().getMonth() + 1);
@@ -119,7 +121,7 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
   const docRef = useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    if (initialDocType) {
+    if (initialDocType && DOC_GROUPS.some(g => g.items.some(i => i.id === initialDocType))) {
       setDocType(initialDocType);
     }
   }, [initialDocType]);
@@ -326,7 +328,7 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
                     </span>
                   </div>
 
-                  {(docType === 'ats-back' || docType === 'ats-both') && (
+                  {(docType === 'ats-back') && (
                     <>
                       <div>
                         <label className="block text-xs font-bold text-[#1e293b] mb-1">الشهر المرجعي (آخر شهر)</label>
@@ -361,7 +363,7 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
                 </div>
 
                 {/* ===== تواريخ ATS / استئناف العمل — تُملأ هنا بدل سجل الرواتب ===== */}
-                {(docType === 'ats-front' || docType === 'ats-back' || docType === 'ats-both' || docType === 'drt') && (
+                {(docType === 'ats-front' || docType === 'ats-back' || docType === 'drt') && (
                   <div className="mt-4 pt-4 border-t border-[#e2e8f0]">
                     <div className="text-xs font-black text-[#0f172a] mb-2 flex items-center gap-1.5">
                       <Calendar className="w-4 h-4 text-[#047857]" />
@@ -414,11 +416,6 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
                     {drtSavedMsg && (
                       <div className="mt-2 text-xs font-bold text-[#047857]">{drtSavedMsg}</div>
                     )}
-                    {docType === 'ats-both' && (
-                      <div className="mt-2 text-[11px] text-[#64748b]">
-                        لحفظ الوثيقة في سجل DRT افتح الوجه الأول أو الوجه الثاني وحده — كل وثيقة تُحفظ وحدها في السجل.
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
@@ -440,54 +437,35 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
                     </AutoFitScale>
                   )}
 
-                  {/* 3. OFFICIAL ATS BOTH (RECTO & VERSO) */}
-                  {docType === 'ats-both' && (
-                    <div className="space-y-8 w-full flex flex-col items-center">
-                      <div className="w-full text-center py-2 text-xs font-bold text-[#64748b] print:hidden">
-                        - الوجه الأول (Recto - ورقة A4) -
-                      </div>
-                      <AutoFitScale docWidth={794}>
-                        <ATSFront employee={currentEmployee} settings={settings} />
-                      </AutoFitScale>
-
-                      <div className="w-full text-center py-2 text-xs font-bold text-[#64748b] print:hidden">
-                        - الوجه الثاني (Verso - ورقة A4) -
-                      </div>
-                      <AutoFitScale docWidth={1123}>
-                        <ATSBack employee={currentEmployee} settings={settings} startMonth={refMonth} startYear={refYear} monthsCount={atsMonthsCount} />
-                      </AutoFitScale>
-                    </div>
-                  )}
-
-                  {/* 4. DRT */}
+                  {/* 3. DRT */}
                   {docType === 'drt' && (
                     <AutoFitScale docWidth={529}>
                       <DrtExcelDoc employee={currentEmployee} settings={settings} />
                     </AutoFitScale>
                   )}
 
-                  {/* 5. Employee Information Form */}
+                  {/* 4. Employee Information Form */}
                   {docType === 'form' && (
                     <AutoFitScale docWidth={794}>
                       <InfoForm employee={currentEmployee} settings={settings} />
                     </AutoFitScale>
                   )}
 
-                  {/* 6. Family Cert */}
+                  {/* 5. Family Cert */}
                   {docType === 'family-cert' && (
                     <AutoFitScale docWidth={794}>
                       <FamilyAllowanceCert employee={currentEmployee} settings={settings} />
                     </AutoFitScale>
                   )}
 
-                  {/* 7. Request for Missing Documents */}
+                  {/* 6. Request for Missing Documents */}
                   {docType === 'request-docs' && (
                     <AutoFitScale docWidth={794}>
                       <DocsRequest employee={currentEmployee} settings={settings} />
                     </AutoFitScale>
                   )}
 
-                  {/* 8. Salary Disclosure Form */}
+                  {/* 7. Salary Disclosure Form */}
                   {docType === 'salary-disclosure' && (
                     <AutoFitScale docWidth={794}>
                       <SalaryDisclosureForm employee={currentEmployee} settings={settings} />
