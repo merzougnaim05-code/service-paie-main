@@ -54,6 +54,23 @@ function getContainer(obj: Record<string, unknown>, subPath?: string): Record<st
   return cur as Record<string, unknown>;
 }
 
+// مثل getContainer لكنه ينشئ المسار إن غاب (لمفتاح جديد لم يُحفظ بعد)
+function ensureContainer(obj: Record<string, unknown>, subPath?: string): Record<string, unknown> | null {
+  if (!subPath) return obj;
+  let cur: Record<string, unknown> = obj;
+  for (const part of subPath.split('.')) {
+    const next = cur[part];
+    if (!next || typeof next !== 'object' || Array.isArray(next)) {
+      const fresh: Record<string, unknown> = {};
+      cur[part] = fresh;
+      cur = fresh;
+    } else {
+      cur = next as Record<string, unknown>;
+    }
+  }
+  return cur;
+}
+
 async function fetchInfo(mecano: string): Promise<{ info: HubInfo } | { error: string }> {
   try {
     const res = await fetch(`${HUB_URL}/api/info/${encodeURIComponent(mecano)}`, { cache: 'no-store' });
@@ -68,11 +85,21 @@ async function fetchInfo(mecano: string): Promise<{ info: HubInfo } | { error: s
 function applyInfo(targets: InstInfoTarget[], info: HubInfo): string[] {
   const applied: string[] = [];
   for (const t of targets) {
+    // مفتاح جديد: أنشئ الكائن ومسار الحاوية من الصفر حتى تُطبَّق المعطيات دون انتظار أول حفظ
+    let obj: Record<string, unknown>;
     const raw = getLS(t.storageKey);
-    if (!raw) continue;
+    if (!raw) {
+      obj = {};
+    } else {
+      try {
+        obj = JSON.parse(raw) as Record<string, unknown>;
+      } catch {
+        continue;
+      }
+      if (!obj || typeof obj !== 'object' || Array.isArray(obj)) continue;
+    }
     try {
-      const obj = JSON.parse(raw) as Record<string, unknown>;
-      const container = getContainer(obj, t.subPath);
+      const container = ensureContainer(obj, t.subPath);
       if (!container) continue;
       Object.entries(t.fields).forEach(([hubField, appField]) => {
         const v = info[hubField];
@@ -102,6 +129,19 @@ export function InstInfoWidget({ appName, targets }: { appName: string; targets:
   useEffect(() => {
     let alive = true;
     const boot = async () => {
+      // رقم ميكانوغرافي يمرَّر من البوابة في الرابط (?mecano=...) — يُحفظ ويُطبَّق تلقائياً دون الزر
+      try {
+        const q = new URLSearchParams(window.location.search).get('mecano');
+        if (q) {
+          const m = q.trim().toLowerCase().replace(/\s+/g, '-');
+          if (/^[a-z0-9._-]{3,32}$/.test(m)) {
+            setLS(LS_MECANO, m);
+            const u = new URL(window.location.href);
+            u.searchParams.delete('mecano');
+            window.history.replaceState(null, '', u.pathname + u.search + u.hash);
+          }
+        }
+      } catch { /* تجاهل */ }
       let mecano = getMecano();
       if (!mecano) {
         // تبني آلي: مؤسسة واحدة فقط مسجلة في المركز
@@ -154,7 +194,7 @@ export function InstInfoWidget({ appName, targets }: { appName: string; targets:
     ['direction', 'المديرية'],
     ['daira', 'الدائرة'],
     ['commune', 'البلدية'],
-    ['mecanographiqueNumber', 'الرقم الميكانوغرافي'],
+    ['mecano', 'الرقم الميكانوغرافي'],
     ['account', 'رقم الحساب'],
     ['ordonnateurCode', 'رمز الآمر بالصرف'],
     ['academicYear', 'السنة الدراسية/المالية'],
