@@ -61,7 +61,8 @@ function buildAuto(emp: Employee | undefined, settings: Settings): DrtForm {
     birthPlace: emp?.birthPlace || '',
     stopDate: emp?.lastWorkDate || '',
     resumeDate: emp?.resumeDate || '',
-    mode: emp?.resumeDate ? 'resumed' : 'notResumed',
+    // خانة «لم يستأنف عمله إلى يومنا هذا» الصريحة أولاً، ثم الاستدلال القديم (تاريخ استئناف موجود)
+    mode: emp?.notResumed ? 'notResumed' : (emp?.resumeDate ? 'resumed' : 'notResumed'),
     madePlace: settings.wilaya || 'باتنة',
     madeDate: today,
     socialNature: settings.socialNature || settings.institution || '',

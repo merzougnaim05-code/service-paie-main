@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Employee, Settings } from '../types';
+import { Employee, Settings, DrtRecord } from '../types';
 import { JOBS } from '../data/salaryGrids';
 import { ATSFront } from './ATSFront';
 import { ATSBack } from './ATSBack';
@@ -13,6 +13,7 @@ import { PensionDocument } from './PensionDocument';
 import { CnrAnnexDocs } from './CnrAnnexDocs';
 import { AutoFitScale } from './DeviceScaler';
 import { exportElementsToPdf } from '../utils/exportPdf';
+import { upsertDrtDoc } from '../utils/storage';
 import {
   FileText,
   Printer,
@@ -24,7 +25,8 @@ import {
   Users,
   ClipboardList,
   Award,
-  ChevronLeft
+  ChevronLeft,
+  Archive
 } from 'lucide-react';
 
 interface AdminDocsProps {
@@ -113,6 +115,7 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
   const [refYear, setRefYear] = useState<number>(new Date().getFullYear());
   // عدد أشهر جدول ATS الوجه الخلفي (قابل للتعديل — الافتراضي 12)
   const [atsMonthsCount, setAtsMonthsCount] = useState<number>(12);
+  const [drtSavedMsg, setDrtSavedMsg] = useState<string | null>(null);
   const docRef = useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -129,6 +132,39 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
 
   const currentEmployee = employees.find(e => e.id === empId) || employees[0];
   const currentJob = currentEmployee ? JOBS[currentEmployee.jobIdx] : undefined;
+
+  // «لم يستأنف عمله إلى يومنا هذا»: خانة صريحة، مع الاستدلال القديم للبيانات السابقة
+  // (آخر يوم عمل موجود ولا تاريخ استئناف) حتى تبقى الوثائق القديمة كما هي.
+  const notResumedChecked = !!(
+    currentEmployee?.notResumed ??
+    (Boolean(currentEmployee?.lastWorkDate) && !currentEmployee?.resumeDate)
+  );
+
+  // تواريخ ATS: تُحفظ مباشرة في بيانات الموظف (وتظهر فوراً في الوثيقة)
+  const updateAtsDates = (patch: Partial<Employee>) => {
+    if (!currentEmployee || !onUpdateEmployee) return;
+    onUpdateEmployee({ ...currentEmployee, ...patch });
+  };
+
+  // حفظ الوثيقة المعروضة (وجه واحد فقط) في سجل DRT — أرشيف الوثائق المنجزة
+  const handleSaveToDrt = () => {
+    if (!currentEmployee) return;
+    if (docType !== 'ats-front' && docType !== 'ats-back' && docType !== 'drt') return;
+    const rec: DrtRecord = {
+      id: `drt_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`,
+      empId: currentEmployee.id,
+      empName: currentEmployee.name,
+      docType,
+      createdAt: new Date().toISOString(),
+      lastWorkDate: currentEmployee.lastWorkDate || '',
+      resumeDate: currentEmployee.resumeDate || '',
+      notResumed: notResumedChecked,
+      employee: { ...currentEmployee }
+    };
+    upsertDrtDoc(rec);
+    setDrtSavedMsg('✓ حُفظت الوثيقة في سجل DRT (أرشيف الوثائق المنجزة)');
+    setTimeout(() => setDrtSavedMsg(null), 5000);
+  };
 
   // وثائق التقاعد وملحق CNR تُعرض بمكوّناتها الكاملة (لها أدواتها الخاصة)
   const isPensionView = docType === 'pension';
@@ -323,6 +359,68 @@ export const AdminDocs: React.FC<AdminDocsProps> = ({
                     </>
                   )}
                 </div>
+
+                {/* ===== تواريخ ATS / استئناف العمل — تُملأ هنا بدل سجل الرواتب ===== */}
+                {(docType === 'ats-front' || docType === 'ats-back' || docType === 'ats-both' || docType === 'drt') && (
+                  <div className="mt-4 pt-4 border-t border-[#e2e8f0]">
+                    <div className="text-xs font-black text-[#0f172a] mb-2 flex items-center gap-1.5">
+                      <Calendar className="w-4 h-4 text-[#047857]" />
+                      <span>تواريخ ATS / استئناف العمل — تُحفظ في بيانات الموظف وتظهر فوراً في الوثيقة</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+                      <div>
+                        <label className="block text-xs font-bold text-[#1e293b] mb-1">تاريخ آخر يوم عمل</label>
+                        <input
+                          type="date"
+                          value={currentEmployee.lastWorkDate || ''}
+                          onChange={e => updateAtsDates({ lastWorkDate: e.target.value })}
+                          className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3 py-2 text-xs sm:text-sm focus:outline-none focus:border-[#047857]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-[#1e293b] mb-1">تاريخ استئناف العمل</label>
+                        <input
+                          type="date"
+                          value={currentEmployee.resumeDate || ''}
+                          disabled={notResumedChecked}
+                          onChange={e => updateAtsDates({ resumeDate: e.target.value, notResumed: false })}
+                          className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3 py-2 text-xs sm:text-sm focus:outline-none focus:border-[#047857] disabled:bg-[#f1f5f9] disabled:text-[#94a3b8]"
+                        />
+                      </div>
+                      <label className="flex items-center gap-2 cursor-pointer select-none bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                        <input
+                          type="checkbox"
+                          checked={notResumedChecked}
+                          onChange={e => {
+                            if (e.target.checked) updateAtsDates({ notResumed: true, resumeDate: '' });
+                            else updateAtsDates({ notResumed: false });
+                          }}
+                          className="w-4 h-4 accent-[#047857]"
+                        />
+                        <span className="text-xs font-bold text-[#1e293b]">لم يستأنف عمله إلى يومنا هذا</span>
+                      </label>
+                      {(docType === 'ats-front' || docType === 'ats-back' || docType === 'drt') && (
+                        <button
+                          type="button"
+                          onClick={handleSaveToDrt}
+                          className="bg-[#0f766e] hover:bg-[#115e59] text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                          title="حفظ هذه الوثيقة في سجل DRT (أرشيف الوثائق المنجزة)"
+                        >
+                          <Archive className="w-4 h-4" />
+                          <span>حفظ في سجل DRT</span>
+                        </button>
+                      )}
+                    </div>
+                    {drtSavedMsg && (
+                      <div className="mt-2 text-xs font-bold text-[#047857]">{drtSavedMsg}</div>
+                    )}
+                    {docType === 'ats-both' && (
+                      <div className="mt-2 text-[11px] text-[#64748b]">
+                        لحفظ الوثيقة في سجل DRT افتح الوجه الأول أو الوجه الثاني وحده — كل وثيقة تُحفظ وحدها في السجل.
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Main Document Display */}

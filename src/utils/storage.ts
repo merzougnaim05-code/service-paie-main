@@ -1,4 +1,4 @@
-import { Employee, Settings, PensionProgramming, PensionDocRecord } from '../types';
+import { Employee, Settings, PensionProgramming, PensionDocRecord, DrtRecord } from '../types';
 import { DEFAULT_POINT_TABLES, DEFAULT_ZONE_ENTRIES, buildOfficialCells } from '../data/salaryGrids';
 
 const EMPLOYEES_STORAGE_KEY = 'dz_payroll_employees_v3';
@@ -402,5 +402,58 @@ export function deletePensionDoc(id: string): void {
     storeSet(PENSION_DOCS_KEY, JSON.stringify(listPensionDocs().filter(r => r.id !== id)));
   } catch (err) {
     console.error('Failed to delete pension doc record', err);
+  }
+}
+
+/* =====================================================================
+   سجل DRT — أرشيف الوثائق المنجزة (ATS وجه أول/وجه ثانٍ أو DRT).
+   يُحفظ لكل موظف آخر 10 وثائق فقط؛ عند إضافة الحادية عشرة يُحذف الأقدم
+   تلقائياً. كل سجل يحمل لقطة بيانات الموظف وقت الإنجاز.
+   ===================================================================== */
+const DRT_DOCS_KEY = 'dz_payroll_drt_docs_v1';
+const DRT_DOCS_MAX_PER_EMP = 10;
+
+export function listDrtDocs(): DrtRecord[] {
+  try {
+    const raw = storeGet(DRT_DOCS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as DrtRecord[]) : [];
+  } catch (err) {
+    console.warn('Failed to load DRT docs log', err);
+    return [];
+  }
+}
+
+/** إدراج/تحديث سجل ثم تقليم أرشيف الموظف إلى آخر 10 وثائق (الأحدث أولاً). */
+export function upsertDrtDoc(rec: DrtRecord): void {
+  if (!rec || !rec.id) return;
+  try {
+    const list = listDrtDocs();
+    const idx = list.findIndex(r => r.id === rec.id);
+    if (idx >= 0) list[idx] = rec;
+    else list.unshift(rec);
+    // تقليم: لكل موظف نحتفظ بأحدث 10 سجلات فقط (حسب createdAt تنازلياً)
+    const kept: DrtRecord[] = [];
+    const perEmp = new Map<string, number>();
+    const sorted = [...list].sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+    for (const r of sorted) {
+      const n = perEmp.get(r.empId) || 0;
+      if (n >= DRT_DOCS_MAX_PER_EMP) continue;
+      perEmp.set(r.empId, n + 1);
+      kept.push(r);
+    }
+    storeSet(DRT_DOCS_KEY, JSON.stringify(kept));
+  } catch (err) {
+    console.error('Failed to save DRT doc record', err);
+  }
+}
+
+export function deleteDrtDoc(id: string): void {
+  if (!id) return;
+  try {
+    storeSet(DRT_DOCS_KEY, JSON.stringify(listDrtDocs().filter(r => r.id !== id)));
+  } catch (err) {
+    console.error('Failed to delete DRT doc record', err);
   }
 }

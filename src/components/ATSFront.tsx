@@ -112,6 +112,9 @@ export const ATSFront: React.FC<ATSFrontProps> = ({ employee, settings }) => {
 
         .ats-front-page .box { border: 1.1px solid #000; padding: .045in .12in; position: relative; }
         .ats-front-page .row { display: flex; align-items: baseline; min-height: .26in; gap: 5px; position: relative; z-index: 2; }
+        /* صفوف التواريخ المختلطة (فرنسي/عربي): الفرنسية أقصى اليسار والعربية أقصى اليمين
+           وخانات التاريخ في الوسط — دون انحياز لأي جهة */
+        .ats-front-page .row.date-row { justify-content: space-between; }
         .ats-front-page .row .fr-label { white-space: nowrap; font-size: 10.3pt; }
         .ats-front-page .row .ar-label { white-space: nowrap; font-size: 10.3pt; }
         .ats-front-page .fill { flex: 1; align-self: center; border-bottom: 1.4px dotted #000; min-height: 1em; margin: 0 3px; outline-offset: 2px; text-align: center; unicode-bidi: plaintext; }
@@ -295,7 +298,7 @@ export const ATSFront: React.FC<ATSFrontProps> = ({ employee, settings }) => {
               </span>
               <span className="ar-label ar">رقم التسجيل :</span>
             </div>
-            <div className="row">
+            <div className="row date-row">
               <span className="fr-label fr" style={{ flex: 0 }}>
                 Né(e) le :
               </span>
@@ -375,7 +378,7 @@ export const ATSFront: React.FC<ATSFrontProps> = ({ employee, settings }) => {
             <hr />
           </div>
           <div className="box" id="renseignements-box">
-            <div className="row">
+            <div className="row date-row">
               <span className="fr-label fr">Date de recrutement :</span>
               <span className="db3 font-mono" data-date="date_recrutement">
                 <i className="day" contentEditable suppressContentEditableWarning>
@@ -390,7 +393,7 @@ export const ATSFront: React.FC<ATSFrontProps> = ({ employee, settings }) => {
               </span>
               <span className="ar-label ar">تاريخ التوظيف :</span>
             </div>
-            <div className="row">
+            <div className="row date-row">
               <span className="fr-label fr">Date du dernier jour de travail :</span>
               <span className="db3 font-mono" data-date="date_dernier_jour">
                 <i className="day" contentEditable suppressContentEditableWarning>
@@ -405,7 +408,7 @@ export const ATSFront: React.FC<ATSFrontProps> = ({ employee, settings }) => {
               </span>
               <span className="ar-label ar">تاريخ آخر يوم عمل :</span>
             </div>
-            <div className="row">
+            <div className="row date-row">
               <span className="fr-label fr">Date de reprise de travail :</span>
               <span className="db3 font-mono" data-date="date_reprise">
                 <i className="day" contentEditable suppressContentEditableWarning>
@@ -428,7 +431,7 @@ export const ATSFront: React.FC<ATSFrontProps> = ({ employee, settings }) => {
                 contentEditable
                 suppressContentEditableWarning
               >
-                {employee.lastWorkDate && !employee.resumeDate ? 'نعم' : ''}
+                {(employee.notResumed ?? (Boolean(employee.lastWorkDate) && !employee.resumeDate)) ? 'نعم' : ''}
               </span>
               <span className="ar-label ar">المعني(ة) بالامر لم يستأنف العمل الى يومنا هذا :</span>
             </div>

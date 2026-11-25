@@ -639,8 +639,8 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
     { label: 'عدد الأطفال', value: String(currentEmployee.children).padStart(2, '0') },
     { label: 'الرقم الاستدلالي', value: index },
     { label: 'الصنف / الدرجة', value: isProfessionalWorkerJob(currentJob) ? `${result.g.cat} / ${result.years} سنة` : `${result.g.cat} / ${currentEmployee.echelon}` },
-    { label: 'رقم الضمان (SSN)', value: currentEmployee.ssn
-      ? <span className="font-mono whitespace-nowrap tracking-tighter text-[10px] sm:text-[10.5px]">{currentEmployee.ssn}</span>
+    { label: 'رقم الحساب الجاري (CCP)', value: currentEmployee.postalAccount
+      ? <span className="font-mono whitespace-nowrap tracking-tighter text-[10px] sm:text-[10.5px]">{currentEmployee.postalAccount}</span>
       : '—' },
     { label: 'تاريخ التوظيف', value: currentEmployee.hireDate || '—' }
   ];

@@ -9,6 +9,7 @@ import {
   X,
   Scroll,
   Award,
+  Archive,
   Monitor,
   Smartphone,
   DoorOpen,
@@ -21,8 +22,8 @@ import {
 /** بوابة التطبيقات المدرسية — لوحة التحكم المركزية */
 const PORTAL_URL = 'https://service-intendance.pages.dev';
 
-/** مفاتيح بيانات النظام في التخزين المحلي (الموظفون + الإعدادات) */
-const DATA_KEYS = ['dz_payroll_employees_v3', 'dz_payroll_settings_v3', 'dz_payroll_last_modified_v3'];
+/** مفاتيح بيانات النظام في التخزين المحلي (الموظفون + الإعدادات + سجل DRT) */
+const DATA_KEYS = ['dz_payroll_employees_v3', 'dz_payroll_settings_v3', 'dz_payroll_last_modified_v3', 'dz_payroll_drt_docs_v1'];
 
 interface NavbarProps {
   activeTab: string;
@@ -158,6 +159,12 @@ export const Navbar: React.FC<NavbarProps> = ({
       desc: 'ATS واستئناف العمل والشهادات الإدارية'
     },
     {
+      id: 'drt',
+      label: 'سجل وثائق DRT (أرشيف الوثائق المنجزة)',
+      icon: <Archive className="w-4 h-4 text-cyan-300" />,
+      desc: 'معاينة وتعديل وحذف الوثائق المحفوظة — آخر 10 لكل موظف'
+    },
+    {
       id: 'settings',
       label: 'إعدادات المؤسسة والنظام',
       icon: <SettingsIcon className="w-4 h-4 text-slate-300" />,
@@ -188,6 +195,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { ar: 'كشف الراتب', tag: 'كشف', icon: <FileText className="w-3.5 h-3.5" />, active: activeTab === 'payslip', go: () => handleTabClick('payslip') },
     { ar: 'طلائح الرواتب', tag: 'طلائح', icon: <FileSpreadsheet className="w-3.5 h-3.5" />, active: activeTab === 'payrollTables', go: () => handleTabClick('payrollTables') },
     { ar: 'مركز الوثائق', tag: 'الوثائق', icon: <Award className="w-3.5 h-3.5" />, active: activeTab === 'docs' || activeTab === 'pension' || activeTab === 'cnr-annex', go: () => handleTabClick('docs') },
+    { ar: 'سجل وثائق DRT', tag: 'DRT', icon: <Archive className="w-3.5 h-3.5" />, active: activeTab === 'drt', go: () => handleTabClick('drt') },
     { ar: 'متابعة المنح العائلية', tag: 'المنح', icon: <Users className="w-3.5 h-3.5" />, active: activeTab === 'familyfollow', go: () => handleTabClick('familyfollow') }
   ];
 

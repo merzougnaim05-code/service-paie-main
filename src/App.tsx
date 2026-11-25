@@ -16,6 +16,7 @@ import { PensionDocument } from './components/PensionDocument';
 import { PayslipView } from './components/PayslipView';
 import { PayrollSheets } from './components/PayrollSheets';
 import { AdminDocs } from './components/AdminDocs';
+import { DrtRegistry } from './components/DrtRegistry';
 import { CnrAnnexDocs } from './components/CnrAnnexDocs';
 import { AllDocsBundle } from './components/AllDocsBundle';
 import { FamilyFollowTool } from './components/FamilyDocs';
@@ -51,7 +52,7 @@ export default function App() {
   // Active view states — تُقرأ من hash الرابط للوصول المباشر (مثال: #docs:ats-back أو #pension)
   const [activeTab, setActiveTab] = useState<string>(() => {
     const h = window.location.hash.replace('#', '').split(':')[0];
-    return ['landing', 'employees', 'pension', 'payslip', 'payrollTables', 'docs', 'cnr-annex', 'familyfollow', 'settings', 'datahub'].includes(h) ? h : 'landing';
+    return ['landing', 'employees', 'pension', 'payslip', 'payrollTables', 'docs', 'drt', 'cnr-annex', 'familyfollow', 'settings', 'datahub'].includes(h) ? h : 'landing';
   });
   const [activeDoc, setActiveDoc] = useState<string>(() => {
     const d = window.location.hash.replace('#', '').split(':')[1];
@@ -260,6 +261,13 @@ export default function App() {
             selectedEmpId={selectedEmpId}
             initialDocType={activeDoc}
             onUpdateEmployee={handleSaveEmployee}
+          />
+        )}
+
+        {activeTab === 'drt' && (
+          <DrtRegistry
+            employees={employees}
+            settings={settings}
           />
         )}
 

@@ -142,6 +142,21 @@ export interface PensionProgramming {
   yield: PensionYieldRule[];
 }
 
+// سجل DRT — أرشيف الوثائق المنجزة (ATS وجه أول/وجه ثانٍ أو DRT) لكل موظف.
+// يُحفظ لكل موظف آخر 10 وثائق فقط ويُحذف الأقدم تلقائياً. كل سجل يحمل نسخة
+// من بيانات الموظف وقت الإنجاز حتى تبقى المعاينة مطابقة للوثيقة الأصلية.
+export interface DrtRecord {
+  id: string;
+  empId: string;
+  empName: string;
+  docType: 'ats-front' | 'ats-back' | 'drt';
+  createdAt: string;      // ISO
+  lastWorkDate: string;
+  resumeDate: string;
+  notResumed: boolean;
+  employee: Employee;     // لقطة بيانات الموظف وقت حفظ الوثيقة
+}
+
 // سجل الوثائق — نسخة كاملة من وثيقة تقاعد (أشهر + برمجة) قابلة للاسترجاع لاحقاً
 export interface PensionDocRecord {
   id: string;             // معرف مستقر: الموظف + عدد الأشهر + أول شهر + آخر شهر
@@ -183,6 +198,7 @@ export interface Employee {
   zoneCommune?: string;  // البلدية المؤهلة للتعويض
   lastWorkDate: string;
   resumeDate: string;
+  notResumed?: boolean;  // لم يستأنف عمله إلى يومنا هذا (يُملأ من مركز الوثائق — ATS)
   allowances: Allowance[];
   childrenBirths?: string[];      // تواريخ ميلاد الأطفال (yyyy-mm-dd) — لجدول متابعة المنح العائلية
   pensionHistory: PensionHistoryRecord[];

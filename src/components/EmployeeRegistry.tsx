@@ -72,8 +72,8 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
   const [employmentStatus, setEmploymentStatus] = useState<EmploymentStatus>('مرسم');
   const [hireDate, setHireDate] = useState('');
   const [yearsOverride, setYearsOverride] = useState<string>('');
-  const [lastWorkDate, setLastWorkDate] = useState('');
-  const [resumeDate, setResumeDate] = useState('');
+  // ملاحظة: تاريخا آخر يوم عمل والاستئناف يُملآن الآن من زر ATS في مركز الوثائق
+  // (AdminDocs) — لا حاجة لحالتيهما هنا، وقيمهما المحفوظة تُحفَظ عند التعديل.
 
   const [mutuelle, setMutuelle] = useState(true);
   const [mutuelleNum, setMutuelleNum] = useState('');
@@ -209,8 +209,8 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
       postalAccount,
       zoneWilaya,
       zoneCommune,
-      lastWorkDate,
-      resumeDate,
+      lastWorkDate: editingId ? (employees.find(x => x.id === editingId)?.lastWorkDate || '') : '',
+      resumeDate: editingId ? (employees.find(x => x.id === editingId)?.resumeDate || '') : '',
       allowances,
       teacherType,
       auresMode,
@@ -227,7 +227,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
     name, jobIdx, ssn, category, echelon, employmentStatus, hireDate, yearsOverride,
     marital, children, children10, singleWage, mutuelle, mutuelleNum, performancePct,
     incomeDifference, experienceDifference, birthPlace, birthDate, address, postalAccount,
-    zoneWilaya, zoneCommune, lastWorkDate, resumeDate, allowances, teacherType, auresMode,
+    zoneWilaya, zoneCommune, allowances, teacherType, auresMode,
     auresAmount, settings, editingId
   ]);
 
@@ -249,8 +249,6 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
     setEmploymentStatus('مرسم');
     setHireDate('');
     setYearsOverride('');
-    setLastWorkDate('');
-    setResumeDate('');
     setMutuelle(true);
     setMutuelleNum('');
     setPerformancePct(0);
@@ -286,8 +284,6 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
     setEmploymentStatus(emp.employmentStatus);
     setHireDate(emp.hireDate);
     setYearsOverride(emp.yearsOverride != null ? String(emp.yearsOverride) : '');
-    setLastWorkDate(emp.lastWorkDate || '');
-    setResumeDate(emp.resumeDate || '');
     setMutuelle(emp.mutuelle);
     setMutuelleNum(emp.mutuelleNum || '');
     setPerformancePct(emp.performancePct);
@@ -336,8 +332,11 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
       postalAccount: postalAccount.trim(),
       zoneWilaya: zoneWilaya || undefined,
       zoneCommune: zoneWilaya ? zoneCommune : undefined,
-      lastWorkDate,
-      resumeDate,
+      // تاريخا آخر يوم عمل والاستئناف + خانة عدم الاستئناف تُدار من مركز الوثائق (ATS)
+      // — عند التعديل نحافظ على القيم المحفوظة، وعند الإنشاء الجديد تبقى فارغة.
+      lastWorkDate: editingId ? (employees.find(x => x.id === editingId)?.lastWorkDate || '') : '',
+      resumeDate: editingId ? (employees.find(x => x.id === editingId)?.resumeDate || '') : '',
+      notResumed: editingId ? !!(employees.find(x => x.id === editingId)?.notResumed) : false,
       allowances: allowances.map(a => ({ ...a })),
       teacherType: (currentJob?.domain === 'teach' && MAJAZ_CODES.includes(Number(currentJob?.code))) ? teacherType : 'عادي',
       auresMode,
@@ -375,7 +374,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
   const filteredEmployees = employees.filter(emp => {
     const matchesSearch =
       emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (emp.ssn && emp.ssn.includes(searchQuery));
+      (emp.postalAccount && emp.postalAccount.includes(searchQuery));
 
     if (!matchesSearch) return false;
     if (filterDomain === 'all') return true;
@@ -720,30 +719,10 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-[#1e293b] mb-1.5">
-                  تاريخ آخر يوم عمل (في حالة توقف)
-                </label>
-                <input
-                  type="date"
-                  value={lastWorkDate}
-                  onChange={e => setLastWorkDate(e.target.value)}
-                  className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#047857]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#1e293b] mb-1.5">
-                  تاريخ استئناف العمل
-                </label>
-                <input
-                  type="date"
-                  value={resumeDate}
-                  onChange={e => setResumeDate(e.target.value)}
-                  className="w-full bg-white border border-[#cbd5e1] rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-[#047857]"
-                />
-              </div>
             </div>
+            <p className="text-[11px] text-[#64748b] mt-3">
+              تاريخ آخر يوم عمل وتاريخ استئناف العمل وخانة «لم يستأنف عمله إلى يومنا هذا» تُملأ من زر ATS في مركز الوثائق.
+            </p>
           </div>
 
           {/* Section 4: Salary, Deductions & Allowances */}
@@ -1065,7 +1044,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
               <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-[#8b816d]" />
               <input
                 type="text"
-                placeholder="بحث بالاسم أو رقم الضمان..."
+                placeholder="بحث بالاسم أو رقم الحساب الجاري..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 className="w-full sm:w-60 bg-white border border-[#d4cbba] rounded-xl pr-9 pl-3 py-1.5 text-xs focus:outline-none focus:border-[#047857]"
@@ -1099,7 +1078,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
                   <th className="p-3 font-bold">الاسم واللقب</th>
                   <th className="p-3 font-bold">الوظيفة / الرتبة</th>
                   <th className="p-3 font-bold">الصنف / الدرجة</th>
-                  <th className="p-3 font-bold">رقم الضمان الاجتماعي</th>
+                  <th className="p-3 font-bold">رقم الحساب الجاري</th>
                   <th className="p-3 font-bold">الأطفال</th>
                   <th className="p-3 font-bold text-center">الإجراءات والوثائق</th>
                 </tr>
@@ -1116,7 +1095,7 @@ export const EmployeeRegistry: React.FC<EmployeeRegistryProps> = ({
                       <td className="p-3 font-mono">
                         الصنف {g.cat} / {isProfessionalWorkerJob(job) ? `${emp.yearsOverride || 0} سنة` : `د ${emp.echelon}`}
                       </td>
-                      <td className="p-3 font-mono text-[#524b3c]">{emp.ssn || '—'}</td>
+                      <td className="p-3 font-mono text-[#524b3c]">{emp.postalAccount || '—'}</td>
                       <td className="p-3">{emp.children}</td>
                       <td className="p-3">
                         <div className="flex items-center justify-center gap-1.5">

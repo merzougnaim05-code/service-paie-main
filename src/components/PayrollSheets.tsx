@@ -52,7 +52,7 @@ export const PayrollSheets: React.FC<PayrollSheetsProps> = ({
     if (!searchQuery.trim()) return true;
     return (
       e.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (e.ssn && e.ssn.includes(searchQuery))
+      (e.postalAccount && e.postalAccount.includes(searchQuery))
     );
   });
 
@@ -130,7 +130,6 @@ export const PayrollSheets: React.FC<PayrollSheetsProps> = ({
       row['اقتطاع الضريبة (IRG)'] = item.r.irgTax;
       row['اقتطاع التعاضدية'] = item.r.mutDeduction;
       row['الصافي للدفع'] = item.r.net;
-      row['رقم الضمان الاجتماعي'] = item.emp.ssn || '';
       row['رقم الحساب البريدي'] = item.emp.postalAccount || '';
 
       return row;
@@ -262,7 +261,7 @@ export const PayrollSheets: React.FC<PayrollSheetsProps> = ({
               <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="ابحث بالاسم أو رقم الضمان..."
+                placeholder="ابحث بالاسم أو رقم الحساب الجاري..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 className="w-full bg-white border border-[#cbd5e1] rounded-xl pr-9 pl-3 py-2 text-xs sm:text-sm focus:outline-none"

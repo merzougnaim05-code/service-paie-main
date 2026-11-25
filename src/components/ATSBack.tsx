@@ -218,7 +218,8 @@ export const ATSBack: React.FC<ATSBackProps> = ({
         .ats-back-page .volume-row .mid .unit-ar { font-size: 11pt; }
         .ats-back-page .volume-row .ar-label { font-size: 11pt; white-space: nowrap; }
 
-        .ats-back-page .fait-row { display: flex; justify-content: flex-end; align-items: baseline; gap: 10px; margin-top: 5mm; padding-inline-end: 3mm; }
+        /* سطر «حرر بـ / Fait à» المختلط: الفرنسية أقصى اليسار والعربية أقصى اليمين — دون انحياز */
+        .ats-back-page .fait-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-top: 5mm; padding-inline-end: 3mm; }
         .ats-back-page .fait-row .fr { font-size: 10.5pt; }
         .ats-back-page .fait-row .ar { font-size: 10.5pt; }
         .ats-back-page .fait-row .fill-sm { display: inline-block; width: 1.4in; border-bottom: 1px dotted #000; min-height: 1em; text-align: center; unicode-bidi: plaintext; font-weight: bold; }
