@@ -37,6 +37,15 @@ export const ATSFront: React.FC<ATSFrontProps> = ({ employee, settings }) => {
   // (آخر يوم عمل موجود ولا تاريخ استئناف) حتى تبقى الوثائق القديمة كما هي.
   const notResumed = employee.notResumed ?? (Boolean(employee.lastWorkDate) && !employee.resumeDate);
 
+  // تاريخ اليوم لسطر «لم يستأنف»: يُعرض في خانات التاريخ عند عدم الاستئناف،
+  // ويبقى فارغاً (قابلاً للملء يدوياً) عند الاستئناف.
+  const todayDate = (() => {
+    const d = new Date();
+    const p2 = (n: number) => String(n).padStart(2, '0');
+    return { day: p2(d.getDate()), month: p2(d.getMonth() + 1), year: String(d.getFullYear()) };
+  })();
+  const pasReprisDate = notResumed ? todayDate : { day: '', month: '', year: '' };
+
   // CNAS Logo base64 provided in official template
   const cnasLogo = CNAS_LOGO;
 
@@ -116,25 +125,21 @@ export const ATSFront: React.FC<ATSFrontProps> = ({ employee, settings }) => {
 
         .ats-front-page .box { border: 1.1px solid #000; padding: .045in .12in; position: relative; }
         .ats-front-page .row { display: flex; align-items: baseline; min-height: .26in; gap: 5px; position: relative; z-index: 2; }
-        /* صفوف التواريخ المختلطة (فرنسي/عربي): الفرنسية أقصى اليسار والعربية أقصى اليمين
-           وخانات التاريخ في الوسط — دون انحياز لأي جهة */
-        .ats-front-page .row.date-row { justify-content: space-between; }
-        /* محاذاة خانات التاريخ داخل الوثيقة: عمود ثابت للتسمية الفرنسية الأولى
-           (بعرض أوسع تسمية) فتبدأ كل مجموعات الأرقام db3 من نفس النقطة تماماً،
-           والتسمية العربية أقصى اليمين عبر هامش تلقائي */
-        .ats-front-page .row.date-row > .fr-label:first-child { flex: 0 0 2.4in; text-align: left; }
-        .ats-front-page .row.date-row > .ar-label:last-child { margin-left: auto; }
-        /* خانة «لم يستأنف» داخل الوثيقة: مربع بحدود ظاهرة، فيه ✓ عند عدم الاستئناف */
-        .ats-front-page .row-spacer.tickbox-wrap { display: flex; align-items: center; justify-content: center; }
-        .ats-front-page .tickbox { display: inline-flex; align-items: center; justify-content: center; width: 5.5mm; height: 5.5mm; border: 1.2px solid #000; background: #fff; font-family: 'Segoe UI Symbol', 'DejaVu Sans', sans-serif; font-size: 11pt; font-weight: 700; line-height: 1; }
+        /* صفوف التواريخ (القسم 3 + سطر «لم يستأنف»): شبكة من 3 أعمدة
+           (تسمية فرنسية | خانات التاريخ | تسمية عربية) — الفرنسية أقصى اليسار،
+           وخانات التاريخ db3 في الوسط تماماً، والعربية أقصى اليمين */
+        .ats-front-page .row.date-row { display: grid; grid-template-columns: 1fr auto 1fr; }
+        .ats-front-page .row.date-row > .fr-label:first-child { justify-self: start; text-align: left; }
+        .ats-front-page .row.date-row > .db3 { justify-self: center; }
+        .ats-front-page .row.date-row > .ar-label:last-child { justify-self: end; text-align: right; }
+        /* التسميات في هذه الصفوف قد تطول (سطر «لم يستأنف») فتُسمح بالالتفاف
+           بدل كسر تمركز خانات التاريخ في الوسط */
+        .ats-front-page .row.date-row > .fr-label, .ats-front-page .row.date-row > .ar-label { white-space: normal; }
         .ats-front-page .row .fr-label { white-space: nowrap; font-size: 10.3pt; }
         .ats-front-page .row .ar-label { white-space: nowrap; font-size: 10.3pt; }
         .ats-front-page .fill { flex: 1; align-self: center; border-bottom: 1.4px dotted #000; min-height: 1em; margin: 0 3px; outline-offset: 2px; text-align: center; unicode-bidi: plaintext; }
         .ats-front-page .fill[contenteditable]:focus, .ats-front-page .inbox[contenteditable]:focus, .ats-front-page .cell[contenteditable]:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }
 
-        .ats-front-page .row-nofill { position: relative; }
-        .ats-front-page .row-nofill .fr-label { flex-shrink: 0; }
-        .ats-front-page .row-nofill .ar-label { flex-shrink: 0; }
         .ats-front-page .row-spacer { flex: 1; align-self: stretch; min-height: 1em; outline-offset: 2px; text-align: center; unicode-bidi: plaintext; }
         .ats-front-page .row-spacer[contenteditable]:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }
 
@@ -310,8 +315,8 @@ export const ATSFront: React.FC<ATSFrontProps> = ({ employee, settings }) => {
               </span>
               <span className="ar-label ar">رقم التسجيل :</span>
             </div>
-            <div className="row date-row">
-              <span className="fr-label fr">
+            <div className="row">
+              <span className="fr-label fr" style={{ flex: 0 }}>
                 Né(e) le :
               </span>
               <span className="db3 font-mono" data-date="employee_dob">
@@ -435,10 +440,18 @@ export const ATSFront: React.FC<ATSFrontProps> = ({ employee, settings }) => {
               </span>
               <span className="ar-label ar">تاريخ استئناف العمل :</span>
             </div>
-            <div className="row row-nofill">
+            <div className="row date-row">
               <span className="fr-label fr">L'intéressé(e) n'a pas repris son travail à ce jour :</span>
-              <span className="row-spacer tickbox-wrap" data-field="pas_repris">
-                <span className="tickbox">{notResumed ? '✓' : ''}</span>
+              <span className="db3 font-mono" data-field="pas_repris" data-date="date_pas_repris">
+                <i className="day" contentEditable suppressContentEditableWarning>
+                  {pasReprisDate.day}
+                </i>
+                <i className="month" contentEditable suppressContentEditableWarning>
+                  {pasReprisDate.month}
+                </i>
+                <i className="year" contentEditable suppressContentEditableWarning>
+                  {pasReprisDate.year}
+                </i>
               </span>
               <span className="ar-label ar">المعني(ة) بالامر لم يستأنف العمل الى يومنا هذا :</span>
             </div>
