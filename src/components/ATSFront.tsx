@@ -33,6 +33,10 @@ export const ATSFront: React.FC<ATSFrontProps> = ({ employee, settings }) => {
   const lastWorkDate = parseDate(employee.lastWorkDate);
   const resumeDate = parseDate(employee.resumeDate);
 
+  // «لم يستأنف عمله إلى يومنا هذا»: خانة صريحة أولاً، والاستدلال القديم احتياطاً
+  // (آخر يوم عمل موجود ولا تاريخ استئناف) حتى تبقى الوثائق القديمة كما هي.
+  const notResumed = employee.notResumed ?? (Boolean(employee.lastWorkDate) && !employee.resumeDate);
+
   // CNAS Logo base64 provided in official template
   const cnasLogo = CNAS_LOGO;
 
@@ -115,6 +119,14 @@ export const ATSFront: React.FC<ATSFrontProps> = ({ employee, settings }) => {
         /* صفوف التواريخ المختلطة (فرنسي/عربي): الفرنسية أقصى اليسار والعربية أقصى اليمين
            وخانات التاريخ في الوسط — دون انحياز لأي جهة */
         .ats-front-page .row.date-row { justify-content: space-between; }
+        /* محاذاة خانات التاريخ داخل الوثيقة: عمود ثابت للتسمية الفرنسية الأولى
+           (بعرض أوسع تسمية) فتبدأ كل مجموعات الأرقام db3 من نفس النقطة تماماً،
+           والتسمية العربية أقصى اليمين عبر هامش تلقائي */
+        .ats-front-page .row.date-row > .fr-label:first-child { flex: 0 0 2.4in; text-align: left; }
+        .ats-front-page .row.date-row > .ar-label:last-child { margin-left: auto; }
+        /* خانة «لم يستأنف» داخل الوثيقة: مربع بحدود ظاهرة، فيه ✓ عند عدم الاستئناف */
+        .ats-front-page .row-spacer.tickbox-wrap { display: flex; align-items: center; justify-content: center; }
+        .ats-front-page .tickbox { display: inline-flex; align-items: center; justify-content: center; width: 5.5mm; height: 5.5mm; border: 1.2px solid #000; background: #fff; font-family: 'Segoe UI Symbol', 'DejaVu Sans', sans-serif; font-size: 11pt; font-weight: 700; line-height: 1; }
         .ats-front-page .row .fr-label { white-space: nowrap; font-size: 10.3pt; }
         .ats-front-page .row .ar-label { white-space: nowrap; font-size: 10.3pt; }
         .ats-front-page .fill { flex: 1; align-self: center; border-bottom: 1.4px dotted #000; min-height: 1em; margin: 0 3px; outline-offset: 2px; text-align: center; unicode-bidi: plaintext; }
@@ -299,7 +311,7 @@ export const ATSFront: React.FC<ATSFrontProps> = ({ employee, settings }) => {
               <span className="ar-label ar">رقم التسجيل :</span>
             </div>
             <div className="row date-row">
-              <span className="fr-label fr" style={{ flex: 0 }}>
+              <span className="fr-label fr">
                 Né(e) le :
               </span>
               <span className="db3 font-mono" data-date="employee_dob">
@@ -425,13 +437,8 @@ export const ATSFront: React.FC<ATSFrontProps> = ({ employee, settings }) => {
             </div>
             <div className="row row-nofill">
               <span className="fr-label fr">L'intéressé(e) n'a pas repris son travail à ce jour :</span>
-              <span
-                className="row-spacer font-bold"
-                data-field="pas_repris"
-                contentEditable
-                suppressContentEditableWarning
-              >
-                {(employee.notResumed ?? (Boolean(employee.lastWorkDate) && !employee.resumeDate)) ? 'نعم' : ''}
+              <span className="row-spacer tickbox-wrap" data-field="pas_repris">
+                <span className="tickbox">{notResumed ? '✓' : ''}</span>
               </span>
               <span className="ar-label ar">المعني(ة) بالامر لم يستأنف العمل الى يومنا هذا :</span>
             </div>
