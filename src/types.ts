@@ -214,6 +214,8 @@ export interface Settings {
   institution: string;
   wilaya: string;
   municipality: string;
+  /** الرقم الميكانوغرافي للمؤسسة — يُملأ تلقائياً من معطيات المؤسسة (المحور) */
+  mecano?: string;
   cnasAgency: string;
   cnasNum: string;
   paymentCenter: string;

@@ -12,10 +12,20 @@ interface PayslipViewProps {
   selectedEmpId?: string;
 }
 
+/** الرقم الميكانوغرافي المحفوظ من زر «معطيات المؤسسة» (مفتاح instInfoMecanoV1). */
+function getSavedMecano(): string {
+  try {
+    return (localStorage.getItem('instInfoMecanoV1') || '').replace(/\D/g, '');
+  } catch {
+    return '';
+  }
+}
+
 /**
- * توليد الرمز الشريطي CODE128 للرقم التسلسلي (7 أرقام) كصورة SVG (data URL).
- * CODE128 لا يرمّز العربية، لذا محتواه الرقم التسلسلي فقط؛ ويُعرض الرقم
- * مطبوعاً تحت الأشرطة (displayValue) ليقرأه الإنسان أيضاً.
+ * توليد الرمز الشريطي CODE128 لمحتوى الكشف كصورة SVG (data URL).
+ * CODE128 لا يرمّز العربية، لذا المحتوى أرقام وفواصل فقط
+ * (رقم الحساب الجاري - الرقم الميكانوغرافي - الرقم التسلسلي)؛ ويُعرض
+ * المحتوى مطبوعاً تحت الأشرطة (displayValue) ليقرأه الإنسان أيضاً.
  */
 function makeBarcodeDataUrl(serial: string): string {
   try {
@@ -295,7 +305,7 @@ const PayslipSheet: React.FC<PayslipSheetProps> = ({
 
         <div className="flex-1 flex justify-center">
           {barcodeSrc ? (
-            <img src={barcodeSrc} alt="الرمز الشريطي" className="payslip-barcode h-16 w-auto bg-white p-1" />
+            <img src={barcodeSrc} alt="الرمز الشريطي" className="payslip-barcode w-full h-auto bg-white p-1" />
           ) : (
             <div className="w-32 h-12 border border-black flex items-center justify-center text-[10px] text-gray-500 bg-white">
               رمز شريطي
@@ -516,7 +526,7 @@ const MergedPayslipSheet: React.FC<MergedSheetProps> = ({
 
         <div className="flex-1 flex justify-center">
           {barcodeSrc ? (
-            <img src={barcodeSrc} alt="الرمز الشريطي" className="payslip-barcode h-16 w-auto bg-white p-1" />
+            <img src={barcodeSrc} alt="الرمز الشريطي" className="payslip-barcode w-full h-auto bg-white p-1" />
           ) : (
             <div className="w-32 h-12 border border-black flex items-center justify-center text-[10px] text-gray-500 bg-white">
               رمز شريطي
@@ -552,10 +562,17 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
   const currentEmployee = employees.find(e => e.id === empId) || employees[0];
   const currentJob = currentEmployee ? JOBS[currentEmployee.jobIdx] : undefined;
 
-  // الرقم التسلسلي للكشف (7 أرقام) — هو نفسه محتوى الرمز الشريطي
+  // الرقم التسلسلي للكشف (7 أرقام)
   const serial = currentEmployee
     ? String(currentEmployee.id).replace(/\D/g, '').slice(-7).padStart(7, '0') || '0029381'
     : '';
+
+  // محتوى الرمز الشريطي: رقم الحساب الجاري - الرقم الميكانوغرافي - الرقم التسلسلي
+  // - الحساب الجاري: أول تتابع أرقام في postalAccount (القيمة المخزنة قد تضم «مفتاح 44»)
+  // - الميكانوغرافي: من الإعدادات (معطيات المؤسسة)، أو المفتاح المحفوظ من زر معطيات المؤسسة
+  const accountNum = currentEmployee ? (currentEmployee.postalAccount.match(/\d+/) || [''])[0] : '';
+  const mecano = (settings.mecano || '').replace(/\D/g, '') || getSavedMecano();
+  const barcodeContent = [accountNum, mecano, serial].join('-');
 
   const result = currentEmployee
     ? computePayslip(currentEmployee, month, year, settings)
@@ -572,11 +589,12 @@ export const PayslipView: React.FC<PayslipViewProps> = ({
     ? buildAggregate(currentEmployee, clampedStart, periodCount, year, settings)
     : null;
 
-  // الرمز الشريطي للكشف: الرقم التسلسلي (7 أرقام) — مشترك بين الكشوف الأربعة
+  // الرمز الشريطي للكشف: رقم الحساب الجاري - الرقم الميكانوغرافي - الرقم التسلسلي
+  // مشترك بين الكشوف الأربعة (شهري/سنوي/مدمج/مجمع)
   useEffect(() => {
     if (!currentEmployee || !serial) { setBarcodeSrc(''); return; }
-    setBarcodeSrc(makeBarcodeDataUrl(serial));
-  }, [currentEmployee, serial]);
+    setBarcodeSrc(makeBarcodeDataUrl(barcodeContent));
+  }, [currentEmployee, serial, barcodeContent]);
 
   const handlePrint = (target: 'monthly' | 'annual' | 'both' | 'period') => {
     setPrintTarget(target);

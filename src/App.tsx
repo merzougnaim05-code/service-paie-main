@@ -181,6 +181,7 @@ export default function App() {
               institution: 'institution',
               wilaya: 'wilaya',
               commune: 'municipality',
+              mecano: 'mecano',
             },
           },
         ]}

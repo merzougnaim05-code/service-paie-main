@@ -159,11 +159,11 @@
     height: 44px !important;
   }
 
-  /* الرمز الشريطي شريط أفقي: ارتفاع ثابت وعرض تلقائي ليحافظ على نسبة الأشرطة
-     (60px ≈ 16مم: وحدة الشريط ≈ 0.26مم في الطباعة حتى يقرأها الماسح) */
+  /* الرمز الشريطي: بعرض العمود كاملاً وارتفاع تلقائي ليحافظ على نسبة الأشرطة
+     (تثبيت الارتفاع كان يشوّه الرمز لأن Tailwind يحدّ العرض بـ 100% من العمود) */
   .payslip-document img.payslip-barcode {
-    width: auto !important;
-    height: 60px !important;
+    width: 100% !important;
+    height: auto !important;
   }
 
   /* منع تقطيع الصفوف وصندوق الصافي بين صفحتين */
@@ -236,8 +236,8 @@
 }
 
 .pdf-capture-sheet .payslip-document img.payslip-barcode {
-  width: auto !important;
-  height: 60px !important;
+  width: 100% !important;
+  height: auto !important;
 }
 
 .pdf-capture-sheet .payslip-bar {
