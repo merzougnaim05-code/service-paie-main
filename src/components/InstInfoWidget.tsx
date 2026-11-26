@@ -1,8 +1,10 @@
 // زر «معطيات المؤسسة» — ودجت عام لأي تطبيق React
-// يسحب الهوية الرسمية للمؤسسة من مركز service-info-hub بمفتاح الرقم الميكانوغرافي
-// ويطبّقها على مفاتيح localStorage التي يحددها التطبيق (كل مؤسسة بسجلها، لا تداخل).
-// التطبيق يدوي بضغطة تأكيد + شارة تلقائية إن وُجد تحديث أحدث على المركز.
+// يسحب الهوية الرسمية للمؤسسة من مركز service-info-hub ويطبّقها على مفاتيح
+// localStorage التي يحددها التطبيق (كل مؤسسة بسجلها، لا تداخل).
+// النقل تلقائي عند الإقلاع دون رقم ميكانوغرافي ولا تأكيد: إن غاب الرقم تُبنّى
+// أحدث مؤسسة محفوظة في المركز؛ ورابط البوابة (?mecano=...) يبقى الأدق ويفوز.
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 const HUB_URL = 'https://service-info-hub.merzougnaim05.workers.dev';
 const LS_MECANO = 'instInfoMecanoV1';
@@ -34,13 +36,26 @@ function getMecano(): string {
   const m = (getLS(LS_MECANO) || '').trim().toLowerCase().replace(/\s+/g, '-');
   return m;
 }
-function askMecano(): string | null {
-  let m = getMecano();
-  if (m) return m;
-  m = (window.prompt('أدخل الرقم الميكانوغرافي لمؤسستك (مفتاحها في مركز البوابة):', '') || '').trim().toLowerCase().replace(/\s+/g, '-');
-  if (!m) return null;
-  setLS(LS_MECANO, m);
-  return m;
+// أحدث مؤسسة محفوظة في المركز (حسب تاريخ الحفظ) — تُبنّى عند غياب الرقم
+// الميكانوغرافي، دون طلبه من المستخدم. رابط البوابة والرقم المحفوظ يفوزان عليها.
+interface OrgEntry { mecano?: string; updatedAt?: string; _updatedAt?: string }
+function pickLatestOrg(orgs: OrgEntry[]): string | null {
+  let best: OrgEntry | null = null;
+  let bestAt = '';
+  for (const o of orgs || []) {
+    const m = String(o.mecano || '').trim().toLowerCase().replace(/\s+/g, '-');
+    if (!/^[a-z0-9._-]{3,32}$/.test(m)) continue;
+    const at = String(o.updatedAt || o._updatedAt || '');
+    if (!best || at > bestAt) { best = o; bestAt = at; }
+  }
+  return best ? String(best.mecano) : null;
+}
+async function fetchLatestMecano(): Promise<string | null> {
+  try {
+    const j = await (await fetch(`${HUB_URL}/api/orgs`, { cache: 'no-store' })).json();
+    if (!j.ok || !j.orgs) return null;
+    return pickLatestOrg(j.orgs as OrgEntry[]);
+  } catch { return null; }
 }
 
 function getContainer(obj: Record<string, unknown>, subPath?: string): Record<string, unknown> | null {
@@ -151,14 +166,12 @@ export function InstInfoWidget({ appName, targets, placement = 'floating' }: { a
       } catch { /* تجاهل */ }
       let mecano = getMecano();
       if (!mecano) {
-        // تبني آلي: مؤسسة واحدة فقط مسجلة في المركز
-        try {
-          const j = await (await fetch(HUB_URL + '/api/orgs', { cache: 'no-store' })).json();
-          if (j.ok && j.orgs && j.orgs.length === 1) {
-            setLS(LS_MECANO, String(j.orgs[0].mecano));
-            mecano = getMecano();
-          }
-        } catch { /* اختياري */ }
+        // تبنّي آلي دون رقم: أحدث مؤسسة محفوظة في المركز (رابط البوابة يبقى الأدق)
+        const latest = await fetchLatestMecano();
+        if (latest) {
+          setLS(LS_MECANO, latest);
+          mecano = getMecano();
+        }
       }
       if (!mecano) return;
       const r = await fetchInfo(mecano);
@@ -175,8 +188,15 @@ export function InstInfoWidget({ appName, targets, placement = 'floating' }: { a
   }, []);
 
   const doFetch = async (mecanoArg?: string) => {
-    const mecano = mecanoArg || mecanoInput.trim() || getMecano();
-    if (!mecano) { setMsg({ text: 'أدخل الرقم الميكانوغرافي أولًا', ok: false }); return; }
+    let mecano = mecanoArg || mecanoInput.trim() || getMecano();
+    if (!mecano) {
+      // الحقل فارغ: جلب أحدث مؤسسة محفوظة دون طلب الرقم
+      const latest = await fetchLatestMecano();
+      if (!latest) { setMsg({ text: 'لا توجد مؤسسة محفوظة في المركز بعد — احفظها من البوابة أولًا', ok: false }); return; }
+      mecano = latest;
+      setMecanoInput(latest);
+      setLS(LS_MECANO, latest);
+    }
     if (!mecanoArg && mecanoInput.trim()) setLS(LS_MECANO, mecanoInput.trim().toLowerCase().replace(/\s+/g, '-'));
     setBusy(true); setMsg(null);
     const r = await fetchInfo(mecano);
@@ -211,8 +231,8 @@ export function InstInfoWidget({ appName, targets, placement = 'floating' }: { a
 
   return (
     <>
-      {/* الزر: عائم (الوضع الافتراضي، لبقية التطبيقات) أو في الشريط العلوي (paie) */}
-      {placement === 'topbar' ? (
+      {/* الزر في الشريط العلوي (paie) + زر عائم بتسمية «معطيات المؤسسة» في كل الحالات */}
+      {placement === 'topbar' && (
         <button
           onClick={openPanel}
           title="معطيات المؤسسة الرسمية من مركز البوابة"
@@ -223,17 +243,24 @@ export function InstInfoWidget({ appName, targets, placement = 'floating' }: { a
           {buildingIcon('w-4 h-4 text-amber-300 shrink-0')}
           <span className="whitespace-nowrap">معطيات المؤسسة</span>
         </button>
-      ) : (
-        <button
-          onClick={openPanel}
-          title="معطيات المؤسسة الرسمية من مركز البوابة"
-          className="no-print fixed bottom-[18px] left-[140px] w-[52px] h-[52px] z-[9999] rounded-2xl grid place-items-center text-white shadow-lg border-2 border-amber-400 transition-transform hover:-translate-y-0.5"
-          style={{ background: 'linear-gradient(145deg,#065f46,#047857 55%,#134e4a)' }}
-          dir="rtl"
-        >
-          {buildingIcon('w-6 h-6 text-amber-300')}
-        </button>
       )}
+      {/* الزر العائم واللوحة عبر بوابة إلى body: الترويسة اللاصقة فيها backdrop-filter
+          فيجعل أي عنصر fixed داخلها يتموضع نسبةً إليها لا إلى الشاشة (الزر يظهر أعلى
+          الصفحة واللوحة تُقطع) — البوابة تحررهما منها */}
+      {createPortal(
+        <>
+      <button
+        onClick={openPanel}
+        title="معطيات المؤسسة الرسمية من مركز البوابة"
+        className="no-print fixed bottom-[18px] left-[140px] h-[52px] z-[9999] rounded-2xl grid place-items-center text-white shadow-lg border-2 border-amber-400 transition-transform hover:-translate-y-0.5 px-3"
+        style={{ background: 'linear-gradient(145deg,#065f46,#047857 55%,#134e4a)' }}
+        dir="rtl"
+      >
+        <span className="flex items-center gap-2 text-[13px] font-black whitespace-nowrap">
+          {buildingIcon('w-6 h-6 text-amber-300')}
+          معطيات المؤسسة
+        </span>
+      </button>
 
       {/* اللوحة */}
       {open && (
@@ -292,6 +319,9 @@ export function InstInfoWidget({ appName, targets, placement = 'floating' }: { a
             </div>
           </div>
         </div>
+          )}
+        </>,
+        document.body
       )}
     </>
   );
