@@ -118,12 +118,19 @@ function applyInfo(targets: InstInfoTarget[], info: HubInfo): string[] {
   return applied;
 }
 
-export function InstInfoWidget({ appName, targets }: { appName: string; targets: InstInfoTarget[] }) {
+export function InstInfoWidget({ appName, targets, placement = 'floating' }: { appName: string; targets: InstInfoTarget[]; placement?: 'floating' | 'topbar' }) {
   const [open, setOpen] = useState(false);
   const [info, setInfo] = useState<HubInfo | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
   const [mecanoInput, setMecanoInput] = useState(getMecano());
+
+  // أيقونة المبنى — مشتركة بين الزر العائم وزر الشريط العلوي
+  const buildingIcon = (cls: string) => (
+    <svg viewBox="0 0 24 24" className={cls} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" /><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" /><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" /><path d="M10 6h4" /><path d="M10 10h4" /><path d="M10 14h4" /><path d="M10 18h4" />
+    </svg>
+  );
 
   // تطبيق صامت تلقائي عند الإقلاع: آخر معطيات من المركز تُكتب مباشرة (طلب صريح من المستخدم)
   useEffect(() => {
@@ -200,20 +207,33 @@ export function InstInfoWidget({ appName, targets }: { appName: string; targets:
     ['academicYear', 'السنة الدراسية/المالية'],
   ];
 
+  const openPanel = () => { setMecanoInput(getMecano()); setOpen(true); setMsg(null); };
+
   return (
     <>
-      {/* الزر العائم */}
-      <button
-        onClick={() => { setMecanoInput(getMecano()); setOpen(true); setMsg(null); }}
-        title="معطيات المؤسسة الرسمية من مركز البوابة"
-        className="no-print fixed bottom-[18px] left-[140px] w-[52px] h-[52px] z-[9999] rounded-2xl grid place-items-center text-white shadow-lg border-2 border-amber-400 transition-transform hover:-translate-y-0.5"
-        style={{ background: 'linear-gradient(145deg,#065f46,#047857 55%,#134e4a)' }}
-        dir="rtl"
-      >
-        <svg viewBox="0 0 24 24" className="w-6 h-6 text-amber-300" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" /><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" /><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" /><path d="M10 6h4" /><path d="M10 10h4" /><path d="M10 14h4" /><path d="M10 18h4" />
-        </svg>
-      </button>
+      {/* الزر: عائم (الوضع الافتراضي، لبقية التطبيقات) أو في الشريط العلوي (paie) */}
+      {placement === 'topbar' ? (
+        <button
+          onClick={openPanel}
+          title="معطيات المؤسسة الرسمية من مركز البوابة"
+          className="no-print inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-white font-bold text-xs shadow border-2 border-amber-400 transition-transform hover:-translate-y-0.5 shrink-0"
+          style={{ background: 'linear-gradient(145deg,#065f46,#047857 55%,#134e4a)' }}
+          dir="rtl"
+        >
+          {buildingIcon('w-4 h-4 text-amber-300 shrink-0')}
+          <span className="whitespace-nowrap">معطيات المؤسسة</span>
+        </button>
+      ) : (
+        <button
+          onClick={openPanel}
+          title="معطيات المؤسسة الرسمية من مركز البوابة"
+          className="no-print fixed bottom-[18px] left-[140px] w-[52px] h-[52px] z-[9999] rounded-2xl grid place-items-center text-white shadow-lg border-2 border-amber-400 transition-transform hover:-translate-y-0.5"
+          style={{ background: 'linear-gradient(145deg,#065f46,#047857 55%,#134e4a)' }}
+          dir="rtl"
+        >
+          {buildingIcon('w-6 h-6 text-amber-300')}
+        </button>
+      )}
 
       {/* اللوحة */}
       {open && (

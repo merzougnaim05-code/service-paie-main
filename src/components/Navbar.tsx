@@ -33,6 +33,8 @@ interface NavbarProps {
   onSelectTab: (tab: string) => void;
   onSelectDoc: (doc: string) => void;
   institutionName: string;
+  /** عقدة اختيارية تُعرض في نهاية شريط الأزرار (مثل زر «معطيات المؤسسة») */
+  instInfo?: React.ReactNode;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -42,7 +44,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSelectDeviceMode,
   onSelectTab,
   onSelectDoc,
-  institutionName
+  institutionName,
+  instInfo
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -354,6 +357,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
             </button>
           ))}
+          {instInfo}
         </div>
       </div>
 
