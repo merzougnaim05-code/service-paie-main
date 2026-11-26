@@ -15,6 +15,7 @@ const DOCS_LIST: string[] = [
   'شهادة الحالة العائلية / شهادة فردية للحالة المدنية',
   'الشهادات المدرسية',
   'شهادة عدم العمل للزوج (ة) إن وجدت',
+  'شهادة عدم تقاضي المنح العائلية للزوج(ة)',
   'قرار التكفل للأطفال تحت الكفالة',
   'نسخة من آخر درجة / ترقية',
   'المؤهل العلمي',
@@ -26,6 +27,24 @@ const DOCS_LIST: string[] = [
 
 export const DocsRequest: React.FC<DocsRequestProps> = ({ employee, settings }) => {
   const job = JOBS[employee.jobIdx];
+
+  // النجمة في عمود «العدد»: تُسجَّل بالضغط على الخلية وتُزال بالضغط مرة أخرى
+  const [starred, setStarred] = React.useState<boolean[]>(() => DOCS_LIST.map(() => false));
+  // التصفية: عرض الوثائق المؤشرة فقط
+  const [showStarredOnly, setShowStarredOnly] = React.useState(false);
+
+  const toggleStar = (i: number) => {
+    setStarred(prev => {
+      const next = [...prev];
+      next[i] = !next[i];
+      return next;
+    });
+  };
+
+  const starredCount = starred.filter(Boolean).length;
+  const visibleDocs = DOCS_LIST.map((doc, i) => ({ doc, i })).filter(
+    ({ i }) => !showStarredOnly || starred[i],
+  );
 
   return (
     <div className="dr-wrapper">
@@ -111,6 +130,30 @@ export const DocsRequest: React.FC<DocsRequestProps> = ({ employee, settings }) 
         .dr-page .td-cell-input { display: inline-block; width: 90%; border: none; min-height: 1em; unicode-bidi: plaintext; }
         .dr-page .td-cell-input:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }
 
+        /* خلية العدد: الضغط عليها يسجّل نجمة ★ أو يزيلها (تبديل) */
+        .dr-page .td-count-cell { cursor: pointer; user-select: none; -webkit-user-select: none; }
+        .dr-page .td-count-cell:hover { background: #eef5ff; }
+        .dr-page .td-star { font-size: 17pt; line-height: 1; color: #000; }
+
+        /* شريط التصفية (خارج منطقة الطباعة) */
+        .dr-filter-bar {
+          display: flex; align-items: center; gap: 10px; justify-content: flex-start;
+          max-width: 210mm; margin: 0 auto 10px auto; padding: 0 4px;
+          font-family: 'Amiri', 'Traditional Arabic', 'Tahoma', system-ui, sans-serif;
+          direction: rtl;
+        }
+        .dr-filter-bar button {
+          cursor: pointer; border: 1.5px solid #047857; background: #ecfdf5; color: #065f46;
+          border-radius: 8px; padding: 6px 14px; font-size: 14px; font-weight: bold;
+          font-family: inherit;
+        }
+        .dr-filter-bar button:hover { background: #d1fae5; }
+        .dr-filter-bar button.active { background: #047857; color: #fff; }
+        .dr-filter-bar .dr-filter-hint { font-size: 13px; color: #374151; }
+        @media print {
+          .dr-filter-bar { display: none !important; }
+        }
+
         .dr-page .notes-section { font-size: 9.5pt; line-height: 1.35; margin-top: 10px; }
         .dr-page .notes-section strong { font-size: 11.5pt; text-decoration: underline; display: block; margin-bottom: 3px; }
         .dr-page .notes-section p { margin: 2px 0; text-align: justify; }
@@ -123,6 +166,24 @@ export const DocsRequest: React.FC<DocsRequestProps> = ({ employee, settings }) 
           font-weight: bold;
         }
       `}</style>
+
+      {/* شريط التصفية — خارج منطقة الطباعة */}
+      <div className="dr-filter-bar print:hidden">
+        <button
+          type="button"
+          onClick={() => setShowStarredOnly(v => !v)}
+          className={showStarredOnly ? 'active' : ''}
+        >
+          {showStarredOnly ? 'عرض كل الوثائق' : 'عرض المؤشرة فقط ★'}
+        </button>
+        <span className="dr-filter-hint">
+          {showStarredOnly
+            ? `تُعرض الوثائق المؤشرة فقط (${starredCount})`
+            : starredCount > 0
+              ? `الوثائق المؤشرة: ${starredCount} — اضغط على خلية العدد لتسجيل نجمة أو إزالتها`
+              : 'اضغط على خلية العدد لتسجيل نجمة ★ للوثيقة المطلوبة'}
+        </span>
+      </div>
 
       <div className="dr-page" id="docs-request">
         {/* Top Centered Header Lines */}
@@ -177,11 +238,17 @@ export const DocsRequest: React.FC<DocsRequestProps> = ({ employee, settings }) 
             </tr>
           </thead>
           <tbody>
-            {DOCS_LIST.map((doc, i) => (
+            {visibleDocs.map(({ doc, i }) => (
               <tr key={i}>
                 <td>{i + 1}</td>
                 <td className="td-doc-name">{doc}</td>
-                <td><span className="td-cell-input" contentEditable suppressContentEditableWarning></span></td>
+                <td
+                  className="td-count-cell"
+                  onClick={() => toggleStar(i)}
+                  title="اضغط لتسجيل نجمة أو إزالتها"
+                >
+                  <span className="td-star">{starred[i] ? '★' : ''}</span>
+                </td>
                 <td><span className="td-cell-input" contentEditable suppressContentEditableWarning></span></td>
               </tr>
             ))}
