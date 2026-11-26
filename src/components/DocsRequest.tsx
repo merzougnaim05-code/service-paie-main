@@ -28,22 +28,22 @@ const DOCS_LIST: string[] = [
 export const DocsRequest: React.FC<DocsRequestProps> = ({ employee, settings }) => {
   const job = JOBS[employee.jobIdx];
 
-  // النجمة في عمود «العدد»: تُسجَّل بالضغط على الخلية وتُزال بالضغط مرة أخرى
-  const [starred, setStarred] = React.useState<boolean[]>(() => DOCS_LIST.map(() => false));
-  // التصفية: عرض الوثائق المؤشرة فقط
+  // العدد: الضغط على الخلية يسجّل الرقم 1 أو يزيله (تبديل)
+  const [marked, setMarked] = React.useState<boolean[]>(() => DOCS_LIST.map(() => false));
+  // التصفية: عرض الوثائق المؤشرة فقط (التي عددها 1)
   const [showStarredOnly, setShowStarredOnly] = React.useState(false);
 
-  const toggleStar = (i: number) => {
-    setStarred(prev => {
+  const toggleMark = (i: number) => {
+    setMarked(prev => {
       const next = [...prev];
       next[i] = !next[i];
       return next;
     });
   };
 
-  const starredCount = starred.filter(Boolean).length;
+  const markedCount = marked.filter(Boolean).length;
   const visibleDocs = DOCS_LIST.map((doc, i) => ({ doc, i })).filter(
-    ({ i }) => !showStarredOnly || starred[i],
+    ({ i }) => !showStarredOnly || marked[i],
   );
 
   return (
@@ -130,10 +130,10 @@ export const DocsRequest: React.FC<DocsRequestProps> = ({ employee, settings }) 
         .dr-page .td-cell-input { display: inline-block; width: 90%; border: none; min-height: 1em; unicode-bidi: plaintext; }
         .dr-page .td-cell-input:focus { outline: 1.5px solid #0070C0; background: #eef5ff; }
 
-        /* خلية العدد: الضغط عليها يسجّل نجمة ★ أو يزيلها (تبديل) */
+        /* خلية العدد: الضغط عليها يسجّل الرقم 1 أو يزيله (تبديل) */
         .dr-page .td-count-cell { cursor: pointer; user-select: none; -webkit-user-select: none; }
         .dr-page .td-count-cell:hover { background: #eef5ff; }
-        .dr-page .td-star { font-size: 17pt; line-height: 1; color: #000; }
+        .dr-page .td-mark { font-size: 17pt; line-height: 1; color: #000; font-weight: bold; }
 
         /* شريط التصفية (خارج منطقة الطباعة) */
         .dr-filter-bar {
@@ -174,14 +174,14 @@ export const DocsRequest: React.FC<DocsRequestProps> = ({ employee, settings }) 
           onClick={() => setShowStarredOnly(v => !v)}
           className={showStarredOnly ? 'active' : ''}
         >
-          {showStarredOnly ? 'عرض كل الوثائق' : 'عرض المؤشرة فقط ★'}
+          {showStarredOnly ? 'عرض كل الوثائق' : 'عرض المؤشرة فقط'}
         </button>
         <span className="dr-filter-hint">
           {showStarredOnly
-            ? `تُعرض الوثائق المؤشرة فقط (${starredCount})`
-            : starredCount > 0
-              ? `الوثائق المؤشرة: ${starredCount} — اضغط على خلية العدد لتسجيل نجمة أو إزالتها`
-              : 'اضغط على خلية العدد لتسجيل نجمة ★ للوثيقة المطلوبة'}
+            ? `تُعرض الوثائق المؤشرة فقط (${markedCount})`
+            : markedCount > 0
+              ? `الوثائق المؤشرة: ${markedCount} — اضغط على خلية العدد لتسجيل الرقم 1 أو إزالته`
+              : 'اضغط على خلية العدد لتسجيل الرقم 1 للوثيقة المطلوبة'}
         </span>
       </div>
 
@@ -244,10 +244,10 @@ export const DocsRequest: React.FC<DocsRequestProps> = ({ employee, settings }) 
                 <td className="td-doc-name">{doc}</td>
                 <td
                   className="td-count-cell"
-                  onClick={() => toggleStar(i)}
-                  title="اضغط لتسجيل نجمة أو إزالتها"
+                  onClick={() => toggleMark(i)}
+                  title="اضغط لتسجيل الرقم 1 أو إزالته"
                 >
-                  <span className="td-star">{starred[i] ? '★' : ''}</span>
+                  <span className="td-mark">{marked[i] ? '1' : ''}</span>
                 </td>
                 <td><span className="td-cell-input" contentEditable suppressContentEditableWarning></span></td>
               </tr>
